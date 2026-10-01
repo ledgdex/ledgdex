@@ -236,6 +236,11 @@ def flags(c):
     return (', ' + ', '.join(f)) if f else ''
 
 
+def favicon():
+    import importlib.resources
+    return importlib.resources.files('dexweb').joinpath('favicon.ico').read_bytes()
+
+
 def generated(page):
     b = page.get('body') if isinstance(page, dict) else None
     return bool(b) and isinstance(b[0], str) and b[0].startswith(MARKER)
@@ -284,8 +289,12 @@ def render(dex, build=True):
     data = author + pages(led, [p.get('title', '') for p in author])
     with open(data_path, 'w', encoding='utf-8') as f:
         f.write(json.dumps(data, indent=4, ensure_ascii=False))
-    os.makedirs(os.path.join(dex, 'gen'), exist_ok=True)
+    os.makedirs(os.path.join(dex, 'gen', 'assets'), exist_ok=True)
     shutil.copyfile(os.path.join(dex, LEDGER), os.path.join(dex, 'gen', LEDGER))
+    icon = os.path.join(dex, 'gen', 'assets', 'favicon.ico')
+    if not os.path.exists(icon):  # dexweb's own icon, as dexgen adds when it makes gen/ itself
+        with open(icon, 'wb') as f:
+            f.write(favicon())
     if build:
         dexgen_build(dex)
 

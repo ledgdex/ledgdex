@@ -86,7 +86,7 @@ for (const name of readdirSync(join(V, 'dex'))) {
       index_javascript: '<script src="i.js"></script>' });
     const data = JSON.parse(readFileSync(join(V, 'dex', base, 'data.json'), 'utf8'));
     got = Object.fromEntries(Object.entries(buildGen(data, cfg)).map(([p, h]) => ['gen/' + p, new TextEncoder().encode(h)]));
-    for (const f of ['gen/ledgdex.jsonl', 'gen/styles.css']) got[f] = new Uint8Array(readFileSync(join(dir, f)));
+    for (const f of ['gen/ledgdex.jsonl', 'gen/styles.css', 'gen/assets/favicon.ico']) got[f] = new Uint8Array(readFileSync(join(dir, f)));
   } else {
     const cfg = JSON.parse(readFileSync(join(dir, 'config.json'), 'utf8'));
     got = makeDex(new Uint8Array(readFileSync(join(dir, 'ledgdex.jsonl'))), cfg.dexname, template).files;

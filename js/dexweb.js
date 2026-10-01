@@ -86,5 +86,6 @@ export function makeDex(data, dexname, template, publish = {}) {
   };
   for (const [path, html] of Object.entries(buildGen(pages(led), config))) files['gen/' + path] = html;
   for (const p of Object.keys(files)) if (typeof files[p] === 'string') files[p] = enc.encode(files[p]);
-  return { files, dirs: ['to_add/', 'gen/assets/'] };
+  files['gen/assets/favicon.ico'] = Uint8Array.from(atob(template.favicon), (c) => c.charCodeAt(0));  // dexweb's icon
+  return { files, dirs: ['to_add/'] };
 }

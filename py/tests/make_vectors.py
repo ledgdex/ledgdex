@@ -248,10 +248,12 @@ def build():
         g.save_dexname_in_config(tmp, '')
         with open(os.path.join(tmp, 'config.json')) as f:
             config = json.load(f)
-        import importlib_resources
+        import base64, importlib_resources
+        from ledgdex.render import favicon
         styles = importlib_resources.files('dexweb').joinpath('styles.css').read_text()
-        files['../js/dexweb-template.json'] = json.dumps({'config': config, 'styles': styles}, indent=1,
-                                                         ensure_ascii=False) + '\n'
+        files['../js/dexweb-template.json'] = json.dumps({'config': config, 'styles': styles,
+                                                          'favicon': base64.b64encode(favicon()).decode()},
+                                                         indent=1, ensure_ascii=False) + '\n'
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

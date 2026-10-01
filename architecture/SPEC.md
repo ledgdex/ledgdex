@@ -696,7 +696,7 @@ ledgdex/
   js/
     sha.js                SHA-256 and SHA-512, synchronous
     canon.js  ed25519.js  core.js  state.js     the same functions as the Python modules
-    viewer.html           static page: load a ledger, verify, show state, compose and sign messages
+    viewer.html viewer.js static page: load a ledger, verify, show state, sign messages, keep your own ledger
     test.mjs              node js/test.mjs: JavaScript against the shared vectors
   vectors/                shared test vectors used by both test suites: ed25519.json, canon.json, signatures.json,
                           and ledgers/ (test ledgers with their expected verification and canon(state))
@@ -762,7 +762,9 @@ use the owner key (4).
 
 The viewer page (`js/viewer.html`) does the reading and signing in the browser: it loads a ledger from an address or a
 file, verifies it, shows its state, and signs `claim`, `paid`, `confirmed`, `dispute`, `bid` and `reveal` messages
-as downloadable files. It never needs a server of its own, and its key is generated or imported in the browser,
+as downloadable files. It also keeps the viewer's own ledger (new, or opened from a file or address): each message it
+signs is appended as `sent`, "collect receipts" appends `receipt` entries for the loaded ledger's records of them,
+and the ledger is downloaded to be published, so a browser-only buyer has full triple entry. It never needs a server of its own, and its key is generated or imported in the browser,
 stored there, and never uploaded. A bid's amount and nonce are stored in the browser until the reveal.
 
 ## Build status

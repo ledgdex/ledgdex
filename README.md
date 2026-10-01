@@ -105,7 +105,9 @@ ledgdex state shop --root https://root.github.io                "allow": "admitt
 
 ## JavaScript and the viewer
 
-`js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification and the state function. `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte; `python py/tests/make_vectors.py` regenerates them. `js/viewer.html` loads any ledger by address or file, verifies it in the browser, shows its state, and signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser. Serve the `js/` folder from any static host (modules do not load from `file://`) and open `viewer.html?ledger=https://farm.github.io`.
+`js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification and the state function. `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte; `python py/tests/make_vectors.py` regenerates them. `js/viewer.html` loads any ledger by address or file, verifies it in the browser, shows its state, and signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser. It also keeps your own ledger: create one or open yours, and every message you sign is kept as `sent`; "Collect receipts" keeps the seller's records of them. Download your ledger and publish it as `ledgdex.jsonl` in your dex, where sellers collect what you sent with `ledgdex record --from`. So a buyer with only a browser gets full triple entry.
+
+The viewer is served at https://matrixdex.github.io/ledgdex/ (GitHub Pages, from `main`), for example `https://matrixdex.github.io/ledgdex/?ledger=https://farm.github.io`. Any static host works; modules do not load from `file://`.
 
 ## Checking for tampering
 

@@ -38,7 +38,34 @@
 <body>
 <main>
   <h1>Ledgdex viewer</h1>
-  <p class="dim">Load a ledger, check every signature and hash in your browser, and sign messages to it. Nothing is uploaded: keys stay in this browser, and messages are files you download and send.</p>
+  <p class="dim">Load a ledger, check every signature and hash in your browser, and sign messages to it. Keep your own ledger here too: copies of what you send and the receipts sellers give you. Nothing is uploaded: keys stay in this browser, and ledgers and messages are files you download.</p>
+
+  <h2>Your key</h2>
+  <p class="dim">Kept in this browser's storage and never sent anywhere. Messages to other ledgers are signed with a self's owner key, so use the key your own ledger names as its owner.</p>
+  <div class="row">
+    <button id="gen">New key</button>
+    <input id="secret" type="password" placeholder="or paste a secret key (64 hex characters)" aria-label="Secret key">
+    <button id="import">Use this key</button>
+    <button id="forget">Forget key</button>
+  </div>
+  <p>Public key: <code id="pub">none</code></p>
+
+  <h2>Your ledger</h2>
+  <p class="dim">Optional, and needed for triple entry: every message you sign is kept here as "sent", and the seller's records of them as receipts. Download it and publish it in your dex (as <code>ledgdex.jsonl</code>), where sellers collect what you sent.</p>
+  <div class="row">
+    <input id="ownurl" type="text" placeholder="your dex address or ledgdex.jsonl URL" aria-label="Your ledger address">
+    <button id="ownload">Open</button>
+    <input id="ownfile" type="file" accept=".jsonl,text/plain" aria-label="Your ledger file">
+  </div>
+  <details>
+    <summary class="dim">New ledger</summary>
+    <label for="newname">Name</label><input id="newname" type="text">
+    <label for="newabout">About</label><input id="newabout" type="text">
+    <label for="newdex">Your dex address (where you will publish it)</label><input id="newdex" type="text">
+    <div class="row"><button id="newledger">Create with your key</button></div>
+  </details>
+  <div id="own"></div>
+  <div class="row"><button id="ownsave" class="hidden">Download your ledger</button><button id="receipts" class="hidden">Collect receipts from the ledger below</button></div>
 
   <h2>Ledger</h2>
   <div class="row">
@@ -51,16 +78,6 @@
     <div class="row"><input id="rooturl" type="text" placeholder="root dex address or ledgdex.jsonl URL" aria-label="Root ledger address"></div>
   </details>
   <div id="result"></div>
-
-  <h2>Your key</h2>
-  <p class="dim">Your key signs messages from this browser. It is kept in this browser's storage and never sent anywhere. Messages to other ledgers are signed with a self's owner key, so use the key your own ledger names as its owner.</p>
-  <div class="row">
-    <button id="gen">New key</button>
-    <input id="secret" type="password" placeholder="or paste a secret key (64 hex characters)" aria-label="Secret key">
-    <button id="import">Use this key</button>
-    <button id="forget">Forget key</button>
-  </div>
-  <p>Public key: <code id="pub">none</code></p>
 
   <h2>Sign a message to this ledger</h2>
   <div class="row">
@@ -76,216 +93,12 @@
   <div id="form"></div>
   <div class="row"><button id="signit" class="primary">Sign</button></div>
   <div id="out" class="hidden">
-    <p class="status ok">Signed. Send this file to the ledger owner, or keep it in your own ledger as "sent" with the ledgdex tool.</p>
+    <p id="signed" class="status ok"></p>
     <pre id="msg"></pre>
     <div class="row"><button id="download">Download</button><button id="copy">Copy</button></div>
   </div>
-  <p id="err" class="status bad"></p>
+  <p id="err" class="status bad" role="alert"></p>
 </main>
-<script type="module">
-import { Ledger, message, publicKey, Invalid, newSecret } from './core.js';
-import { state } from './state.js';
-import { canonString, hash } from './canon.js';
-import { hex, unhex } from './sha.js';
-
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const short = (s) => esc(s.split(':')[0] + ':' + s.split(':')[1].slice(0, 12));
-const store = {
-  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: the key lasts for this page */ } },
-  del(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing stored */ } },
-};
-let led = null, st = null, secret = null, lastMsg = null;
-
-function ledgerURL(u) {
-  u = u.trim();
-  return u.endsWith('.jsonl') ? u : u.replace(/\/+$/, '') + '/ledgdex.jsonl';
-}
-async function fetchBytes(u) {
-  const r = await fetch(ledgerURL(u), { cache: 'no-store' });
-  if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + ledgerURL(u));
-  return new Uint8Array(await r.arrayBuffer());
-}
-async function rootLedger() {
-  const u = $('rooturl').value.trim();
-  return u ? new Ledger(await fetchBytes(u)) : null;
-}
-function money(cur, n) {
-  const d = { INR: 2, USD: 2, EUR: 2, GBP: 2, JPY: 0, BTC: 8 }[cur];
-  if (d === undefined) return esc(cur) + ' ' + n.toLocaleString('en');
-  const sign = n < 0 ? '-' : '', a = Math.abs(n), major = Math.floor(a / 10 ** d), minor = a % 10 ** d;
-  return esc(cur) + ' ' + sign + major.toLocaleString('en') + (d ? '.' + String(minor).padStart(d, '0') : '');
-}
-
-function show(data, root) {
-  const t0 = performance.now();
-  led = new Ledger(data, root);
-  st = led.header ? state(led, root) : null;
-  const ms = Math.round(performance.now() - t0);
-  const r = $('result');
-  if (!led.header) { r.innerHTML = '<p class="status bad">Not a ledger: ' + esc(led.error) + '</p>'; buildForm(); return; }
-  const verdict = led.whole ? '<span class="status ok">Whole</span>: every hash and signature checks out'
-    : '<span class="status bad">Broken at seq ' + led.broken_at + '</span>: ' + esc(led.error);
-  const open = led.entries[0] ? led.entries[0].msg.body : { about: '', dex: '' };
-  let h = '<p>' + verdict + ' <span class="dim">(' + led.entries.length + ' entries checked in ' + ms + ' ms)</span></p>' +
-    '<p><b>' + esc(led.header.name) + '</b>' + (open.about ? ': ' + esc(open.about) : '') +
-    (open.dex ? ' · <a href="' + esc(open.dex) + '">dex</a>' : '') + '</p>' +
-    '<p class="dim">Ledger id <code>' + esc(led.id) + '</code><br>Owner key <code>' + esc(st.owner) + '</code>' +
-    (st.devices.length ? '<br>Device keys ' + st.devices.map((k) => '<code>' + esc(k) + '</code>').join(' ') : '') + '</p>';
-  const offers = led.entries.map((e, n) => [led.ids[n], e]).filter(([, e]) => e.msg.type === 'offer');
-  if (offers.length) {
-    h += '<h2>Offers</h2><div class="scroll"><table><tr><th>Item</th><th>Price</th><th>Left</th><th>Status</th><th>Offer id</th></tr>';
-    for (const [id, e] of offers) {
-      const b = e.msg.body, o = st.offers[id];
-      h += '<tr><td>' + esc(b.item.title) + '</td><td>' + money(b.currency, b.price) + ' / ' + esc(b.unit) +
-        '</td><td>' + o.remaining + ' of ' + b.quantity + '</td><td>' + o.status + '</td><td><code>' + short(id) + '</code></td></tr>';
-    }
-    h += '</table></div>';
-  }
-  const claims = Object.entries(st.claims);
-  if (claims.length) {
-    h += '<h2>Claims</h2><div class="scroll"><table><tr><th>Claim id</th><th>Buyer</th><th>Qty</th><th>Status</th></tr>';
-    for (const [id, c] of claims) {
-      const flags = ['paid', 'received', 'delivered', 'confirmed'].filter((k) => k in c).join(', ');
-      h += '<tr><td><code>' + short(id) + '</code></td><td><code>' + short(c.buyer) + '</code></td><td>' + c.quantity +
-        '</td><td>' + c.status + (c.reason ? ' (' + c.reason + ')' : '') + (flags ? '<br><span class="dim">' + flags + '</span>' : '') + '</td></tr>';
-    }
-    h += '</table></div>';
-  }
-  const auctions = Object.entries(st.auctions);
-  if (auctions.length) {
-    h += '<h2>Auctions</h2><div class="scroll"><table><tr><th>Item</th><th>Status</th><th>Bids</th><th>Close</th><th>Winner</th></tr>';
-    for (const [id, a] of auctions) {
-      const b = led.entries[led.find(id)].msg.body;
-      h += '<tr><td>' + esc(b.item.title) + '<br><code>' + short(id) + '</code></td><td>' + a.status + '</td><td>' + a.bids +
-        '</td><td>' + esc(b.close) + '<br><span class="dim">reveal by ' + esc(b.reveal_until) + '</span></td><td>' +
-        (a.winner ? '<code>' + short(a.winner) + '</code> ' + money(b.currency, a.amount) : '') + '</td></tr>';
-    }
-    h += '</table></div>';
-  }
-  const listings = Object.entries(st.listings);
-  if (listings.length) {
-    h += '<h2>Listed ledgers</h2><ul>' + listings.map(([id, l]) => '<li><a href="#" data-load="' + esc(l.url) + '">' +
-      esc(l.url) + '</a> <code>' + short(id) + '</code>' + (l.note ? ' ' + esc(l.note) : '') + '</li>').join('') + '</ul>';
-  }
-  if (st.ignored.length) {
-    h += '<h2>Ignored entries</h2><p class="dim">' + st.ignored.map((i) => 'seq ' + i.seq + ': ' + i.reason).join(' · ') + '</p>';
-  }
-  h += '<h2>Entries</h2><div class="scroll"><table><tr><th>Seq</th><th>Time</th><th>Type</th><th>By</th><th>Entry id</th></tr>' +
-    led.entries.map((e, n) => '<tr><td>' + n + '</td><td>' + esc(e.time) + '</td><td>' + esc(e.msg.type) + '</td><td><code>' +
-      short(e.msg.by) + '</code></td><td><code>' + short(led.ids[n]) + '</code></td></tr>').join('') + '</table></div>';
-  r.innerHTML = h;
-  r.querySelectorAll('[data-load]').forEach((a) => a.addEventListener('click', (ev) => {
-    ev.preventDefault(); $('url').value = a.dataset.load; load();
-  }));
-  buildForm();
-}
-
-async function load() {
-  $('err').textContent = '';
-  try {
-    show(await fetchBytes($('url').value), await rootLedger());
-  } catch (e) {
-    $('result').innerHTML = '<p class="status bad">' + esc(e.message) +
-      '</p><p class="dim">The site must allow cross-origin reads (GitHub Pages does), or download the file and open it here.</p>';
-  }
-}
-
-// ---------- key ----------
-function setKey(s) {
-  secret = s;
-  $('pub').textContent = s ? publicKey(s) : 'none';
-  if (s) store.set('ledgdex-secret', hex(s)); else store.del('ledgdex-secret');
-}
-$('gen').onclick = () => setKey(newSecret());
-$('import').onclick = () => {
-  const v = $('secret').value.trim().toLowerCase();
-  if (!/^[0-9a-f]{64}$/.test(v)) { $('err').textContent = 'A secret key is 64 hex characters.'; return; }
-  $('secret').value = ''; setKey(unhex(v)); $('err').textContent = '';
-};
-$('forget').onclick = () => setKey(null);
-const saved = store.get('ledgdex-secret');
-if (saved && /^[0-9a-f]{64}$/.test(saved)) setKey(unhex(saved));
-
-// ---------- compose ----------
-function pick(id, options, label) {
-  return '<label for="' + id + '">' + label + '</label><select id="' + id + '">' +
-    (options.length ? options.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('')
-      : '<option value="">(none in this ledger)</option>') + '</select>';
-}
-const field = (id, label, value = '', type = 'text') =>
-  '<label for="' + id + '">' + label + '</label><input id="' + id + '" type="' + type + '" value="' + esc(value) + '">';
-
-function buildForm() {
-  const t = $('type').value, f = $('form');
-  const offers = st ? Object.entries(st.offers).filter(([, o]) => o.status === 'open').map(([id, o]) => [id, o.title + ' (' + o.remaining + ' left)']) : [];
-  const claims = st ? Object.entries(st.claims).filter(([, c]) => c.status !== 'rejected').map(([id, c]) => [id, short(id) + ' ' + c.status])
-    .concat(Object.entries(st.auctions).filter(([, a]) => a.winner).map(([id, a]) => [id, 'auction ' + short(id) + ' ' + a.status])) : [];
-  const auctions = st ? Object.entries(st.auctions).map(([id, a]) => [id, led.entries[led.find(id)].msg.body.item.title + ' (' + a.status + ')']) : [];
-  if (t === 'claim') f.innerHTML = pick('f-offer', offers, 'Offer') + field('f-qty', 'Quantity', '1', 'number');
-  else if (t === 'paid') f.innerHTML = pick('f-claim', claims, 'Claim') + field('f-method', 'Method', 'upi') + field('f-ref', 'Reference');
-  else if (t === 'confirmed') f.innerHTML = pick('f-claim', claims, 'Claim');
-  else if (t === 'dispute') f.innerHTML = pick('f-claim', claims, 'Claim') + field('f-text', 'What went wrong');
-  else if (t === 'bid') f.innerHTML = pick('f-auction', auctions, 'Auction') + field('f-amount', 'Amount (smallest unit, kept secret until you reveal)', '', 'number');
-  else f.innerHTML = pick('f-auction', auctions, 'Auction') + '<p class="dim">Uses the amount and nonce this browser saved when you bid.</p>';
-}
-$('type').onchange = buildForm;
-
-function body() {
-  const t = $('type').value, v = (id) => $(id) ? $(id).value : '';
-  if (!led || !led.whole) throw new Invalid('load a whole ledger first');
-  if (t === 'claim') {
-    const id = v('f-offer');
-    if (!id) throw new Invalid('choose an offer');
-    const m = led.entries[led.find(id)].msg;
-    return { offer: id, offer_hash: hash(m), quantity: parseInt(v('f-qty'), 10), price: m.body.price };
-  }
-  if (t === 'paid') return { claim: v('f-claim'), method: v('f-method'), ref: v('f-ref') };
-  if (t === 'confirmed') return { claim: v('f-claim') };
-  if (t === 'dispute') return { claim: v('f-claim'), text: v('f-text'), evidence: [] };
-  const auction = v('f-auction'), slot = 'ledgdex-bid-' + publicKey(secret) + '-' + auction;
-  if (t === 'bid') {
-    const amount = parseInt(v('f-amount'), 10);
-    if (!(amount >= 0)) throw new Invalid('enter the amount');
-    if (store.get(slot)) throw new Invalid('this key already bid in this auction (one bid per key)');
-    const nonce = hex(crypto.getRandomValues(new Uint8Array(32)));
-    store.set(slot, JSON.stringify({ amount, nonce }));
-    return { auction, commit: hash({ amount, nonce }) };
-  }
-  const saved = JSON.parse(store.get(slot) || 'null');
-  if (!saved) throw new Invalid('this browser has no bid of this key for that auction');
-  return { auction, amount: saved.amount, nonce: saved.nonce };
-}
-
-$('signit').onclick = () => {
-  $('err').textContent = '';
-  try {
-    if (!secret) throw new Invalid('make or paste a key first');
-    lastMsg = message(secret, $('type').value, body());
-    $('msg').textContent = canonString(lastMsg);
-    $('out').classList.remove('hidden');
-  } catch (e) {
-    $('err').textContent = e.message;
-    $('out').classList.add('hidden');
-  }
-};
-$('download').onclick = () => {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([canonString(lastMsg) + '\n'], { type: 'application/json' }));
-  a.download = lastMsg.type + '-' + hash(lastMsg).slice(7, 19) + '.json';
-  a.click();
-};
-$('copy').onclick = () => navigator.clipboard.writeText(canonString(lastMsg));
-$('load').onclick = load;
-$('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') load(); });
-$('file').onchange = async () => {
-  const f = $('file').files[0];
-  if (f) show(new Uint8Array(await f.arrayBuffer()), await rootLedger().catch(() => null));
-};
-const q = new URLSearchParams(location.search);
-if (q.get('ledger')) { $('url').value = q.get('ledger'); if (q.get('root')) $('rooturl').value = q.get('root'); load(); }
-buildForm();
-</script>
+<script type="module" src="viewer.js"></script>
 </body>
 </html>

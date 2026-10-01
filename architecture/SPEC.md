@@ -60,6 +60,27 @@ the buyer's copy of that record. That is triple-entry accounting. Nobody else is
 6. The seller records the payment, records delivery, and the buyer records confirmation.
 7. If something goes wrong, either side opens a dispute, and the offer's arbiter records a ruling.
 
+## Bots: a cleaning robot in a mall (draft, section 10)
+
+Selves include machines. A vacuum robot cleans the floor of a mall, and the shops on that floor pay it per pass in
+front of their shop. Every shop and the robot have a dex and a ledgdex; the mall runs the index, the root and the
+clearing ledger, and arbitrates.
+
+1. The mall admits the robot and the shops in the root, and lists their ledgers in its index.
+2. The robot's operator holds the robot's owner key off the robot; the robot itself holds only a device key. A stolen
+   robot is a `device_revoke`, not a lost identity.
+3. The robot offers passes: "floor cleaning, MALL 50 per pass in front of your shop", allowed to admitted selves.
+4. Each shop's system claims a month of passes (say 60) from the robot's ledger.
+5. After each pass, the robot records a metered delivery against that shop's claim: one more pass, with evidence (a
+   cleaning log or photos, linked by address and hash). The shop's system checks the evidence and confirms the passes.
+   Each side keeps the other's signed entries as receipts.
+6. At the end of the month the mall settles in mall credits: from the confirmed passes it moves credits from each
+   shop's balance to the robot's, in its clearing ledger. The robot records what it received. Shops buy credits from
+   the mall, and the robot's operator cashes them out, outside the ledger.
+7. A shop that disputes a pass opens a dispute; the mall, as arbiter, rules.
+
+No step needs a person. Every pass is evidence in two ledgers, and the monthly settlement is a sum anyone can check.
+
 ## What it protects against, and what it does not
 
 Protected (detectable by anyone, with signed proof):
@@ -609,6 +630,83 @@ Sending a message to a ledger owner: any channel that carries a JSON file: email
 upload, USB. The owner's tool validates the message and records it. The sender records a `sent` entry in their own
 ledger and, once the owner's entry is published, a `receipt` entry.
 
+## 10. Bots and metered services (draft, not built)
+
+This section extends sections 5 and 6 for selves that are machines and services sold per unit. It is a draft: until
+it is built (milestone 11), the rules above apply unchanged.
+
+### 10.1 Metered delivery
+
+A claim for `quantity` units may be delivered and confirmed in parts.
+
+| type | change | body |
+|---|---|---|
+| `delivered` | adds optional `count` and `evidence` | `{"claim": id, "note": str, "count": int, "evidence": [{"url": str, "hash": id}]}` |
+| `confirmed` | adds optional `count` | `{"claim": id, "count": int}` |
+| `received` | adds optional `ref` | `{"claim": id, "amount": int, "ref": str}` |
+
+- `count >= 1`. Without `count`, a `delivered` or `confirmed` covers every unit not yet delivered or confirmed (the
+  v1 meaning).
+- `evidence` follows the media rule of 5.2: linked by address and hash, never embedded. A verifier MAY fetch it and
+  check the hash; a buyer's system SHOULD before confirming.
+- State per claim: `delivered_count` (sum of `delivered` counts, at most `quantity`; a delivery past it is ignored as
+  `over_delivered`), `confirmed_count` (sum of confirmations, at most `delivered_count`; more is ignored as
+  `not_delivered`), and `received` (the sum of every `received` amount; in v1 a later `received` replaced an earlier
+  one). `delivered` and `confirmed` stay booleans: true once the counts reach `quantity`.
+- `due = confirmed_count × price`. A claim is `closed` when `delivered_count == confirmed_count == quantity` and
+  `received >= quantity × price`.
+- `received.ref` names how the payment arrived, for example the clearing ledger's `settle` entry id (10.2).
+
+### 10.2 Credits and clearing
+
+A clearing ledger keeps credits: amounts in a currency it names (for example `MALL`), which are promises of its owner
+(the mall), not money on the ledger. Real money moves outside, when a self buys credits or cashes them out.
+
+| type | author | body |
+|---|---|---|
+| `credit` | clearing owner | `{"to": key, "amount": int, "currency": str, "ref": str}`: credits bought (`ref`: the outside payment) |
+| `settle` | clearing owner | `{"period": str, "from": key, "to": key, "amount": int, "currency": str, "claims": [{"ledger": ledger_id, "claim": id, "count": int}]}` |
+| `payout` | clearing owner | `{"to": key, "amount": int, "currency": str, "ref": str}`: credits cashed out (`ref`: the outside payment) |
+
+- State of a clearing ledger: `balances[key][currency]`, starting at 0. `credit` adds, `payout` and the `from` side of
+  `settle` subtract, the `to` side of `settle` adds. An entry that would take a balance below 0 is ignored as
+  `insufficient_credit`. `amount >= 1`.
+- `settle.claims` is the evidence: for each claim in the seller's ledger, how many confirmed units this settlement
+  pays. The clearing owner computes them from the seller's ledger and the buyers' receipts; anyone can recompute
+  them, and a `settle` whose units exceed the confirmed units not yet settled is evidence of a wrong settlement
+  (checked by `check`, 9.1, as `bad_settlement`).
+- After a settlement, the seller records `received` for each claim it covers, with `ref` = the `settle` entry id.
+- `period` names the period settled, for example `2026-10`. One `settle` per buyer, seller and period.
+
+### 10.3 Machines as selves
+
+- A machine's owner key stays with its operator, off the machine; the machine appends with a device key (5.1). A lost
+  or stolen machine is revoked with `device_revoke`.
+- Messages a machine sends to other ledgers are signed with its owner key (4). So a machine that buys or claims needs
+  its owner key, or its operator's system signs for it. A machine that only sells and delivers needs only its device key.
+- The mall (or any operator of a place) runs three ledgers, or one ledger in all three roles: the index (5.7) that
+  lists the selves there, the root (5.7) that admits them, and the clearing ledger (10.2). It is also the arbiter
+  named in offers.
+
+### 10.4 Transport between machines
+
+Sending is publishing (8). On a local network, every self serves its dex over plain HTTP (its own device, or a folder
+the mall hosts), and each self's agent (10.5) polls the ledgers it trades with. No git, no outside service.
+
+### 10.5 Agents
+
+An agent is a program that acts for one self by rules, without a person:
+
+- **seller**: record new `sent` claims, payments and confirmations from selves listed in an index; record a metered
+  `delivered` when its machine finishes a unit, with evidence; record `received` after each `settle`; keep receipts.
+- **buyer**: keep a claim open for the next period's quantity; confirm delivered units whose evidence checks out;
+  open a dispute when it does not; keep receipts.
+- **clearing**: at the end of each period, from each seller's ledger and the buyers' receipts, record one `settle`
+  per buyer and seller, for the units confirmed and not yet settled.
+
+Agents poll; how often is theirs to choose. Every action is an ordinary message or entry under sections 2 to 6, so a
+person can audit, and a `check` (9.1) catches an agent that misbehaves.
+
 ## 9. Security invariants
 
 An implementation is correct only if all of these hold, and the test suite checks each:
@@ -787,6 +885,8 @@ difference in a verdict, a breaking point, a reason or `canon(state)`. It found 
 Python reading `true` as 1, and JavaScript dropping a leading byte-order mark; all three are fixed and kept as vectors.
 CI fuzzes a new seed on every push.
 
+Section 10 (bots and metered services) is a draft and not built; milestone 11 builds it.
+
 Not done: the JavaScript Ed25519 is the vendored code only. Web Crypto's Ed25519 is asynchronous, so it is not used
 yet, and the "Web Crypto and vendored JS agree" half of milestone 2 is open.
 
@@ -820,6 +920,21 @@ yet, and the "Web Crypto and vendored JS agree" half of milestone 2 is open.
 
 A milestone is done when its tests pass in both languages and the shared vectors produce identical state.
 
+## Milestone 11: bots in a mall (draft)
+
+Build 10 and run it as a simulation:
+
+- **Spec and state.** `delivered.count` and `evidence`, `confirmed.count`, `received` summed with `ref`; `credit`,
+  `settle`, `payout` and balances; `over_delivered`, `insufficient_credit` and `bad_settlement`. Python and
+  JavaScript, with shared vectors and fuzzing as for every other type.
+- **Python API.** `ledgdex.Self(dex)`: offer, claim, record, deliver, confirm, receipt, settle and the rest as calls,
+  without rebuilding the site after every step (render once per cycle).
+- **Agent.** `ledgdex agent DEX --role seller|buyer|clearing --rules rules.json`: the polling loop of 10.5.
+- **Simulation.** `examples/mall/`: one robot, several shops and the mall, each a dex served over local HTTP, running a
+  simulated month: claims, passes with evidence, confirmations, one dispute ruled by the mall, settlement, receipts.
+  Acceptance: every ledger whole, every claim's counts and balances as expected, settlement equal to the confirmed
+  passes, `check` passes on every ledger, and a robot whose device key is revoked mid-month cannot record passes.
+
 ## Out of scope for v1
 
 - Moving money on the ledger (payments stay outside; the ledger records them).
@@ -828,6 +943,12 @@ A milestone is done when its tests pass in both languages and the shared vectors
 - Multi-unit auctions and partial fills beyond `quantity` on claims.
 
 ## Open decisions for the author
+
+For section 10: the settlement period and when it closes (proposal: calendar month, settled on the 1st); whether
+credits can be negative (proposal: no); whether the arbiter's ruling on a disputed pass changes `confirmed_count`
+(proposal: a `refund` ruling reduces the units due by the disputed count, which needs a `count` on `dispute`);
+and how the robot proves where it cleaned (proposal: evidence is the robot's signed log; the shop's own camera is the
+check).
 
 1. Currency for The Matrix's own unit, and whether the 100K plan becomes a ledger flavor.
 2. Default arbiter when an offer names none (proposal: the index that listed it).

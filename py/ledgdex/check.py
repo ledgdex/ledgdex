@@ -259,23 +259,23 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@main#subdirectory=py"
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v6
         with:
           path: .ledgdex-check
           key: ledgdex-check-${{{{ github.run_id }}}}
           restore-keys: ledgdex-check-
       - run: ledgdex check {sources} --json ledgdex-check.json{media}
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v6
         if: always()
         with:
           path: .ledgdex-check
           key: ledgdex-check-${{{{ github.run_id }}}}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ledgdex-check

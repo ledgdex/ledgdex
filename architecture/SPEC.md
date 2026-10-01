@@ -138,6 +138,8 @@ Rules:
    of the same value.
 8. `true` and `false` are never numbers: where a field MUST be the integer 1 (`v`, the header's `ledger`) or a
    position (`seq`), the JSON value `true` does not count.
+9. Arrays and objects nest at most 32 deep (the top-level value is depth 1). A deeper text is not canonical JSON, so
+   a hostile ledger cannot exhaust a verifier's stack.
 
 Reference behaviour:
 - Python: `json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")` after
@@ -440,6 +442,7 @@ for n, entry in enumerate(entries):
     signing_keys = {owner_key} | devices
     check structural validity (3.3) with signing_keys; on failure: broken_at = n; stop
     m = entry.msg
+    if hash(m) was recorded at an earlier entry: ignore as duplicate_message; continue   # (6.2)
     apply(m, entry) by m.type (6.2)
     # key changes take effect for entry n+1
     if m.type == "rotate": owner_key = m.body.key
@@ -483,6 +486,9 @@ return state
 - `list` / `delist`: add / remove `listings[ledger] = {url, owner, note}`.
 - `recover`: `recoveries[ledger] = {key, entry}` (in the root).
 - `sent` / `receipt`: ignored as `not_my_message` unless the message inside was authored by one of O's keys.
+- A message recorded again (the same `hash(msg)` as an earlier entry's) is ignored as `duplicate_message`, whatever
+  its type, and changes no keys: a signed message counts once. Without this a seller could record one signed claim
+  twice, or replay an old `device` message after its `device_revoke`. Messages that should repeat differ in `at`.
 - Messages that are structurally valid but fail a rule here (wrong author, wrong state) are kept and listed in
   `state.ignored` with a reason. They never break the ledger.
 
@@ -632,28 +638,6 @@ Sending a message to a ledger owner: any channel that carries a JSON file: email
 upload, USB. The owner's tool validates the message and records it. The sender records a `sent` entry in their own
 ledger and, once the owner's entry is published, a `receipt` entry.
 
-### 9.2 Clock skew (300 seconds)
-
-An entry's `time` is its owner's clock; a message's `at` is its author's. Rule 7 of 3.3 lets an entry be recorded up to
-300 seconds before the message it records says it was signed, so that two selves whose clocks differ a little can
-still trade. What that allows:
-
-- **Back-dating by up to 5 minutes.** An owner can record a message with an entry `time` up to 5 minutes earlier than
-  the message's own `at`. Where a rule turns on time (an offer's `expires`, an auction's `close` and `reveal_until`,
-  a claim's `deliver_by`), a seller can let in a claim, bid or delivery up to 5 minutes late, or turn one away up to
-  5 minutes early by recording a later time. Both are signed and visible; neither can be hidden from a check.
-- **Ordering among close claims.** Within the skew, the seller orders claims that arrive together as it likes (Part I
-  already lists this as not protected).
-- **No bound on the other side.** Rule 7 bounds how early an entry can be; it does not bound how late. An owner can
-  hold a message for hours before recording it (also listed as not protected): the buyer's `sent` entry shows when it
-  existed.
-- **A wrong clock breaks nothing silently.** A device whose clock runs more than 5 minutes behind its counterparties
-  cannot record their fresh messages until it catches up (the tool refuses); a clock running ahead makes its entries
-  look late. Devices SHOULD keep time by NTP.
-
-Deadlines that matter more than 5 minutes (a day's settlement, a 30-minute clean) are not at risk. A sealed-bid
-auction should close more than 5 minutes after the last bid it must accept.
-
 ## 10. Bots and pay per clean (draft, not built)
 
 This section extends sections 5 and 6 for selves that are machines, selling a service one unit at a time to many
@@ -762,6 +746,15 @@ An implementation is correct only if all of these hold, and the test suite check
     the entry is checked only against the full ledger.)
 11. Rendering never changes `ledgdex.jsonl` and never changes a page without the `<!-- ledgdex -->` marker.
 12. A published `ledgdex.jsonl` is only ever extended: no publish removes or changes a line that was published (7.4).
+13. A message recorded twice counts once (`duplicate_message`, 6.2), and canonical JSON deeper than 32 levels is
+    refused (1.2 rule 9).
+14. Pages never make a link of an address that is not `http://` or `https://` with no space or control character:
+    anything else a ledger names (`javascript:`, `data:`) is shown as text.
+15. Secret keys never leave the self's machine, and are never written where others can read them: key files are
+    mode 600 and refused otherwise; in the browser a key is stored only sealed with a passphrase (PBKDF2-SHA-256,
+    600,000 rounds, AES-256-GCM), and a bid's secret only sealed with a key derived from the secret key.
+16. Two appends to one ledger at once cannot both take the same `seq` (a lock), and an append is on disk (fsync)
+    before the command reports it.
 
 ### 9.1 Checks over time
 
@@ -783,6 +776,33 @@ A checker keeps the last copy it saw of every ledger it checks, outside every de
 Receipts are checked against every copy of their ledger the checker has: the receipt's address, the ledger's own dex
 address (from its `open` entry), copies checked in the same run, and the copy seen before. A checker runs by hand,
 from cron, as a worker, or as a GitHub workflow; its exit code is 1 only on errors.
+
+A checker reads every ledger in full (never from the verification cache). An address it finds inside a ledger (a
+receipt's `url`, a listing) is read only over http(s), or, for ledgers kept on one machine, as a dex folder or a
+`.jsonl` file: never any other local file. Redirects are followed only to http(s), and no read takes more than
+`LEDGDEX_MAX_BYTES` (64 MiB by default). Offer media are fetched only over http(s).
+
+### 9.2 Clock skew (300 seconds)
+
+An entry's `time` is its owner's clock; a message's `at` is its author's. Rule 7 of 3.3 lets an entry be recorded up to
+300 seconds before the message it records says it was signed, so that two selves whose clocks differ a little can
+still trade. What that allows:
+
+- **Back-dating by up to 5 minutes.** An owner can record a message with an entry `time` up to 5 minutes earlier than
+  the message's own `at`. Where a rule turns on time (an offer's `expires`, an auction's `close` and `reveal_until`,
+  a claim's `deliver_by`), a seller can let in a claim, bid or delivery up to 5 minutes late, or turn one away up to
+  5 minutes early by recording a later time. Both are signed and visible; neither can be hidden from a check.
+- **Ordering among close claims.** Within the skew, the seller orders claims that arrive together as it likes (Part I
+  already lists this as not protected).
+- **No bound on the other side.** Rule 7 bounds how early an entry can be; it does not bound how late. An owner can
+  hold a message for hours before recording it (also listed as not protected): the buyer's `sent` entry shows when it
+  existed.
+- **A wrong clock breaks nothing silently.** A device whose clock runs more than 5 minutes behind its counterparties
+  cannot record their fresh messages until it catches up (the tool refuses); a clock running ahead makes its entries
+  look late. Devices SHOULD keep time by NTP.
+
+Deadlines that matter more than 5 minutes (a day's settlement, a 30-minute clean) are not at risk. A sealed-bid
+auction should close more than 5 minutes after the last bid it must accept.
 
 ---
 
@@ -906,8 +926,10 @@ and signs `claim`, `paid`, `confirmed`, `dispute`, `bid` and `reveal` messages a
 the viewer's own ledger (new, or opened from a file or address): each message it signs is appended as `sent`,
 "collect receipts" appends `receipt` entries for the loaded ledger's records of them, and "download your dex" gives
 the ledger as a complete dex (7.1), file for file what `ledgdex init` and dexweb make. So a browser-only self is a
-ledgdex too, with full triple entry. It never needs a server of its own, and its key is generated or imported in the browser,
-stored there, and never uploaded. A bid's amount and nonce are stored in the browser until the reveal.
+ledgdex too, with full triple entry. It never needs a server of its own, and its key is generated or imported in the browser
+and never uploaded. It is kept in the browser only sealed with a passphrase (invariant 15), and can be downloaded as
+a backup. A bid's amount and nonce are kept until the reveal, sealed with a key derived from the secret key. The
+viewer's pages carry a Content-Security-Policy: scripts only from the viewer itself.
 
 ## Build status
 
@@ -923,6 +945,11 @@ Python reading `true` as 1, and JavaScript dropping a leading byte-order mark; a
 CI fuzzes a new seed on every push.
 
 Section 10 (bots, pay per clean) is a draft and not built; milestone 11 builds it.
+
+**v1.0.0** followed a security audit, which added: `duplicate_message` (6.2), the nesting limit (1.2 rule 9),
+http(s)-only links (invariant 14), safe reading of addresses found in ledgers (9.1), private key files and sealed
+browser keys (invariant 15), locked appends (invariant 16), a trusted-only verification cache, checked command-line
+ids, and a check workflow pinned to a release and to action commits. The threat model is in `SECURITY.md`.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
@@ -979,12 +1006,12 @@ Build 10 and run it as a simulation:
 
 Hardening that is not built yet:
 
-1. **Keys at rest.** Secret keys in `~/.ledgdex` and in the browser are stored unencrypted. Encrypt them with a
-   passphrase, or keep them in the operating system's key store (and a hardware key where there is one). This matters
-   most for machines (10.4) and shared computers.
-2. **Constant-time signing.** The vendored Ed25519 is not constant time; signing on a shared machine can leak timing.
-   Sign with a constant-time backend (the `cryptography` package, Web Crypto) wherever one is available, and say so
-   when it is not. Verifying is not affected.
+1. **Keys at rest on disk.** Browser keys are sealed (invariant 15); key files in `~/.ledgdex` are private (mode
+   600) but not encrypted. Encrypt them with a passphrase, or keep them in the operating system's key store (and a
+   hardware key where there is one). This matters most for machines (10.4) and shared computers.
+2. **Constant-time signing everywhere.** The vendored Ed25519 is not constant time. Python signs with the
+   `cryptography` package and browsers with Web Crypto when present, and the command line warns when it falls back;
+   make the constant-time backend required for production machines. Verifying is not affected.
 3. **State at scale.** Every command replays the whole ledger for its state and rebuilds the pages. Cache the state
    with the verification cache (by the same verified prefix), and render only the pages that changed.
 4. **An independent verifier.** Both implementations were written by one author, the JavaScript after the Python.

@@ -7,7 +7,7 @@ their hashes. Errors mean tampering or equivocation and come with signed proof w
 something could not be checked (a site is down)."""
 import datetime, hashlib, json, os, re
 from .canon import hash_
-from .core import Ledger
+from .core import Invalid, Ledger
 from .dex import LEDGER, fetch, http_get, inside
 
 STATE = '.ledgdex-check'
@@ -258,23 +258,23 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - run: pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@main#subdirectory=py"
-      - uses: actions/cache/restore@v6
+      - run: pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@{version}#subdirectory=py"
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .ledgdex-check
           key: ledgdex-check-${{{{ github.run_id }}}}
           restore-keys: ledgdex-check-
       - run: ledgdex check {sources} --json ledgdex-check.json{media}
-      - uses: actions/cache/save@v6
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         if: always()
         with:
           path: .ledgdex-check
           key: ledgdex-check-${{{{ github.run_id }}}}
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         if: always()
         with:
           name: ledgdex-check
@@ -285,5 +285,15 @@ jobs:
 '''
 
 
-def workflow(sources, cron='17 6 * * *', media=False):
-    return WORKFLOW.format(cron=cron, sources=' '.join(sources), media=' --media' if media else '')
+def workflow(sources, cron='17 6 * * *', media=False, version=None):
+    """The workflow file. Sources are shell-quoted and the cron is checked, so neither can add steps; ledgdex is
+    installed from a release tag, not from a moving branch."""
+    import shlex
+    from . import __version__
+    if not re.match(r'[0-9*/,-]+( [0-9*/,A-Za-z-]+){4}\Z', cron):
+        raise Invalid('not a cron schedule: ' + cron)
+    for src in sources:
+        if not src or src.startswith('-') or any(c in src for c in '\n\r'):
+            raise Invalid('not a ledger source: ' + repr(src))
+    return WORKFLOW.format(cron=cron, sources=' '.join(shlex.quote(x) for x in sources), media=' --media' if media else '',
+                           version=version or 'v' + __version__)

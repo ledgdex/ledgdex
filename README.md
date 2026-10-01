@@ -10,7 +10,7 @@ The specification is [architecture/SPEC.md](architecture/SPEC.md). Everything in
 pip install -e py
 ```
 
-Python 3.8 or later. The only dependency is dexweb (4.2.5 or later). Private keys live in `~/.ledgdex` (or `$LEDGDEX_HOME`), never in a dex.
+Python 3.8 or later. The only dependency is dexweb (4.2.5 or later, before 5). Private keys live in `~/.ledgdex` (or `$LEDGDEX_HOME`), never in a dex, with mode 600: ledgdex refuses a key file others can read.
 
 For speed, `pip install -e "py[fast]"` adds the `cryptography` package: signing and verifying get about 20 to 25 times faster. Without it ledgdex uses its own pure-Python Ed25519, with the same results. Verified ledgers are also cached (in `~/.cache/ledgdex`, or `$LEDGDEX_CACHE`) by the exact bytes already verified, so a ledger that grew is only verified from where it was verified before; any changed byte is verified in full. `ledgdex verify --full` and `LEDGDEX_NO_CACHE=1` skip the cache, and `LEDGDEX_PURE=1` forces the pure-Python Ed25519.
 
@@ -147,7 +147,7 @@ Run `ledgdex check` on the root (the GitHub workflow, or cron) so any change to 
 
 The viewer is a dex. Its source is `viewer/` (`data.json`, `config.json`, `styles.css`, `run.py`), built with dexweb and published with dexweb's folder method to `docs/`, which GitHub Pages serves: https://matrixdex.github.io/ledgdex/ (Settings, Pages: branch `main`, folder `/docs`). After changing `viewer/` or `js/`, run `cd viewer && python run.py`; CI checks `docs/` is current.
 
-The viewer page loads any ledger by address or file, verifies it in the browser, and shows it as the same pages its dex has. It signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser (with the browser's own constant-time Web Crypto Ed25519 when it has one, else ledgdex's built-in code), and keeps your own ledger: every message you sign is kept as `sent`, and "Collect receipts" keeps the seller's records of them. "Download your dex" gives you your ledger as a complete dex (a zip), file for file what `ledgdex init` and dexweb make; publish it like any dex. So a buyer with only a browser has a ledgdex too. Open a ledger directly with `https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.github.io`.
+The viewer page loads any ledger by address or file, verifies it in the browser, and shows it as the same pages its dex has. It signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser, using the browser's own constant-time Web Crypto Ed25519 when it has one, else ledgdex's built-in code. The key is stored only sealed with your passphrase ("Keep, sealed"), and "Download key backup" gives you a copy to keep offline. The viewer also keeps your own ledger: every message you sign is kept as `sent`, and "Collect receipts" keeps the seller's records of them. "Download your dex" gives you your ledger as a complete dex (a zip), file for file what `ledgdex init` and dexweb make; publish it like any dex. So a buyer with only a browser has a ledgdex too. Open a ledger directly with `https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.github.io`.
 
 ## Checking for tampering
 
@@ -165,6 +165,16 @@ It keeps the last copy of every ledger it has seen (in `.ledgdex-check/`) and re
 ## Every ledgdex is a dex
 
 Each command rewrites the ledgdex pages in `data.json` (pages whose first paragraph starts with `<!-- ledgdex -->`) and rebuilds the site with dexweb. Your own pages are never touched. `ledgdex publish` publishes with dexweb; `config.json` has `"append_only": ["ledgdex.jsonl"]`, so dexweb refuses to publish a ledger that does not extend the published one. Publishing from two devices is safe: the second one catches up and re-sequences its unpublished entries.
+
+## Production (v1.0)
+
+Before you trade for real, read [SECURITY.md](SECURITY.md). In short:
+
+- Install the `fast` extra (`pip install -e "py[fast]"`) on every machine that signs: it signs in constant time. ledgdex warns when it signs without it.
+- Keep owner keys offline (backed up), and use device keys day to day. Revoke a lost device at once.
+- Run `ledgdex check` on your ledger and the ledgers you trade with, daily (the workflow, cron or a worker). An error there is tampering, with proof.
+- In the browser, keep your key sealed with a long passphrase and download a backup. Host the viewer on an address of its own (a custom domain): every page on one origin, such as `matrixdex.github.io`, can read what pages there store.
+- Generated workflows install ledgdex from the release tag and pin each action to a commit.
 
 ## Tests
 

@@ -308,7 +308,7 @@ def reason(error):
     if error is None:
         return None
     return re.sub(r'(not JSON: .*|not canonical JSON|floats are not allowed|bad key: .*|integer out of range|'
-                  r'string is not valid Unicode|duplicate key: .*)$', 'not canonical JSON (1.2)', error)
+                  r'string is not valid Unicode|duplicate key: .*|too deeply nested)$', 'not canonical JSON (1.2)', error)
 
 
 def corpus(seed, n_ledgers, n_texts):

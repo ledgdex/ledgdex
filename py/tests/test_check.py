@@ -176,6 +176,17 @@ class Check(unittest.TestCase):
         finally:
             dex.MAX_BYTES = old
 
+    def test_workflow_cannot_be_injected(self):
+        from ledgdex.core import Invalid
+        w = workflow(['a b.jsonl', '$(curl evil)', 'x;rm -rf /'])
+        self.assertIn("ledgdex check 'a b.jsonl' '$(curl evil)' 'x;rm -rf /' --json", w)
+        self.assertIn('ledgdex@v1.0.0#subdirectory=py', w)
+        for bad in ([['a\n      - run: evil']], [['--json=/etc/x']]):
+            with self.assertRaises(Invalid):
+                workflow(*bad)
+        with self.assertRaises(Invalid):
+            workflow(['a.jsonl'], cron='0 0 * * *"\n    - run: evil')
+
     def test_workflow(self):
         w = workflow(['seller/ledgdex.jsonl', 'buyer/ledgdex.jsonl'], cron='5 4 * * *')
         self.assertIn('run: ledgdex check seller/ledgdex.jsonl buyer/ledgdex.jsonl --json ledgdex-check.json', w)

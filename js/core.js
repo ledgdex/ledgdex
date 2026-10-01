@@ -171,6 +171,15 @@ export function message(secret, type, body, at) {
   return m;
 }
 
+// The same with a signer (sig.js), whose sign() is asynchronous: Web Crypto in the browser.
+export const signA = async (signer, obj) => hex(await signer.sign(canon(obj)));
+export async function messageA(signer, type, body, at) {
+  const m = { v: 1, type, by: signer.public, at: at || now(), body };
+  m.sig = await signA(signer, m);
+  checkMessage(m);
+  return m;
+}
+
 // ---------- ledgers (spec 3) ----------
 
 const NL = 0x0a;
@@ -278,8 +287,19 @@ export class Ledger {
 
   /** A new signed entry recording msg on top of this ledger (verified when appended). */
   nextEntry(secret, msg, at) {
+    const e = this._draft(publicKey(secret), msg, at);
+    e.sig = sign(secret, e);
+    return e;
+  }
+
+  async nextEntryA(signer, msg, at) {
+    const e = this._draft(signer.public, msg, at);
+    e.sig = await signA(signer, e);
+    return e;
+  }
+
+  _draft(signer, msg, at) {
     if (!this.whole) throw new Invalid('the ledger is broken: ' + this.error);
-    const signer = publicKey(secret);
     if (!this.keys.signing().includes(signer) && !(msg.type === 'recovered' && msg.by === signer)) {
       throw new Invalid('this key is not a signing key of this ledger');
     }
@@ -289,9 +309,7 @@ export class Ledger {
     if (seconds(t) < seconds(msg.at) - SKEW) {
       throw new Invalid('the message is signed more than ' + SKEW + ' seconds in the future');
     }
-    const e = { seq: this.entries.length, prev: this.ids.length ? this.ids[this.ids.length - 1] : this.id, time: t, msg };
-    e.sig = sign(secret, e);
-    return e;
+    return { seq: this.entries.length, prev: this.ids.length ? this.ids[this.ids.length - 1] : this.id, time: t, msg };
   }
 
   append(e) {
@@ -306,12 +324,19 @@ export class Ledger {
 }
 
 export function newLedger(secret, name, about, dex, at) {
-  const h = { ledger: 1, name, owner: publicKey(secret) };
-  const head = canon(h);
-  const data = new Uint8Array(head.length + 1);
-  data.set(head); data[head.length] = NL;
-  const led = new Ledger(data);
-  const t = at || now();
+  const led = emptyLedger(publicKey(secret), name), t = at || now();
   led.append(led.nextEntry(secret, message(secret, 'open', { about, dex }, t), t));
   return led;
+}
+
+export async function newLedgerA(signer, name, about, dex, at) {
+  const led = emptyLedger(signer.public, name), t = at || now();
+  led.append(await led.nextEntryA(signer, await messageA(signer, 'open', { about, dex }, t), t));
+  return led;
+}
+
+function emptyLedger(owner, name) {
+  const head = canon({ ledger: 1, name, owner }), data = new Uint8Array(head.length + 1);
+  data.set(head); data[head.length] = NL;
+  return new Ledger(data);
 }

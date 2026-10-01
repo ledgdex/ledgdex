@@ -1,6 +1,7 @@
 // The viewer dex's page script (viewer/, built with dexweb): read and verify any ledger, keep your own, sign messages,
 // and download your ledger as a complete dex. Nothing leaves the browser. Writes plain elements, no classes.
-import { Ledger, message, publicKey, Invalid, newSecret, newLedger, KEY_TYPES } from './core.js';
+import { Ledger, messageA, Invalid, newSecret, newLedgerA, KEY_TYPES } from './core.js';
+import { signer } from './sig.js';
 import { state } from './state.js';
 import { canonString, hash } from './canon.js';
 import { hex, unhex } from './sha.js';
@@ -15,7 +16,8 @@ const store = {  // browser storage can be missing (private windows): then thing
   del(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing stored */ } },
 };
 const enc = new TextEncoder(), dec = new TextDecoder();
-let led = null, st = null, own = null, secret = null, lastMsg = null, loadedFrom = '', shown = [];
+// sgn signs with Web Crypto when this browser has it (sig.js); secret is kept only to store and restore the key
+let led = null, st = null, own = null, secret = null, sgn = null, lastMsg = null, loadedFrom = '', shown = [];
 
 const say = (id, text) => { $(id).textContent = text; };
 const fail = (e) => say('err', e.message || String(e));
@@ -78,9 +80,11 @@ async function load() {
 
 // ---------- your key and your ledger ----------
 
-function setKey(s) {
+async function setKey(s) {
   secret = s;
-  say('pub', s ? publicKey(s) : 'none');
+  sgn = s ? await signer(s) : null;
+  say('pub', sgn ? sgn.public : 'none');
+  $('pub').title = sgn ? 'signs with ' + (sgn.name === 'webcrypto' ? "this browser's Web Crypto" : 'the built-in code') : '';
   if (s) store.set('ledgdex-secret', hex(s)); else store.del('ledgdex-secret');
   showOwn();
 }
@@ -89,20 +93,20 @@ function setOwn(l) {
   if (l) store.set('ledgdex-own', dec.decode(l.data)); else store.del('ledgdex-own');
   showOwn();
 }
-const mineKey = () => own && secret && own.keys.signing().includes(publicKey(secret));
+const mineKey = () => own && sgn && own.keys.signing().includes(sgn.public);
 function showOwn() {
   if (!own) return say('own', 'none open');
   const count = (t) => own.entries.filter((e) => e.msg.type === t).length;
   say('own', own.header.name + ', ' + own.entries.length + ' entries, ' + (own.whole ? 'whole' : 'broken at seq ' +
     own.broken_at) + ', ' + count('sent') + ' sent, ' + count('receipt') + ' receipts. Ledger ' + short(own.id) +
-    (secret && !mineKey() ? '. Your key is not a signing key of this ledger.' : ''));
+    (sgn && !mineKey() ? '. Your key is not a signing key of this ledger.' : ''));
 }
-const append = (m) => { own.append(own.nextEntry(secret, m)); setOwn(own); };
+async function append(m) { own.append(await own.nextEntryA(sgn, m)); setOwn(own); }
 function needOwn() {
   if (!own || !mineKey()) throw new Invalid('open or create your ledger, and use its key');
 }
 
-function collectReceipts() {
+async function collectReceipts() {
   say('err', '');
   try {
     needOwn();
@@ -111,13 +115,13 @@ function collectReceipts() {
     const mine = new Set(own.entries.filter((e) => e.msg.type === 'sent').map((e) => hash(e.msg.body.msg)));
     const chain = led.entries.filter((e) => KEY_TYPES.has(e.msg.type));
     let n = 0;
-    led.entries.forEach((e, i) => {
-      if (!mine.has(hash(e.msg)) || held.has(led.ids[i])) return;
+    for (const [i, e] of led.entries.entries()) {
+      if (!mine.has(hash(e.msg)) || held.has(led.ids[i])) continue;
       const body = { ledger: led.id, url: led.dex || loadedFrom, header: led.header, entry: e };
       const keys = chain.filter((k) => k.seq < e.seq);
-      append(message(secret, 'receipt', keys.length ? { ...body, keys } : body));
+      await append(await messageA(sgn, 'receipt', keys.length ? { ...body, keys } : body));
       n++;
-    });
+    }
     say('err', n + ' new receipts kept.');
   } catch (e) { fail(e); }
 }
@@ -166,7 +170,7 @@ function body() {
   if (t === 'paid') return { claim: v('f-claim'), method: v('f-method'), ref: v('f-ref') };
   if (t === 'confirmed') return { claim: v('f-claim') };
   if (t === 'dispute') return { claim: v('f-claim'), text: v('f-text'), evidence: [] };
-  const auction = v('f-auction'), slot = 'ledgdex-bid-' + publicKey(secret) + '-' + auction;
+  const auction = v('f-auction'), slot = 'ledgdex-bid-' + sgn.public + '-' + auction;
   if (t === 'bid') {
     const amount = parseInt(v('f-amount'), 10);
     if (!(amount >= 0)) throw new Invalid('enter the amount');
@@ -180,14 +184,14 @@ function body() {
   return { auction, amount: saved.amount, nonce: saved.nonce };
 }
 
-function signIt() {
+async function signIt() {
   say('err', '');
   try {
-    if (!secret) throw new Invalid('make or paste a key first');
-    if (own && own.owner !== publicKey(secret)) throw new Invalid('sign with your ledger\'s owner key: it is who you are in other ledgers');
+    if (!sgn) throw new Invalid('make or paste a key first');
+    if (own && own.owner !== sgn.public) throw new Invalid('sign with your ledger\'s owner key: it is who you are in other ledgers');
     if (own && led && led.id === own.id) throw new Invalid('this is your own ledger');
-    lastMsg = message(secret, $('type').value, body());
-    if (own) append(message(secret, 'sent', { to: led.owner, msg: lastMsg }));
+    lastMsg = await messageA(sgn, $('type').value, body());
+    if (own) await append(await messageA(sgn, 'sent', { to: led.owner, msg: lastMsg }));
     say('signed', own ? 'Signed, and kept as "sent" in your ledger: download your dex and publish it, and the seller ' +
       'collects it from there. Or send this file:' : 'Signed. Send this file to the ledger owner:');
     say('msg', canonString(lastMsg));
@@ -210,11 +214,11 @@ function main() {
     setKey(unhex(v));
   };
   $('forget').onclick = () => setKey(null);
-  $('newledger').onclick = () => {
+  $('newledger').onclick = async () => {
     try {
-      if (!secret) throw new Invalid('make or paste a key first');
+      if (!sgn) throw new Invalid('make or paste a key first');
       if (!$('newname').value.trim()) throw new Invalid('give your ledger a name');
-      setOwn(newLedger(secret, $('newname').value.trim(), $('newabout').value, $('newdex').value.trim()));
+      setOwn(await newLedgerA(sgn, $('newname').value.trim(), $('newabout').value, $('newdex').value.trim()));
     } catch (e) { fail(e); }
   };
   $('ownload').onclick = async () => {

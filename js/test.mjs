@@ -3,12 +3,13 @@ import { existsSync, readFileSync, readdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { canonString, parse, hash, ID_KEY } from './canon.js';
-import { Ledger, publicKey, sign, verify, message, newLedger, Invalid } from './core.js';
+import { Ledger, publicKey, sign, verify, message, messageA, newLedger, newLedgerA, Invalid } from './core.js';
 import { state } from './state.js';
 import { pages } from './render.js';
 import { buildGen, makeDex } from './dexweb.js';
 import * as ed from './ed25519.js';
 import { unhex, hex } from './sha.js';
+import { signer, vendoredSigner, webCryptoSigner, webCryptoWorks } from './sig.js';
 
 const V = join(dirname(fileURLToPath(import.meta.url)), '..', 'vectors');
 const json = (p) => JSON.parse(readFileSync(join(V, p), 'utf8'));
@@ -111,6 +112,27 @@ ok(new Ledger(led.data).whole && new Ledger(led.data).entries.length === 2, 'js-
 let refused = false;
 try { message(secret, 'note', { ref: led.ids[0], text: 'x', constructor: 1 }); } catch (e) { refused = e instanceof Invalid; }
 ok(refused, 'unexpected field named like an Object property');
+
+// Web Crypto's Ed25519 (sig.js) and the vendored code agree on keys, signatures, messages and entries
+if (await webCryptoWorks()) {
+  for (const r of json('ed25519.json').vectors) {
+    const w = await webCryptoSigner(unhex(r.secret)), v = vendoredSigner(unhex(r.secret)), m = unhex(r.message);
+    ok(w.public === v.public && w.public === 'ed25519:' + r.public && hex(await w.sign(m)) === r.signature,
+       'web crypto ' + r.public.slice(0, 8));
+  }
+  const w = await signer(secret);
+  ok(w.name === 'webcrypto', 'Web Crypto chosen when it works');
+  const a = await newLedgerA(w, 'JS', 'made in js', '', '2026-10-01T09:00:00Z');
+  ok(Buffer.from(a.data).equals(Buffer.from(newLedger(secret, 'JS', 'made in js', '', '2026-10-01T09:00:00Z').data)),
+     'Web Crypto builds the same ledger bytes');
+  const m1 = await messageA(w, 'note', { ref: a.ids[0], text: 'x' }, '2026-10-01T09:01:00Z');
+  ok(canonString(m1) === canonString(message(secret, 'note', { ref: a.ids[0], text: 'x' }, '2026-10-01T09:01:00Z')),
+     'Web Crypto signs the same message');
+  a.append(await a.nextEntryA(w, m1, '2026-10-01T09:01:00Z'));
+  ok(new Ledger(a.data).whole, 'a ledger signed with Web Crypto verifies');
+} else {
+  console.log('(no Ed25519 in this Web Crypto: skipped its checks)');
+}
 
 console.log(passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

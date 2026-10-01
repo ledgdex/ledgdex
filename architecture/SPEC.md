@@ -832,6 +832,7 @@ ledgdex/
     canon.js  ed25519.js  core.js  state.js     the same functions as the Python modules
     render.js             the dex pages (7.2), byte for byte as render.py
     dexweb.js  zip.js     a complete dex as dexweb builds it, downloaded as a zip
+    sig.js                signing with Web Crypto's Ed25519 when the browser has it, else the vendored code
     viewer.js             the viewer page's script
   viewer/                 the viewer, a dex: data.json config.json styles.css run.py (dexweb, published to docs/)
   docs/                   the published viewer dex (GitHub Pages)
@@ -923,8 +924,9 @@ CI fuzzes a new seed on every push.
 
 Section 10 (bots, pay per clean) is a draft and not built; milestone 11 builds it.
 
-Not done: the JavaScript Ed25519 is the vendored code only. Web Crypto's Ed25519 is asynchronous, so it is not used
-yet, and the "Web Crypto and vendored JS agree" half of milestone 2 is open.
+In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
+(`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
+ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.
 
 ## Milestones and acceptance tests
 
@@ -988,8 +990,10 @@ Hardening that is not built yet:
 4. **An independent verifier.** Both implementations were written by one author, the JavaScript after the Python.
    Have a third verifier written from this specification alone, by someone else, and run it against the shared
    vectors and the fuzzer.
-5. **Web Crypto in JavaScript.** Use the browser's Ed25519 when present (it is asynchronous), behind the same
-   known-answer test and strictness as the Python fast backend; this closes milestone 2.
+5. **Web Crypto for verifying, and locked keys.** Signing already uses Web Crypto (Build status). Verifying with it
+   too would be faster on large ledgers but makes verification asynchronous, so it waits until ledgers need it. Web
+   Crypto can also hold a key that pages can use but never read: offer that for browsers left unattended (a shop's
+   screen, a robot's dashboard), with the trade-off that such a key cannot be backed up.
 6. **Browser tests in CI.** Run the viewer's end-to-end tests (in Chromium) on every push, not only by hand.
 7. **Packaging.** Publish ledgdex on PyPI so `pip install ledgdex` works, and so the check workflow installs a release.
 8. **Delegated admission.** A `delegate` type, letting the root name other ledgers that may admit (Decision 4).

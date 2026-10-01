@@ -270,7 +270,7 @@ same ledger unless stated otherwise.
 | `revoke` | `{"key": key, "reason": str}` | undoes an earlier `admit` from this point on |
 | `note` | `{"ref": id, "text": str}` | a correction or remark about an earlier entry. Never changes state |
 | `sent` | `{"to": key, "msg": message}` | O keeps a copy of a message O sent elsewhere (proof it existed by now) |
-| `receipt` | `{"ledger": ledger_id, "url": str, "entry": entry, "device": entry}` | O keeps a copy of another ledger's entry about O's message. The embedded `entry` MUST verify against that ledger's owner key, or against a device key; in that case `device` holds that ledger's `device` entry authorising the key (omitted when the owner key signed) |
+| `receipt` | `{"ledger": ledger_id, "url": str, "header": header, "entry": entry, "device": entry}` | O keeps a copy of another ledger's entry about O's message. `header` is that ledger's header line, so `ledger` MUST equal `hash(header)` and the receipt verifies on its own. The embedded `entry` MUST verify against that ledger's owner key, or against a device key; in that case `device` holds that ledger's `device` entry authorising the key (omitted when the owner key signed) |
 
 ### 5.2 Selling (offers)
 
@@ -407,7 +407,7 @@ return state
   fails, in this order:
   1. `unknown_offer`: no such offer in this ledger;
   2. `offer_changed`: `offer_hash` does not match;
-  3. `withdrawn`: offer not open;
+  3. `withdrawn`: offer withdrawn (a sold offer falls through to `bad_quantity`);
   4. `expired`: `entry.time >= expires`;
   5. `not_allowed`: buyer not permitted by `allow`;
   6. `bad_quantity`: `quantity < 1` or `quantity > remaining`;
@@ -448,6 +448,9 @@ return state
 
 Keys that do not apply are omitted (not `null`), except `broken_at`, which is `null` when the ledger is whole.
 
+The state is keyed by ids, which do not match rule 2 of 1.2. For `canon(state)` only, object keys MAY be any
+printable ASCII string (U+0021..U+007E); they still sort by byte value, so every implementation gives the same bytes.
+
 ## 7. Every ledgdex is a dex
 
 ### 7.1 Layout
@@ -483,8 +486,8 @@ my-dex/
 ### 7.2 Generated pages
 
 ledgdex writes pages into `data.json` in the ordinary dex format (`{"title": str, "body": [str, ...]}`). A generated
-page is marked by its first body string being exactly `<!-- ledgdex -->` (dexweb wraps it in an empty paragraph;
-styles SHOULD hide `p:empty`). On every render,
+page is marked by its first body string starting with `<!-- ledgdex -->`, followed by a one-line summary of the page
+(dexweb shows a page's first paragraph on the index, and the comment is invisible). On every render,
 ledgdex removes all marked pages and writes them again; pages without the marker are the author's own and are never
 touched. Generated pages follow the plain-HTML rules of the dex: no classes, no inline styles, no scripts.
 
@@ -500,11 +503,15 @@ Pages, in this order:
    Below that, the claims on this offer: claim id, buyer key, quantity, price, status.
 3. **One page per auction** (title: `item.title`). Item, close and reveal times, the rule (`highest` / `lowest`),
    reserve, number of bids; after `reveal_until`, the revealed bids and the winner.
-4. **Listings**, only in index ledgers. Every listed ledger with its owner key and a link to its dex.
-5. **Admissions**, only if the ledger has `admit` entries. Admitted keys, with names and the entries that admitted or
-   revoked them.
+4. **Purchases** (title: the header's `name` + ` purchases`), only if the ledger has `sent` claims. Every claim this
+   self sent, and the receipt held for it, with the seller's claim id.
+5. **Listings**, only in index ledgers. Every listed ledger with its owner key and a link to its dex.
+6. **Admissions** (title: the header's `name` + ` admissions`), only if the ledger has `admit` entries. Admitted
+   keys, with names and the entries that admitted or revoked them.
 
-Page titles that collide with an author page get ` (ledgdex)` appended. Dates are written as in 1.1. Amounts are
+Titles are HTML-escaped. dexweb names a page's file after the letters and digits of its title, so collisions are by
+file name: a generated title that collides with an author page gets ` (ledgdex)` appended, and a generated title that
+collides with an earlier generated one gets the first 8 hex characters of its entry id. Dates are written as in 1.1. Amounts are
 written in the currency's major unit with the exact integer in brackets, for example `INR 20,000.00 (2000000)`.
 
 Rendering is deterministic: the same ledger and the same author pages always produce the same `data.json`.
@@ -597,17 +604,20 @@ An implementation is correct only if all of these hold, and the test suite check
 
 ## Files to produce
 
-The repository root is https://github.com/matrixdex/ledgdex (it holds only `LICENSE`, CC0, so far).
+The repository root is https://github.com/matrixdex/ledgdex.
 
 ```
 ledgdex/
-  LICENSE                 CC0 1.0 (already in the repository)
+  LICENSE                 CC0 1.0
+  README.md               how to sell and buy
   architecture/SPEC.md    this file
   py/
+    pyproject.toml        installs the ledgdex command
     ledgdex/canon.py      canonical JSON (1.2)
     ledgdex/ed25519.py    vendored Ed25519 (RFC 8032)
     ledgdex/core.py       messages, entries, verification (2, 3)
     ledgdex/state.py      state (6)
+    ledgdex/dex.py        the ledger file in a dex, keys in ~/.ledgdex, reading other ledgers (7.1, 8)
     ledgdex/render.py     generated dex pages and the dexweb build (7.2, 7.3)
     ledgdex/publish.py    catch-up, re-sequencing and dexweb publish (7.4)
     ledgdex/cli.py        command-line tool
@@ -615,29 +625,56 @@ ledgdex/
   js/
     canon.js  ed25519.js  core.js  state.js
     viewer.html           static page: load a ledger, verify, show state, compose and sign messages
-  vectors/                shared test vectors (JSON) used by both test suites
+  vectors/                shared test vectors (JSON) used by both test suites; ed25519.json so far
 ```
 
 ## Command-line tool
 
 ```
-ledgdex keygen NAME                        write ~/.ledgdex/NAME.key and print the public key
-ledgdex device add DEX KEY --name N        record a "device" entry (needs the owner key)
-ledgdex device revoke DEX KEY              record a "device_revoke" entry (needs the owner key)
-ledgdex init DEX --name N --about A        create a complete dex (7.1) with its ledger and "open" entry, then render
-ledgdex offer DEX offer.json               sign and record an offer (body from file)
+ledgdex keygen NAME                              write ~/.ledgdex/NAME.key and print the public key
+ledgdex init DEX --name N --key K [--about A] [--url U] [--dest D] [--branch B]
+                                                 create a complete dex (7.1) with its ledger and "open" entry, then render
+seller
+ledgdex offer DEX offer.json                     sign and record an offer (body from file; unit, allow, pay, terms,
+                                                 arbiter, item.text and item.media get defaults)
 ledgdex withdraw DEX OFFER_ID
-ledgdex sign TYPE body.json --key NAME     print a signed message (for claims, paid, bid, reveal...)
-ledgdex record DEX message.json            validate a received message and record it
-ledgdex receipt DEX --from URL --entry ID      copy another ledger's entry into this ledger as a receipt
-ledgdex verify DEX_OR_URL                  structural check; exit code 0 only if whole
-ledgdex state DEX_OR_URL [--root URL]      print canon(state)
-ledgdex render DEX                         rewrite the generated pages and rebuild the site (7.3)
-ledgdex publish DEX                        catch up, re-sequence and publish with dexweb (7.4)
+ledgdex record DEX [FILE...] [--from BUYER]      record claims, payments and confirmations: from message files, or
+                                                 collected from a buyer's ledger ("sent" messages addressed to DEX)
+ledgdex received DEX CLAIM_ID AMOUNT
+ledgdex delivered DEX CLAIM_ID [--note N]
+ledgdex admit DEX KEY [--name N] [--note N]
+ledgdex revoke DEX KEY [--reason R]
+ledgdex note DEX REF TEXT
+buyer
+ledgdex claim DEX SELLER OFFER_ID [--quantity Q] sign a claim at the offer's price, keep it as "sent", write the file
+ledgdex pay DEX SELLER CLAIM_ID --method M [--ref R]
+ledgdex confirm DEX SELLER CLAIM_ID
+ledgdex receipt DEX SELLER [--entry ID]          keep the seller's entries that record this self's messages
+anyone
+ledgdex sign TYPE body.json --key NAME           print a signed message
+ledgdex verify DEX_OR_URL                        structural check; exit code 0 only if whole
+ledgdex state DEX_OR_URL                         print canon(state)
+ledgdex render DEX                               rewrite the generated pages and rebuild the site (7.3)
+ledgdex publish DEX                              catch up, re-sequence and publish with dexweb (7.4)
+later
+ledgdex device add DEX KEY --name N              record a "device" entry (needs the owner key)
+ledgdex device revoke DEX KEY                    record a "device_revoke" entry (needs the owner key)
+ledgdex state DEX_OR_URL --root URL              state with a root ledger
 ```
+
+SELLER is the seller's dex URL, dex folder or ledger file. Sending is publishing: a buyer's messages are kept in the
+buyer's ledger as `sent`, so a seller can collect them from the buyer's published dex with `record --from`.
 
 The viewer page does the same in the browser: it never needs a server, and it signs with a key the user imports or
 generates (stored in the browser, never uploaded).
+
+## Build status
+
+v0.1 is the simple market, in Python: milestones 1 to 6 below (without the JavaScript halves) and the `admit` and
+`revoke` part of 9. Ed25519 vectors come from djb's `sign.input` (as shipped in `cryptography_vectors`), whose first
+three rows are RFC 8032 section 7.1 TEST 1 to 3. Still to build: milestones 7 (disputes), 8 (auctions), 9 (keys:
+`rotate`, devices, recovery, equivocation reports), 10 (viewer), indexes (5.7), the root, and the JavaScript twin.
+Until then, v0.1 treats the types of those milestones as unknown, so a ledger that uses them reads as broken there.
 
 ## Milestones and acceptance tests
 

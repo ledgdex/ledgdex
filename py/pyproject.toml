@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ledgdex"
+version = "0.1.0"
+description = "A simple market on a dex: signed, append-only ledgers with triple-entry accounting"
+requires-python = ">=3.8"
+license = {text = "CC0-1.0"}
+dependencies = ["dexweb>=4.2.5"]
+
+[project.urls]
+Homepage = "https://github.com/matrixdex/ledgdex"
+
+[project.scripts]
+ledgdex = "ledgdex.cli:main"
+
+[tool.setuptools]
+packages = ["ledgdex"]

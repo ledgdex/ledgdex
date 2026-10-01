@@ -7,6 +7,7 @@ KEY_RE = re.compile(r'ed25519:[0-9a-f]{64}\Z')
 SIG_RE = re.compile(r'[0-9a-f]{128}\Z')
 ID_RE = re.compile(r'sha256:[0-9a-f]{64}\Z')
 TIME_RE = re.compile(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\Z')
+TIME = '%Y-%m-%dT%H:%M:%SZ'
 SKEW = 300  # spec 3.3 rule 7
 
 
@@ -34,30 +35,29 @@ def verify(key, obj, sig):
     return backend.verify(bytes.fromhex(key[8:]), canon(obj), bytes.fromhex(sig))
 
 
-def is_key(v):
-    return isinstance(v, str) and bool(KEY_RE.match(v))
+def _matches(rx):
+    return lambda v: isinstance(v, str) and bool(rx.match(v))
 
 
-def is_id(v):
-    return isinstance(v, str) and bool(ID_RE.match(v))
+is_key, is_id = _matches(KEY_RE), _matches(ID_RE)
 
 
 def is_time(v):
-    if not isinstance(v, str) or not TIME_RE.match(v):
+    if not _matches(TIME_RE)(v):
         return False
     try:
-        datetime.datetime.strptime(v, '%Y-%m-%dT%H:%M:%SZ')
+        datetime.datetime.strptime(v, TIME)
     except ValueError:
         return False
     return True
 
 
 def seconds(t):
-    return int(datetime.datetime.strptime(t, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=datetime.timezone.utc).timestamp())
+    return int(datetime.datetime.strptime(t, TIME).replace(tzinfo=datetime.timezone.utc).timestamp())
 
 
 def utc(s):
-    return datetime.datetime.fromtimestamp(s, datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    return datetime.datetime.fromtimestamp(s, datetime.timezone.utc).strftime(TIME)
 
 
 def now():
@@ -395,6 +395,11 @@ class Ledger:
     @property
     def devices(self):
         return sorted(self.keys.devices) if self.keys else []
+
+    @property
+    def dex(self):
+        """The dex address in the "open" entry ('' if none)."""
+        return self.entries[0]['msg']['body']['dex'] if self.entries else ''
 
     @property
     def whole(self):

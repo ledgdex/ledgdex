@@ -1,21 +1,11 @@
 """Publishing a ledgdex with dexweb (spec 7.4): catch up, re-sequence unpublished entries, publish, retry."""
-import contextlib, json, os
+import json, os
 from .canon import hash_
 from .core import Ledger, Invalid, OWNER_ONLY
-from .dex import LEDGER, load, find_key, signer, write
+from .dex import LEDGER, find_key, inside, load, signer, write
 from .render import render
 
 TRIES = 3
-
-
-@contextlib.contextmanager
-def inside(dex):
-    cwd = os.getcwd()
-    os.chdir(dex)
-    try:
-        yield
-    finally:
-        os.chdir(cwd)
 
 
 def check_config(dex):

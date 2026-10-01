@@ -1,7 +1,7 @@
 """Every ledgdex is a dex (spec 7): generated pages in data.json, then the dexweb build."""
 import contextlib, html, io, json, os, shutil
 from .canon import hash_
-from .dex import LEDGER, load
+from .dex import LEDGER, inside, load
 from .core import Invalid
 from .state import state
 
@@ -42,48 +42,46 @@ def link(title):
     return "<a href='" + html_title(title) + ".html'>" + title + '</a>'
 
 
-def summary(led, n):
-    """One line about entry n, for the ledger page."""
-    m = led.entries[n]['msg']
-    b, t = m['body'], m['type']
-    if t == 'open':
-        return 'opened the ledger'
-    if t == 'offer':
-        return esc(b['item']['title']) + ', ' + str(b['quantity']) + ' ' + esc(b['unit']) + ' at ' + \
-            amount(b['currency'], b['price']) + ' each'
-    if t in ('withdraw',):
-        return 'offer ' + code(short(b['offer']))
-    if t == 'claim':
-        return str(b['quantity']) + ' of offer ' + code(short(b['offer']))
-    if t in ('paid', 'received', 'delivered', 'confirmed'):
-        extra = {'paid': ' by ' + esc(b.get('method', '')), 'received': ' amount ' + str(b.get('amount', ''))}
-        return 'claim ' + code(short(b['claim'])) + extra.get(t, '')
-    if t in ('admit', 'revoke'):
-        return code(short(b['key']))
-    if t == 'note':
-        return 'about ' + code(short(b['ref'])) + ': ' + esc(b['text'])
-    if t == 'sent':
-        return esc(b['msg']['type']) + ' to ' + code(short(b['to']))
-    if t in ('rotate', 'device', 'device_revoke'):
-        return code(short(b['key'])) + (' (' + esc(b['name']) + ')' if b.get('name') else '')
-    if t == 'recovered':
-        return 'owner key recovered through the root, entry ' + code(short(b['entry']))
-    if t == 'recover':
-        return 'new key ' + code(short(b['key'])) + ' for ledger ' + code(short(b['ledger']))
-    if t == 'dispute':
-        return 'about ' + code(short(b['claim'])) + (': ' + esc(b['text']) if b['text'] else '')
-    if t == 'ruling':
-        return b['outcome'] + ' on dispute ' + code(short(b['dispute']))
-    if t == 'auction':
-        return esc(b['item']['title']) + ', bids until ' + b['close']
-    if t in ('bid', 'reveal'):
-        return 'auction ' + code(short(b['auction'])) + (' amount ' + str(b['amount']) if t == 'reveal' else '')
-    if t in ('list', 'delist'):
-        return 'ledger ' + code(short(b['ledger'])) + (' ' + esc(b['url']) if t == 'list' else '')
-    if t == 'receipt':
-        return 'entry ' + str(b['entry']['seq']) + ' (' + esc(b['entry']['msg']['type']) + ') of ' + \
-            esc(b['header']['name']) + "'s ledger"
-    return ''
+def _ref(label, key):
+    return lambda b: label + code(short(b[key]))
+
+
+# one line about each entry type, for the ledger page
+SUMMARY = {
+    'open': lambda b: 'opened the ledger',
+    'offer': lambda b: esc(b['item']['title']) + ', ' + str(b['quantity']) + ' ' + esc(b['unit']) + ' at ' +
+    amount(b['currency'], b['price']) + ' each',
+    'withdraw': _ref('offer ', 'offer'),
+    'claim': lambda b: str(b['quantity']) + ' of offer ' + code(short(b['offer'])),
+    'paid': lambda b: 'claim ' + code(short(b['claim'])) + ' by ' + esc(b['method']),
+    'received': lambda b: 'claim ' + code(short(b['claim'])) + ' amount ' + str(b['amount']),
+    'delivered': _ref('claim ', 'claim'),
+    'confirmed': _ref('claim ', 'claim'),
+    'admit': _ref('', 'key'),
+    'revoke': _ref('', 'key'),
+    'note': lambda b: 'about ' + code(short(b['ref'])) + ': ' + esc(b['text']),
+    'sent': lambda b: esc(b['msg']['type']) + ' to ' + code(short(b['to'])),
+    'rotate': _ref('', 'key'),
+    'device': lambda b: code(short(b['key'])) + (' (' + esc(b['name']) + ')' if b['name'] else ''),
+    'device_revoke': _ref('', 'key'),
+    'recovered': _ref('owner key recovered through the root, entry ', 'entry'),
+    'recover': lambda b: 'new key ' + code(short(b['key'])) + ' for ledger ' + code(short(b['ledger'])),
+    'dispute': lambda b: 'about ' + code(short(b['claim'])) + (': ' + esc(b['text']) if b['text'] else ''),
+    'ruling': lambda b: b['outcome'] + ' on dispute ' + code(short(b['dispute'])),
+    'auction': lambda b: esc(b['item']['title']) + ', bids until ' + b['close'],
+    'bid': _ref('auction ', 'auction'),
+    'reveal': lambda b: 'auction ' + code(short(b['auction'])) + ' amount ' + str(b['amount']),
+    'list': lambda b: 'ledger ' + code(short(b['ledger'])) + ' ' + esc(b['url']),
+    'delist': _ref('ledger ', 'ledger'),
+    'receipt': lambda b: 'entry ' + str(b['entry']['seq']) + ' (' + esc(b['entry']['msg']['type']) + ') of ' +
+    esc(b['header']['name']) + "'s ledger",
+}
+
+
+def item_lines(item):
+    """An item's text and media links (with their hashes)."""
+    return ([esc(item['text'])] if item['text'] else []) + [
+        "Media: <a href='" + esc(md['url']) + "'>" + esc(md['url']) + '</a> ' + code(md['hash']) for md in item['media']]
 
 
 def pages(led, author_titles):
@@ -114,7 +112,8 @@ def pages(led, author_titles):
     purchases_title = title_for(name + ' purchases') if sent_claims else None
     admits = [e for e in led.entries if e['msg']['type'] in ('admit', 'revoke')]
     admissions_title = title_for(name + ' admissions') if admits else None
-    about = led.entries[0]['msg']['body'] if led.entries else {'about': '', 'dex': ''}
+    about = led.entries[0]['msg']['body']['about'] if led.entries else ''
+    dex = led.dex or 'THIS_DEX'
     out = []
 
     # 1. the ledger
@@ -127,8 +126,8 @@ def pages(led, author_titles):
             'Head: ' + ('seq ' + str(head['seq']) + ', ' + code(head['id']) if head else 'none'),
             'Verification: ' + ('whole' if led.whole else 'broken at seq ' + str(led.broken_at)),
             "Download the ledger: <a href='" + LEDGER + "'>" + LEDGER + '</a>']
-    if about['about']:
-        body.insert(1, esc(about['about']))
+    if about:
+        body.insert(1, esc(about))
     links = [link(offer_titles[i]) for i, _ in offers] + [link(auction_titles[i]) for i, _ in auctions]
     links += [link(t) for t in (purchases_title, admissions_title, listings_title) if t]
     if links:
@@ -137,7 +136,7 @@ def pages(led, author_titles):
     for n, e in enumerate(led.entries):
         m = e['msg']
         body.append(str(n) + '. ' + e['time'] + ' ' + esc(m['type']) + ' by ' + code(short(m['by'])) + ': ' +
-                    summary(led, n) + ' ' + code(short(led.ids[n])))
+                    SUMMARY[m['type']](m['body']) + ' ' + code(short(led.ids[n])))
     out.append({'title': ledger_title, 'body': body})
 
     # 2. one page per offer
@@ -145,11 +144,7 @@ def pages(led, author_titles):
         b, o = m['body'], st['offers'][id_]
         cur = b['currency']
         body = [MARKER + amount(cur, b['price']) + ' per ' + esc(b['unit']) + ', ' + str(o['remaining']) + ' of ' +
-                str(b['quantity']) + ' left, ' + o['status']]
-        if b['item']['text']:
-            body.append(esc(b['item']['text']))
-        for md in b['item']['media']:
-            body.append("Media: <a href='" + esc(md['url']) + "'>" + esc(md['url']) + '</a> ' + code(md['hash']))
+                str(b['quantity']) + ' left, ' + o['status']] + item_lines(b['item'])
         body += ['Status: ' + o['status'],
                  'Remaining: ' + str(o['remaining']) + ' of ' + str(b['quantity']) + ' ' + esc(b['unit']),
                  'Price: ' + amount(cur, b['price']) + ' per ' + esc(b['unit'])]
@@ -164,7 +159,7 @@ def pages(led, author_titles):
         body.append('Who may buy: ' + ('anyone' if allow == 'any' else 'keys admitted by this ledger'
                                        if allow == 'admitted' else ', '.join(code(k) for k in allow)))
         body += ['Offer id: ' + code(id_), 'Offer hash: ' + code(hash_(m)),
-                 'To buy, with your own ledgdex: ' + code('ledgdex claim YOUR_DEX ' + (about['dex'] or 'THIS_DEX') +
+                 'To buy, with your own ledgdex: ' + code('ledgdex claim YOUR_DEX ' + dex +
                                                           ' ' + id_ + ' --quantity 1'),
                  'Then send the claim file to the seller, or publish your dex: the seller collects claims with ' +
                  code('ledgdex record DEX --from YOUR_DEX_URL') + '.']
@@ -180,11 +175,7 @@ def pages(led, author_titles):
     # 2b. one page per auction
     for id_, m in auctions:
         b, a = m['body'], st['auctions'][id_]
-        body = [MARKER + a['status'] + ', ' + str(a['bids']) + ' sealed bids']
-        if b['item']['text']:
-            body.append(esc(b['item']['text']))
-        for md in b['item']['media']:
-            body.append("Media: <a href='" + esc(md['url']) + "'>" + esc(md['url']) + '</a> ' + code(md['hash']))
+        body = [MARKER + a['status'] + ', ' + str(a['bids']) + ' sealed bids'] + item_lines(b['item'])
         body += ['Status: ' + a['status'], 'Bids close: ' + b['close'], 'Reveals until: ' + b['reveal_until'],
                  'Best bid: ' + b['best'] + ', reserve ' + amount(b['currency'], b['reserve']),
                  'Arbiter: ' + code(b['arbiter']['key'])]
@@ -193,9 +184,9 @@ def pages(led, author_titles):
         if 'winner' in a:
             body.append('Winner: ' + code(a['winner']) + ' at ' + amount(b['currency'], a['amount']))
         body += ['Auction id: ' + code(id_),
-                 'To bid, with your own ledgdex: ' + code('ledgdex bid YOUR_DEX ' + (about['dex'] or 'THIS_DEX') + ' ' +
+                 'To bid, with your own ledgdex: ' + code('ledgdex bid YOUR_DEX ' + dex + ' ' +
                                                           id_ + ' --amount N') + '. After the close, reveal it with ' +
-                 code('ledgdex reveal YOUR_DEX ' + (about['dex'] or 'THIS_DEX') + ' ' + id_) + '.']
+                 code('ledgdex reveal YOUR_DEX ' + dex + ' ' + id_) + '.']
         out.append({'title': auction_titles[id_], 'body': body})
 
     # 3. purchases: claims this self sent, and the receipts it holds for them
@@ -271,10 +262,5 @@ def render(dex, build=True):
 
 def dexgen_build(dex):
     from dexweb import dexgen
-    cwd = os.getcwd()
-    os.chdir(dex)
-    try:
-        with contextlib.redirect_stdout(io.StringIO()):
-            dexgen.Dexgen()
-    finally:
-        os.chdir(cwd)
+    with inside(dex), contextlib.redirect_stdout(io.StringIO()):
+        dexgen.Dexgen()

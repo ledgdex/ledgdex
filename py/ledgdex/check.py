@@ -8,7 +8,7 @@ something could not be checked (a site is down)."""
 import datetime, hashlib, json, os, re, urllib.request
 from .canon import hash_
 from .core import Ledger
-from .dex import LEDGER, fetch
+from .dex import LEDGER, fetch, inside
 
 STATE = '.ledgdex-check'
 
@@ -163,7 +163,7 @@ class Checker:
                 other = self.load(u, level='warning')
                 if other is None or other.header is None:
                     continue
-                dex = other.entries[0]['msg']['body']['dex'] if other.entries else ''
+                dex = other.dex
                 if re.match(r'https?://', dex) and dex not in urls:
                     urls.append(dex)  # also check the ledger at its own dex address
                 if other.id != ledger_id:
@@ -205,7 +205,6 @@ class Checker:
             if not isinstance(json.load(f).get('publish'), dict):
                 return
         from dexweb import dexweb
-        from .publish import inside
         with inside(os.path.abspath(dex)):
             pub = dexweb.Dexweb().published(LEDGER)
         if pub is None:

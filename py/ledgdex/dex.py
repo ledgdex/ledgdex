@@ -1,8 +1,19 @@
 """A ledgdex on disk: the ledger file in a dex, keys in ~/.ledgdex, and reading other ledgers."""
-import os, re, urllib.request
+import contextlib, os, re, urllib.request
 from .core import Ledger, Invalid, public
 
 LEDGER = 'ledgdex.jsonl'
+
+
+@contextlib.contextmanager
+def inside(folder):
+    """Run with folder as the working folder (dexweb works on the current folder)."""
+    cwd = os.getcwd()
+    os.chdir(folder)
+    try:
+        yield
+    finally:
+        os.chdir(cwd)
 
 
 # ---------- keys (spec 7.1: private keys live outside the dex) ----------

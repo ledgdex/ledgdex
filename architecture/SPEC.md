@@ -590,6 +590,27 @@ An implementation is correct only if all of these hold, and the test suite check
 11. Rendering never changes `ledgdex.jsonl` and never changes a page without the `<!-- ledgdex -->` marker.
 12. A published `ledgdex.jsonl` is only ever extended: no publish removes or changes a line that was published (7.4).
 
+### 9.1 Checks over time
+
+Verification (3.3) proves a ledger is consistent and signed by its owner, not that it is the history shown before:
+an owner can re-sign every entry from some point on. `check` closes that gap with the copies other selves hold.
+A checker keeps the last copy it saw of every ledger it checks, outside every dex's `gen/`, and reports:
+
+- **error `equivocation`**: a ledger differs from the copy seen before at some `seq`. The two entries, both signed by
+  the owner key, are saved as proof (3.4).
+- **error `receipt_mismatch`**: a copy of a ledger has an entry other than the one a receipt holds at that `seq`. The
+  receipt is the proof.
+- **error `ledger_changed`**: an address serves a different ledger (another ledger id) than it served before, or than
+  the receipts naming it say.
+- **error `broken`**, **error `media_changed`** (an offer's media no longer matches its hash), **error
+  `published_differs`** (a dex's published ledger is not the start of its own).
+- **warnings** `stale` (a copy is an exact start of the copy seen before: a cache, an old snapshot or withheld
+  entries; nothing signed changed), `receipt_not_visible`, `unreachable`, `media_unavailable`, `behind`.
+
+Receipts are checked against every copy of their ledger the checker has: the receipt's address, the ledger's own dex
+address (from its `open` entry), copies checked in the same run, and the copy seen before. A checker runs by hand,
+from cron, as a worker, or as a GitHub workflow; its exit code is 1 only on errors.
+
 ---
 
 # Part III: build plan (for a coding agent)
@@ -622,6 +643,7 @@ ledgdex/
     ledgdex/dex.py        the ledger file in a dex, keys in ~/.ledgdex, reading other ledgers (7.1, 8)
     ledgdex/render.py     generated dex pages and the dexweb build (7.2, 7.3)
     ledgdex/publish.py    catch-up, re-sequencing and dexweb publish (7.4)
+    ledgdex/check.py      tamper checks over time and the GitHub workflow template (9.1)
     ledgdex/cli.py        command-line tool
     tests/                unittest suite
   js/
@@ -656,6 +678,9 @@ anyone
 ledgdex sign TYPE body.json --key NAME           print a signed message
 ledgdex verify DEX_OR_URL                        structural check; exit code 0 only if whole
 ledgdex state DEX_OR_URL                         print canon(state)
+ledgdex check [SOURCE...] [--every S] [--media] [--published] [--json F] [--state D]
+                                                 tamper checks over time (9.1); exit code 1 on errors
+ledgdex workflow SOURCE... [--cron C] [--media]  print a GitHub Actions workflow that runs check
 ledgdex render DEX                               rewrite the generated pages and rebuild the site (7.3)
 ledgdex publish DEX                              catch up, re-sequence and publish with dexweb (7.4)
 later

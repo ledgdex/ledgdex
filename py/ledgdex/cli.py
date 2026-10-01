@@ -262,6 +262,31 @@ def c_render(a):
     print('rendered ' + a.dex)
 
 
+def c_check(a):
+    import time
+    from .check import check
+    sources = a.sources or ['.']
+    while True:
+        report = check(sources, a.state, media=a.media, published=a.published,
+                       log=(lambda line: None) if a.quiet else print)
+        if a.json:
+            with open(a.json, 'w') as f:
+                f.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
+        print(report['time'] + ' ' + ('ok' if report['ok'] else 'FAILED') + ': ' + str(len(report['checked'])) +
+              ' ledgers checked, ' + str(report['errors']) + ' errors, ' + str(report['warnings']) + ' warnings')
+        sys.stdout.flush()
+        if not a.every:
+            if not report['ok']:
+                sys.exit(1)
+            return
+        time.sleep(a.every)
+
+
+def c_workflow(a):
+    from .check import workflow
+    sys.stdout.write(workflow(a.sources, a.cron, a.media))
+
+
 def c_publish(a):
     from .publish import publish
     if not publish(a.dex):
@@ -314,6 +339,18 @@ def parser():
     cmd('verify', c_verify, 'check a ledger; exit code 0 only if whole', (['ledger'], {'help': 'dex, file or URL'}))
     cmd('state', c_state, "print a ledger's state", (['ledger'], {'help': 'dex, file or URL'}))
     cmd('render', c_render, 'rewrite the generated pages and rebuild the site', D)
+    cmd('check', c_check, 'check ledgers for tampering over time: rewrites, missing receipts, changed addresses',
+        (['sources'], {'nargs': '*', 'help': 'ledgers to check: dex folders, files or URLs (default: this folder)'}),
+        (['--state'], {'default': '.ledgdex-check', 'help': 'where last-seen copies and proofs are kept'}),
+        (['--media'], {'action': 'store_true', 'help': 'also fetch offer media and check their hashes'}),
+        (['--published'], {'action': 'store_true', 'help': 'for dex folders: compare with the published ledger'}),
+        (['--json'], {'help': 'write the report as JSON to this file'}),
+        (['--every'], {'type': int, 'help': 'run as a worker: check again every this many seconds'}),
+        (['--quiet'], {'action': 'store_true', 'help': 'print only the summary line'}))
+    cmd('workflow', c_workflow, 'print a GitHub Actions workflow that runs ledgdex check',
+        (['sources'], {'nargs': '+', 'help': 'ledger files in the repository, or URLs'}),
+        (['--cron'], {'default': '17 6 * * *', 'help': 'schedule (UTC cron)'}),
+        (['--media'], {'action': 'store_true'}))
     cmd('publish', c_publish, 'publish the dex with dexweb (catches up with other devices)', D)
     return p
 

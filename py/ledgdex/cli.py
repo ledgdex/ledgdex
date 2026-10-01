@@ -103,6 +103,8 @@ def c_init(a):
         pub['dest'] = a.dest
     if a.branch:
         pub['branch'] = a.branch
+    if a.site_path:
+        pub['site_path'] = a.site_path
     cfg['publish'] = pub
     with open(cfg_path, 'w') as f:
         f.write(json.dumps(cfg, indent=4))
@@ -285,7 +287,8 @@ def parser():
         (['--key'], {'required': True, 'help': 'key name in ~/.ledgdex (made if missing)'}),
         (['--dexname'], {'help': 'dex name (default: --name)'}),
         (['--dest'], {'help': 'repository address to publish to'}),
-        (['--branch'], {'help': 'branch to publish to'}))
+        (['--branch'], {'help': 'branch to publish to'}),
+        (['--site-path'], {'dest': 'site_path', 'help': 'folder in the repository to publish to (default: its root)'}))
     cmd('offer', c_offer, 'sell something: sign and record an offer from a JSON file', D, (['file'], {}))
     cmd('withdraw', c_withdraw, 'withdraw an offer', D, (['offer'], {}))
     cmd('record', c_record, 'record claims, payments and confirmations from buyers', D,

@@ -156,6 +156,9 @@ class Dex(unittest.TestCase):
             os.chdir(cwd)
         self.assertEqual(len(Ledger(self.published()).entries), 2)
 
+    def test_publish_needs_a_dex(self):
+        self.assertFalse(self.quiet('publish', 'nothere'))
+
     def test_publish_needs_append_only(self):
         self.shop()
         with open('shop/config.json') as f:

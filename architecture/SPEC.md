@@ -554,7 +554,8 @@ A ledgdex is published with dexweb (4.2.5 or later), like any other dex. `ledgde
 2. **Publish.** `Dexweb().publish()`. `True`: every entry in the file is now published, and only now may it be shown
    or sent (3.5 rule 4).
 3. **Retry.** `False`: call `published()` again. If it changed since step 1, another device published first: go back
-   to step 1, at most 3 times. If it did not change, stop and report dexweb's message (no network, no git, push
+   to step 1, at most 3 times. If it did not change, publish once more (another dex may share the repository and
+   have pushed at the same moment); if that fails too, stop and report dexweb's message (no network, no git, push
    rights).
 
 Two devices that both publish to one dest are safe: git rejects the second push, and step 1 re-sequences its
@@ -632,7 +633,7 @@ ledgdex/
 
 ```
 ledgdex keygen NAME                              write ~/.ledgdex/NAME.key and print the public key
-ledgdex init DEX --name N --key K [--about A] [--url U] [--dest D] [--branch B]
+ledgdex init DEX --name N --key K [--about A] [--url U] [--dest D] [--branch B] [--site-path P]
                                                  create a complete dex (7.1) with its ledger and "open" entry, then render
 seller
 ledgdex offer DEX offer.json                     sign and record an offer (body from file; unit, allow, pay, terms,

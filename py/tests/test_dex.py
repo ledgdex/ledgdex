@@ -82,6 +82,11 @@ class Dex(unittest.TestCase):
                          ['open', 'sent', 'receipt', 'sent', 'sent', 'receipt', 'receipt'])
         self.assertEqual(self.state('me')['ignored'], [])
 
+    def test_cannot_claim_own_offer(self):
+        oid = self.shop()
+        self.assertFalse(self.quiet('claim', 'shop', 'shop', oid))
+        self.assertEqual(self.state('shop')['claims'], {})
+
     def test_render(self):
         self.shop()
         with open('shop/data.json') as f:

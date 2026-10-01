@@ -184,6 +184,8 @@ def c_record(a):
 
 def c_claim(a):
     seller, _ = seller_ledger(a.seller)
+    if seller.owner == load(a.dex).owner:
+        raise Invalid('you cannot buy from your own ledger')
     st = state(seller)
     n = seller.find(a.offer)
     if n is None or seller.entries[n]['msg']['type'] != 'offer':

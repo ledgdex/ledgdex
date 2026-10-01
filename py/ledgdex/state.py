@@ -50,6 +50,8 @@ def state(led):
                 reason = 'withdrawn'  # a sold offer falls through to bad_quantity
             elif 'expires' in ob and e['time'] >= ob['expires']:
                 reason = 'expired'
+            elif m['by'] == owner:
+                reason = 'self_claim'  # a self never buys from its own ledger
             elif not allowed(ob['allow'], m['by'], admitted):
                 reason = 'not_allowed'
             elif b['quantity'] < 1 or b['quantity'] > o['remaining']:

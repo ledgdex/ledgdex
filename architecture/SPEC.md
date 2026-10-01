@@ -53,7 +53,7 @@ the buyer's copy of that record. That is triple-entry accounting. Nobody else is
 1. The seller signs an offer and records it in the seller's ledger.
 2. The buyer reads the seller's ledger, signs a claim for the offer at its price, and sends it by any channel.
 3. The seller records the claim. The recording entry carries the seller's time and signature. That entry is the receipt.
-   Whether the claim is accepted is decided by fixed rules (enough quantity left, the price matches the offer, buyer allowed),
+   Whether the claim is accepted is decided by fixed rules (enough quantity left, the price matches the offer, buyer allowed and not the seller),
    not by the seller's mood.
 4. The buyer saves the receipt in the buyer's own ledger.
 5. The buyer pays by whatever method the offer names (outside the ledger) and sends a signed payment notice.
@@ -409,9 +409,10 @@ return state
   2. `offer_changed`: `offer_hash` does not match;
   3. `withdrawn`: offer withdrawn (a sold offer falls through to `bad_quantity`);
   4. `expired`: `entry.time >= expires`;
-  5. `not_allowed`: buyer not permitted by `allow`;
-  6. `bad_quantity`: `quantity < 1` or `quantity > remaining`;
-  7. `price_mismatch`: `price` is not the offer's `price`.
+  5. `self_claim`: the buyer is the ledger owner (a self never buys from itself);
+  6. `not_allowed`: buyer not permitted by `allow`;
+  7. `bad_quantity`: `quantity < 1` or `quantity > remaining`;
+  8. `price_mismatch`: `price` is not the offer's `price`.
   Otherwise `status = "accepted"`, `remaining -= quantity`, and if `remaining == 0` the offer's status becomes
   `"sold"`.
 - `paid`: valid only if `msg.by` is the claim's buyer and the claim is accepted; record `paid = {method, ref}`.

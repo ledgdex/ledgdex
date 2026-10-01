@@ -51,6 +51,12 @@ class Claims(unittest.TestCase):
         self.assertEqual(st['claims'][second]['reason'], 'bad_quantity')
         self.assertEqual(st['offers'][oid], {'title': 'Mangoes', 'remaining': 0, 'status': 'sold'})
 
+    def test_no_self_buying(self):
+        b = Book()
+        oid, oh = b.offer(allow=[public(SELLER)])
+        self.assertEqual(self.reason(b, b.claim(oid, oh, secret=SELLER)), 'self_claim')
+        self.assertEqual(state(b.led)['offers'][oid]['remaining'], 2)
+
     def test_price_comes_from_the_signed_offer(self):
         b = Book()
         oid, oh = b.offer(price=500)

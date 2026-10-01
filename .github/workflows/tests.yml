@@ -1,0 +1,26 @@
+# Python and JavaScript must agree: both suites, and the shared vectors must be current (py/tests/test_vectors.py).
+name: tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: pip install -e "py[fast]"
+      - name: Python (cryptography backend)
+        run: cd py && python -m unittest discover -s tests -v
+      - name: Python (pure Ed25519, no verification cache)
+        run: cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests
+      - name: JavaScript against the shared vectors
+        run: node js/test.mjs

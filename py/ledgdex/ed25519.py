@@ -107,12 +107,22 @@ def sign(secret, msg):
     return Rs + int.to_bytes(s, 32, 'little')
 
 
+_IDENTITY = (0, 1, 1, 0)
+
+
+def small_order(public):
+    """True for the eight public keys of small order (or a non-point). For such a key, one signature verifies for
+    every message, so anyone could sign as it: no ledger accepts one."""
+    A = _decompress(public) if len(public) == 32 else None
+    return A is None or _equal(_mul(8, A), _IDENTITY)
+
+
 def verify(public, msg, signature):
-    """True if signature (64 bytes) is public's (32 bytes) signature of msg."""
+    """True if signature (64 bytes) is public's (32 bytes) signature of msg. Small-order keys never verify."""
     if len(public) != 32 or len(signature) != 64:
         return False
     A = _decompress(public)
-    if A is None:
+    if A is None or _equal(_mul(8, A), _IDENTITY):
         return False
     Rs = signature[:32]
     R = _decompress(Rs)

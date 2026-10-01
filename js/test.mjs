@@ -136,6 +136,17 @@ if (await webCryptoWorks()) {
   console.log('(no Ed25519 in this Web Crypto: skipped its checks)');
 }
 
+// small-order public keys never verify: under 0x01.. one signature (R = B, S = 1) verified for every message
+{
+  const forged = new Uint8Array([...unhex('5866666666666666666666666666666666666666666666666666666666666666'), 1, ...new Uint8Array(31)]);
+  for (const k of ['0100000000000000000000000000000000000000000000000000000000000000', 'ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
+    '0000000000000000000000000000000000000000000000000000000000000000', 'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a',
+    'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa', '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05',
+    '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85']) {
+    ok(!ed.verify(unhex(k), new Uint8Array([1, 2, 3]), forged), 'small-order key ' + k.slice(0, 8) + ' never verifies');
+  }
+}
+
 // keys and bids kept in the browser are sealed (keystore.js)
 {
   const secret = unhex('9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60');

@@ -24,10 +24,16 @@ let led = null, st = null, own = null, secret = null, sgn = null, lastMsg = null
 const say = (id, text) => { $(id).textContent = text; };
 const fail = (e) => say('err', e.message || String(e));
 const ledgerURL = (u) => (u = u.trim()).endsWith('.jsonl') ? u : u.replace(/\/+$/, '') + '/' + LEDGER;
+const MAX_BYTES = 64 * 1024 * 1024;  // as LEDGDEX_MAX_BYTES
 async function fetchBytes(u) {
-  const r = await fetch(ledgerURL(u), { cache: 'no-store' });
-  if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + ledgerURL(u));
-  return new Uint8Array(await r.arrayBuffer());
+  const url = ledgerURL(u);
+  if (!/^https?:\/\/[^\x00-\x20\x7f]+$/.test(url)) throw new Error('only http(s) addresses are read: ' + url);
+  const r = await fetch(url, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
+  if (+r.headers.get('content-length') > MAX_BYTES) throw new Error(url + ' is larger than 64 MiB');
+  const b = new Uint8Array(await r.arrayBuffer());
+  if (b.length > MAX_BYTES) throw new Error(url + ' is larger than 64 MiB');
+  return b;
 }
 const rootLedger = async () => $('rooturl').value.trim() ? new Ledger(await fetchBytes($('rooturl').value)) : null;
 function download(blob, name) {
@@ -73,8 +79,9 @@ function show(data, root) {
 async function load() {
   say('err', '');
   try {
-    loadedFrom = $('url').value.trim();
-    show(await fetchBytes(loadedFrom), await rootLedger());
+    const from = $('url').value.trim(), data = await fetchBytes(from), root = await rootLedger();
+    loadedFrom = from;  // only an address that was read: its links and receipts point to it
+    show(data, root);
   } catch (e) {
     say('result', e.message + '. The site must allow cross-origin reads (GitHub Pages does), or download the file and open it here.');
   }

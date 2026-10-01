@@ -197,6 +197,40 @@ def scenarios():
     old.append(old.next_entry(SELLER, message(SELLER, 'note', {'ref': old.ids[0], 'text': 'early'},
                                               at='0099-12-31T23:59:59Z'), at='0099-12-31T23:59:59Z'))
     out['year-99'] = (old.data, None, None)
+    # every free text a ledger holds, written to break out of a page: it must render as text (invariant 14)
+    X = '<script>x()</script><img src=x onerror=y()>\'"&amp;<a href="javascript:z()">'
+    hs = Book(SELLER, X)
+    from helpers import offer_body
+    hid = hs.own('offer', offer_body(item={'title': X, 'text': X, 'media': [{'url': X, 'hash': 'sha256:' + '3' * 64}]},
+                                     unit=X, currency=X, pay=[{'method': X, 'to': X}], terms=X,
+                                     arbiter={'key': public(SELLER), 'url': X}))
+    hoh = hash_(hs.led.entries[-1]['msg'])
+    hc = message(BUYER, 'claim', {'offer': hid, 'offer_hash': hoh, 'quantity': 1, 'price': 120000}, at=hs.tick())
+    hs.rec(hc)
+    hcid = hs.led.ids[-1]
+    hs.from_(BUYER, 'paid', {'claim': hcid, 'method': X, 'ref': X})
+    hs.own('delivered', {'claim': hcid, 'note': X})
+    hs.from_(BUYER, 'dispute', {'claim': hcid, 'text': X, 'evidence': [X]})
+    hs.own('note', {'ref': hcid, 'text': X})
+    hs.own('admit', {'key': public(BUYER), 'name': X, 'note': X})
+    hs.own('revoke', {'key': public(BUYER), 'reason': X})
+    hs.own('list', {'ledger': ZERO, 'url': X, 'owner': public(SELLER), 'note': X})
+    hs.own('delist', {'ledger': ZERO, 'reason': X})
+    out['hostile-text'] = (hs, None, None)
+    hb = Book(BUYER, X)
+    hb.own('sent', {'to': public(SELLER), 'msg': hc})
+    hb.own('receipt', {'ledger': hs.led.id, 'url': X, 'header': hs.led.header,
+                       'entry': hs.led.entries[hs.led.find(hcid)]})
+    out['hostile-buyer'] = (hb, None, None)
+
+    # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
+    from ledgdex import ed25519
+    from ledgdex.core import sha256 as id_of
+    weak, forged = 'ed25519:01' + '00' * 31, (ed25519._compress(ed25519.G) + (1).to_bytes(32, 'little')).hex()
+    hl = canon({'ledger': 1, 'name': 'Anyone', 'owner': weak})
+    m = {'v': 1, 'type': 'open', 'by': weak, 'at': t(0), 'body': {'about': '', 'dex': ''}, 'sig': forged}
+    out['broken-small-order-key'] = (hl + b'\n' + canon({'seq': 0, 'prev': id_of(hl), 'time': t(0), 'msg': m,
+                                                         'sig': forged}) + b'\n', None, None)
     xs = Book()                                                      # addresses that must not become links
     xs.offer(item={'title': 'Links', 'text': '', 'media': [
         {'url': 'javascript:alert(1)', 'hash': 'sha256:' + '2' * 64},

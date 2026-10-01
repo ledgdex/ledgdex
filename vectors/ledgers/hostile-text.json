@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 11,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":null,\"claims\":{\"sha256:0266075578e2c84dc8ad8d537b99d4893807b79e00d5a64ed99055a8b6c4973e\":{\"buyer\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\",\"delivered\":true,\"offer\":\"sha256:4ba2c43ee1cef70236f8f3925c15cd3b4c72a2e1c6af727656fda18cdac19597\",\"paid\":{\"method\":\"<script>x()</script><img src=x onerror=y()>'\\\"&amp;<a href=\\\"javascript:z()\\\">\",\"ref\":\"<script>x()</script><img src=x onerror=y()>'\\\"&amp;<a href=\\\"javascript:z()\\\">\"},\"price\":120000,\"quantity\":1,\"status\":\"disputed\"}},\"devices\":[],\"disputes\":{\"sha256:8f78db9904f1aad79a545db3b69d721c0b061609b894e697442f85df6cf1cc78\":{\"claim\":\"sha256:0266075578e2c84dc8ad8d537b99d4893807b79e00d5a64ed99055a8b6c4973e\"}},\"head\":{\"id\":\"sha256:ead11f5872b8d2ea46acf46ffb0623dd363fbe5cc0b7c4759f14437304142baf\",\"seq\":10},\"ignored\":[],\"ledger\":\"sha256:649e7e5a3c96317a5ca37eb45e07cea6e0a928365d80bbeadf1a2db1f9c0396f\",\"listings\":{},\"offers\":{\"sha256:4ba2c43ee1cef70236f8f3925c15cd3b4c72a2e1c6af727656fda18cdac19597\":{\"remaining\":1,\"status\":\"open\",\"title\":\"<script>x()</script><img src=x onerror=y()>'\\\"&amp;<a href=\\\"javascript:z()\\\">\"}},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "hostile-text"
+}

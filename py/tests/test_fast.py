@@ -40,6 +40,27 @@ class Backends(unittest.TestCase):
                 self.assertEqual(sig.backend.verify(*c), sig.pure.verify(*c), c)
 
 
+SMALL_ORDER = ['0100000000000000000000000000000000000000000000000000000000000000',
+               'ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
+               '0000000000000000000000000000000000000000000000000000000000000000',
+               'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a',
+               'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa',
+               '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05',
+               '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85']
+
+
+class SmallOrderKeys(unittest.TestCase):
+    def test_small_order_keys_never_verify(self):
+        from ledgdex import ed25519
+        forged = ed25519._compress(ed25519.G) + (1).to_bytes(32, 'little')   # verifies for every message under 0x01..
+        for k in SMALL_ORDER:
+            pub = bytes.fromhex(k)
+            self.assertTrue(ed25519.small_order(pub), k)
+            for b in (sig.backend, sig.pure):
+                self.assertFalse(b.verify(pub, b'any message', forged), (b.name, k))
+        self.assertFalse(ed25519.small_order(bytes.fromhex(sig._KAT_PUBLIC.hex())))
+
+
 class Cache(unittest.TestCase):
     def setUp(self):
         self.before = os.environ['LEDGDEX_CACHE'], os.environ.pop('LEDGDEX_NO_CACHE', None)

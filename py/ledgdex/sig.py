@@ -38,7 +38,7 @@ class _Cryptography:
     def verify(self, public, msg, signature):
         if len(public) != 32 or len(signature) != 64 or not _canonical(public) or not _canonical(signature[:32]):
             return False
-        if int.from_bytes(signature[32:], 'little') >= ed25519.q:
+        if int.from_bytes(signature[32:], 'little') >= ed25519.q or ed25519.small_order(public):
             return False
         try:
             self._pub.from_public_bytes(public).verify(signature, msg)

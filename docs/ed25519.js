@@ -102,10 +102,12 @@ export function sign(secret, msg) {
   return cat(Rs, toLE((r + h * a) % q));
 }
 
+// small-order public keys (eight of them): one signature verifies for every message, so they never verify
+const IDENTITY = [0n, 1n, 1n, 0n];
 export function verify(pub, msg, sig) {
   if (pub.length !== 32 || sig.length !== 64) return false;
   const A = decompress(pub);
-  if (!A) return false;
+  if (!A || equal(mul(8n, A), IDENTITY)) return false;
   const Rs = sig.slice(0, 32), R = decompress(Rs);
   if (!R) return false;
   const s = le(sig.slice(32));

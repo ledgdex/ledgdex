@@ -154,6 +154,10 @@ Reference behaviour:
 - Hash: SHA-256 (FIPS 180-4).
 - Signature: Ed25519 (RFC 8032), pure Ed25519, no context, no prehash.
 - `sign(key, x)` signs `canon(x)`. `verify(pub, x, sig)` verifies a signature over `canon(x)`.
+- `verify` is strict: the public key and `R` MUST be canonical point encodings (y below p), `S` MUST be below the
+  group order, and the public key MUST NOT be of small order (`[8]A` is the identity; there are eight such keys).
+  For a small-order key one signature verifies for every message, so anyone could sign as it; no ledger, entry or
+  message may be signed by one. (Before 1.0.1 such keys were accepted: vector `broken-small-order-key`.)
 - Private keys MUST NOT be written into a dex or a repository.
 
 ## 2. Messages
@@ -755,6 +759,7 @@ An implementation is correct only if all of these hold, and the test suite check
     600,000 rounds, AES-256-GCM), and a bid's secret only sealed with a key derived from the secret key.
 16. Two appends to one ledger at once cannot both take the same `seq` (a lock), and an append is on disk (fsync)
     before the command reports it.
+17. No signature by a small-order public key verifies (1.3), so no one can sign for a key no one holds.
 
 ### 9.1 Checks over time
 
@@ -950,6 +955,12 @@ Section 10 (bots, pay per clean) is a draft and not built; milestone 11 builds i
 http(s)-only links (invariant 14), safe reading of addresses found in ledgers (9.1), private key files and sealed
 browser keys (invariant 15), locked appends (invariant 16), a trusted-only verification cache, checked command-line
 ids, and a check workflow pinned to a release and to action commits. The threat model is in `SECURITY.md`.
+
+**v1.0.1** fixes a forgery found by a second audit: Ed25519 verification accepted small-order public keys, for which
+one signature verifies for every message, so anyone could write a whole valid-looking ledger owned by such a key
+(1.3, invariant 17). A shared vector now holds every free text a ledger can carry as markup, and a test checks that
+every page of every vector carries only text, `<code>`, `<br>` and safe links. The viewer reads only http(s)
+addresses, at most 64 MiB, without credentials.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

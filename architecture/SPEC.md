@@ -632,6 +632,28 @@ Sending a message to a ledger owner: any channel that carries a JSON file: email
 upload, USB. The owner's tool validates the message and records it. The sender records a `sent` entry in their own
 ledger and, once the owner's entry is published, a `receipt` entry.
 
+### 9.2 Clock skew (300 seconds)
+
+An entry's `time` is its owner's clock; a message's `at` is its author's. Rule 7 of 3.3 lets an entry be recorded up to
+300 seconds before the message it records says it was signed, so that two selves whose clocks differ a little can
+still trade. What that allows:
+
+- **Back-dating by up to 5 minutes.** An owner can record a message with an entry `time` up to 5 minutes earlier than
+  the message's own `at`. Where a rule turns on time (an offer's `expires`, an auction's `close` and `reveal_until`,
+  a claim's `deliver_by`), a seller can let in a claim, bid or delivery up to 5 minutes late, or turn one away up to
+  5 minutes early by recording a later time. Both are signed and visible; neither can be hidden from a check.
+- **Ordering among close claims.** Within the skew, the seller orders claims that arrive together as it likes (Part I
+  already lists this as not protected).
+- **No bound on the other side.** Rule 7 bounds how early an entry can be; it does not bound how late. An owner can
+  hold a message for hours before recording it (also listed as not protected): the buyer's `sent` entry shows when it
+  existed.
+- **A wrong clock breaks nothing silently.** A device whose clock runs more than 5 minutes behind its counterparties
+  cannot record their fresh messages until it catches up (the tool refuses); a clock running ahead makes its entries
+  look late. Devices SHOULD keep time by NTP.
+
+Deadlines that matter more than 5 minutes (a day's settlement, a 30-minute clean) are not at risk. A sealed-bid
+auction should close more than 5 minutes after the last bid it must accept.
+
 ## 10. Bots and pay per clean (draft, not built)
 
 This section extends sections 5 and 6 for selves that are machines, selling a service one unit at a time to many
@@ -648,13 +670,14 @@ flow of 5.4 is unchanged: claim, `delivered`, `confirmed`, `received`. Two addit
 | `delivered` | adds optional `evidence` | `{"claim": id, "note": str, "evidence": [{"url": str, "hash": id}]}` |
 | `received` | adds optional `ref` | `{"claim": id, "amount": int, "ref": str}` |
 
-- `deliver_by`: if no `delivered` for the claim is recorded at an entry time `< deliver_by`, the claim **lapses**: at
+- `deliver_by` (default for a buyer's agent: 30 minutes after the claim): if no `delivered` for the claim is recorded at an entry time `< deliver_by`, the claim **lapses**: at
   the first entry at or after `deliver_by`, or at `now` (6) when judging state, its status becomes `lapsed`, its
   quantity returns to the offer's `remaining` (an offer `sold` becomes `open` again if it has not expired), and later
   `paid`, `received`, `delivered` and `confirmed` for it are ignored (`claim_lapsed`). Nothing is owed for a lapsed
   claim. The buyer then claims the unit from another seller.
-- `evidence` follows the media rule of 5.2: linked by address and hash, never embedded. A buyer's system SHOULD fetch
-  it and check the hash before it confirms.
+- `evidence` follows the media rule of 5.2: linked by address and hash, never embedded. Proof of a clean is a photo:
+  the evidence MUST hold at least one image, and the buyer's agent confirms only after fetching it and checking its
+  hash.
 - `received.ref` names how the payment arrived, for example the clearing ledger's `settle` entry id (10.3).
 
 ### 10.2 Daily offers and availability
@@ -678,14 +701,17 @@ A clearing ledger keeps credits: amounts in a currency it names (for example `MA
 
 - State of a clearing ledger: `balances[key][currency]`, starting at 0. `credit` adds; `payout` and the `from` side of
   `settle` subtract; the `to` side of `settle` adds. An entry that would take a balance below 0 is ignored as
-  `insufficient_credit`. `amount >= 1`.
-- `period` is the day settled (`2026-10-01`). At the end of each day the clearing owner records one `settle` per buyer
+  `insufficient_credit`: credits never go negative. `amount >= 1`.
+- `period` is the day settled (`2026-10-01`), a local date of the place: the day closes at midnight there. After each
+  day closes the clearing owner records one `settle` per buyer
   and seller that traded that day: the confirmed claims (in the seller's ledger) not yet settled, and `amount` = the
   sum of their prices. Anyone can recompute it from the seller's ledger and the buyer's receipts; a `settle` that
   lists a claim that is not confirmed, already settled, or of another buyer, or whose amount is not the sum, is
   evidence of a wrong settlement, reported by `check` (9.1) as `bad_settlement`.
 - After a settlement, the seller records `received` for each claim it covers, with `ref` = the `settle` entry id. A
   claim is `closed` as in 6.2.
+- Refunds: when the arbiter rules `refund` on a clean already settled, the next day's settlement pays it back as a
+  `settle` from the seller to the buyer listing that claim.
 
 ### 10.4 Machines as selves
 
@@ -711,8 +737,8 @@ An agent is a program that acts for one self by rules, without a person:
 - **buyer** (a shop): when a unit is needed, claim it from an open offer chosen by its rule, with a deadline; confirm
   delivered units whose evidence checks out, and dispute those that do not; when a claim lapses, claim from another
   seller; keep receipts.
-- **clearing** (the place): at the end of each day, record one `settle` per buyer and seller for the confirmed claims
-  not yet settled.
+- **clearing** (the place): after midnight, record one `settle` per buyer and seller for the day's confirmed claims
+  not yet settled, and one `settle` back for each refund ruled since.
 
 Agents poll; how often is theirs to choose. Every action is an ordinary message or entry under sections 2 to 6, so a
 person can audit it, and `check` (9.1) catches an agent that misbehaves.
@@ -947,6 +973,27 @@ Build 10 and run it as a simulation:
   day; nothing is owed for a lapsed claim; `check` passes on every ledger; and a robot whose device key is revoked
   cannot record cleans.
 
+## Future improvements
+
+Hardening that is not built yet:
+
+1. **Keys at rest.** Secret keys in `~/.ledgdex` and in the browser are stored unencrypted. Encrypt them with a
+   passphrase, or keep them in the operating system's key store (and a hardware key where there is one). This matters
+   most for machines (10.4) and shared computers.
+2. **Constant-time signing.** The vendored Ed25519 is not constant time; signing on a shared machine can leak timing.
+   Sign with a constant-time backend (the `cryptography` package, Web Crypto) wherever one is available, and say so
+   when it is not. Verifying is not affected.
+3. **State at scale.** Every command replays the whole ledger for its state and rebuilds the pages. Cache the state
+   with the verification cache (by the same verified prefix), and render only the pages that changed.
+4. **An independent verifier.** Both implementations were written by one author, the JavaScript after the Python.
+   Have a third verifier written from this specification alone, by someone else, and run it against the shared
+   vectors and the fuzzer.
+5. **Web Crypto in JavaScript.** Use the browser's Ed25519 when present (it is asynchronous), behind the same
+   known-answer test and strictness as the Python fast backend; this closes milestone 2.
+6. **Browser tests in CI.** Run the viewer's end-to-end tests (in Chromium) on every push, not only by hand.
+7. **Packaging.** Publish ledgdex on PyPI so `pip install ledgdex` works, and so the check workflow installs a release.
+8. **Delegated admission.** A `delegate` type, letting the root name other ledgers that may admit (Decision 4).
+
 ## Out of scope for v1
 
 - Moving money on the ledger (payments stay outside; the ledger records them).
@@ -954,18 +1001,24 @@ Build 10 and run it as a simulation:
 - Encryption of ledger contents (everything is public).
 - Multi-unit auctions and partial fills beyond `quantity` on claims.
 
-## Open decisions for the author
+## Decisions
 
-For section 10: when the day closes for settlement (proposal: midnight local time, settled at 00:15); the default
-deadline a shop gives a robot (proposal: 30 minutes); whether credits can be negative (proposal: no); whether a
-`refund` ruling on a disputed clean that was already settled is paid back in the next day's settlement (proposal:
-yes, as a `settle` from robot to shop); and how a robot proves where it cleaned (proposal: evidence is the robot's
-signed log; the shop's own camera is the check).
-
-1. Currency for The Matrix's own unit, and whether the 100K plan becomes a ledger flavor.
-2. Default arbiter when an offer names none (proposal: the index that listed it).
-3. The allowed clock skew in 3.3 rule 7 (proposal: 300 seconds).
-4. Who runs the root today, and when admission is delegated (`delegate` type, future).
+1. **The Matrix's own unit is USD.** Amounts in USD are integer cents (`150000` is USD 1,500.00). Whether the 100K
+   plan becomes a ledger flavor is still open.
+2. **Default arbiter: the root.** An offer or auction that names no arbiter gets the root's owner as its arbiter (key
+   and dex address); today that is Noorul Ali, founder of The Matrix (manonthemoon13131@gmail.com). `ledgdex offer`
+   and `ledgdex auction` fill it in when the dex names its root (`config.json`: `"ledgdex": {"root": ...}`), and fall
+   back to the seller itself when it names none. The arbiter is always signed into the offer, so a buyer sees it
+   before claiming.
+3. **Clock skew stays 300 seconds** (3.3 rule 7). Its risks are in 9.2.
+4. **The root is run by the founder, Noorul Ali,** from a dex of its own (see "Running the root" in the README).
+   Admission is not delegated yet; a `delegate` type, letting the root name other admitting ledgers, is future work.
+5. **Section 10:** the day closes at midnight in the place's local time, and each day is settled after it closes
+   (`settle.period` is that local date); a shop gives a robot 30 minutes to clean (`deliver_by` = claim time + 30
+   minutes by default); credits cannot go negative; a `refund` ruling on a clean already settled is paid back in the
+   next day's settlement, as a `settle` from the robot to the shop listing that claim; proof of cleaning is a photo:
+   `delivered.evidence` MUST hold at least one image (linked by address and hash), and the buyer's agent confirms
+   only after fetching it and checking its hash.
 
 ---
 

@@ -138,6 +138,24 @@ class Commands(unittest.TestCase):
         a = self.st('shop')['auctions'][aid]
         self.assertEqual((a['status'], a['amount'], a['winner']), ('awarded', 700, load('bob').owner))
 
+    def test_default_arbiter_is_the_root(self):
+        oid = self.offer()
+        self.assertEqual(self.arbiter(oid), load('shop').owner)        # no root named: the seller itself
+        run('init', 'root', '--name', 'The Matrix root', '--key', 'rootkey', '--url', 'https://root.example')
+        with open('shop/config.json') as f:
+            cfg = json.load(f)
+        cfg['ledgdex'] = {'root': os.path.join(self.tmp, 'root')}
+        with open('shop/config.json', 'w') as f:
+            json.dump(cfg, f)
+        oid = self.offer()
+        self.assertEqual(self.arbiter(oid), load('root').owner)
+        led = load('shop')
+        self.assertEqual(led.entries[led.find(oid)]['msg']['body']['arbiter']['url'], 'https://root.example')
+
+    def arbiter(self, oid):
+        led = load('shop')
+        return led.entries[led.find(oid)]['msg']['body']['arbiter']['key']
+
     def test_index(self):
         run('init', 'index', '--name', 'Market', '--key', 'market')
         oid = self.offer()

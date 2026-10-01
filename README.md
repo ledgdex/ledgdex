@@ -103,6 +103,44 @@ ledgdex admit root ed25519:...                                  the root admits 
 ledgdex state shop --root https://root.github.io                "allow": "admitted" then needs the root too
 ```
 
+## Running the root
+
+The root is the ledger whose admissions define who is in The Matrix, and its owner is the default arbiter. Today
+Noorul Ali, founder of The Matrix, runs it. It is an ordinary ledgdex:
+
+```
+ledgdex init root --name "The Matrix root" --about "Admission to The Matrix" --key matrix-root \
+    --url https://ROOT_ADDRESS --dest git@github.com:YOU/root.git --branch main
+ledgdex publish root
+```
+
+Keep the owner key (`~/.ledgdex/matrix-root.key`) backed up offline. For daily work, give the laptop a device key,
+which may admit, revoke and recover but not change keys:
+
+```
+ledgdex keygen root-laptop                                   prints ed25519:...
+ledgdex device add root ed25519:... --name laptop            with the owner key, once
+```
+
+Then, with `ledgdex publish root` after each change:
+
+```
+ledgdex admit root ed25519:THEIR_KEY --name "Shop 12" --note "ground floor"      admit a self
+ledgdex revoke root ed25519:THEIR_KEY --reason "left the mall"                   take it back
+ledgdex recover root https://THEIR_DEX ed25519:THEIR_NEW_KEY                     after checking who they are, off-ledger
+ledgdex list root https://THEIR_DEX --note "Shop 12"                             optional: the root as an index too
+```
+
+Every dex that trades in The Matrix names the root in its `config.json`, as `"ledgdex": {"root": "https://ROOT_ADDRESS"}`.
+Its "admitted" offers then need admission by the root too, and its offers and auctions default to the root's owner as
+arbiter. Rulings are signed with the owner key, since that is the arbiter key offers name:
+
+```
+ledgdex ruling root https://SELLER_DEX DISPUTE_ID --outcome refund --text "..."
+```
+
+Run `ledgdex check` on the root (the GitHub workflow, or cron) so any change to its history is caught.
+
 ## JavaScript and the viewer
 
 `js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification, the state function, the dex pages (`render.js`) and the dexweb build (`dexweb.js`). `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte: states, pages, and whole dexs that dexweb built. `python py/tests/make_vectors.py` regenerates them.

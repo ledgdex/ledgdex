@@ -2,7 +2,7 @@
 import argparse, json, os, sys, time
 from .canon import canon, hash_, ID_KEY
 from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_key
-from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, record, signer
+from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, load_root, record, signer
 from .render import render
 from .state import state
 
@@ -44,11 +44,14 @@ def add(dex, type_, body):
 
 
 def with_defaults(dex, body, defaults):
-    """An offer or auction body from a file, with the fields a seller usually leaves out."""
+    """An offer or auction body from a file, with the fields a seller usually leaves out. The default arbiter is the
+    root's owner when the dex names its root (spec, Decision 2), else the seller itself."""
     led = load(dex)
     for k, v in defaults.items():
         body.setdefault(k, v)
-    body.setdefault('arbiter', {'key': led.owner, 'url': led.dex})
+    if 'arbiter' not in body:
+        root = load_root(dex)
+        body['arbiter'] = {'key': root.owner, 'url': root.dex} if root else {'key': led.owner, 'url': led.dex}
     if isinstance(body.get('item'), dict):
         body['item'].setdefault('text', '')
         body['item'].setdefault('media', [])

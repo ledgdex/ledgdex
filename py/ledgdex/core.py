@@ -297,6 +297,7 @@ class Ledger:
         self.root = root    # the root Ledger, needed to verify "recovered" entries (spec 5.7)
         self.keys = None    # current signing keys
         self.key_history = set()
+        self.msg_ids = set()
         self.cached = 0     # entries taken from the cache instead of verified again
         if isinstance(data, str):
             data = data.encode('utf-8')
@@ -383,7 +384,10 @@ class Ledger:
         self.entries.append(e)
         self.ids.append(sha256(line))
         self.lines.append(line)
-        if e['msg']['type'] in KEY_TYPES:
+        mid = hash_(e['msg'])
+        duplicate = mid in self.msg_ids   # a message recorded again changes nothing (spec 6.2)
+        self.msg_ids.add(mid)
+        if e['msg']['type'] in KEY_TYPES and not duplicate:
             self.keys.apply(e['msg'])
             self.key_history |= {self.keys.owner} | self.keys.devices
 

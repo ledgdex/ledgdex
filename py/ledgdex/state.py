@@ -70,8 +70,14 @@ def state(led, root=None, now=None):
         if d['status'] == 'accepted' and 'received' in d and d.get('delivered') and d.get('confirmed'):
             d['status'] = 'closed'
 
+    recorded = set()   # message ids: a message recorded twice counts once (no replayed claims)
     for n, (e, id_) in enumerate(zip(led.entries, led.ids)):
         m, b, t, at = e['msg'], e['msg']['body'], e['msg']['type'], e['time']
+        mid = hash_(m)
+        if mid in recorded:
+            ignore(n, 'duplicate_message')
+            continue
+        recorded.add(mid)
         if t == 'offer':
             offers[id_] = {'title': b['item']['title'], 'remaining': b['quantity'], 'status': 'open'}
             sellers[id_] = b

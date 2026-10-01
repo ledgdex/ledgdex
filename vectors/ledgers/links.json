@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 3,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":null,\"claims\":{},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:27c4874fc83c1f2d47b65ee63c03c2a2334eb893d4472edd57e902290aa4af16\",\"seq\":2},\"ignored\":[],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{\"sha256:0000000000000000000000000000000000000000000000000000000000000000\":{\"note\":\"\",\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"url\":\"javascript:alert(2)\"}},\"offers\":{\"sha256:8e20afee6246bb7423f2b3e7f2cbf876d1a02d51465328cc37aef61ab9d755de\":{\"remaining\":2,\"status\":\"open\",\"title\":\"Links\"}},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "links"
+}

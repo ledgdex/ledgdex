@@ -43,7 +43,7 @@
         "body": [
             "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 3 left, open",
             "line one<br>line &quot;two&quot;",
-            "Media: <a href='https://example.com/m.jpg'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
+            "Media: <a href='https://example.com/m.jpg' rel='nofollow noopener noreferrer'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
             "Status: open",
             "Remaining: 1 of 3 dozen",
             "Price: INR 1,200.00 (120000) per dozen",

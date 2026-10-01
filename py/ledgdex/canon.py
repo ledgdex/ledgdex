@@ -4,14 +4,15 @@ import hashlib, json, re
 KEY = re.compile(r'[a-z][a-z0-9_]*\Z')
 ID_KEY = re.compile(r'[\x21-\x7e]+\Z')  # state output (spec 6.3) is keyed by ids: printable ASCII
 MAX_INT = 2 ** 53 - 1
+MAX_DEPTH = 32  # spec 1.2 rule 9: arrays and objects nest at most this deep
 
 
 class CanonError(ValueError):
     pass
 
 
-def check(v, keys=KEY):
-    """Raise CanonError unless v follows rules 1-3."""
+def check(v, keys=KEY, depth=1):
+    """Raise CanonError unless v follows rules 1-3 and 9."""
     if v is None or isinstance(v, bool):
         return
     if isinstance(v, int):
@@ -26,15 +27,17 @@ def check(v, keys=KEY):
         except UnicodeEncodeError:
             raise CanonError('string is not valid Unicode')
         return
+    if isinstance(v, (list, dict)) and depth > MAX_DEPTH:
+        raise CanonError('too deeply nested')
     if isinstance(v, list):
         for x in v:
-            check(x, keys)
+            check(x, keys, depth + 1)
         return
     if isinstance(v, dict):
         for k, x in v.items():
             if not isinstance(k, str) or not keys.match(k):
                 raise CanonError('bad key: ' + str(k))
-            check(x, keys)
+            check(x, keys, depth + 1)
         return
     raise CanonError('value of type ' + type(v).__name__ + ' is not allowed')
 
@@ -80,6 +83,8 @@ def parse(data):
                        parse_float=_no_float, parse_constant=_no_constant)
     except CanonError:
         raise
+    except RecursionError:
+        raise CanonError('too deeply nested')
     except ValueError as e:
         raise CanonError('not JSON: ' + str(e))
     if canon(v) != data:

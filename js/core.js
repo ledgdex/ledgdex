@@ -28,7 +28,9 @@ export function isTime(v) {
   const m = typeof v === 'string' && TIME_RE.exec(v);
   if (!m) return false;
   const [y, mo, d, h, mi, s] = m.slice(1).map(Number);
-  const t = new Date(Date.UTC(y, mo - 1, d, h, mi, s));
+  const t = new Date(0);
+  t.setUTCFullYear(y, mo - 1, d);  // not Date.UTC, which reads years 0-99 as 1900-1999
+  t.setUTCHours(h, mi, s);
   return y >= 1 && t.getUTCFullYear() === y && t.getUTCMonth() === mo - 1 && t.getUTCDate() === d &&
     t.getUTCHours() === h && t.getUTCMinutes() === mi && t.getUTCSeconds() === s;
 }
@@ -193,7 +195,7 @@ export class Ledger {
     this.header = null; this.id = null; this.headerLine = null;
     this.entries = []; this.ids = []; this.lines = [];
     this.broken_at = null; this.error = null;
-    this.keys = null; this.keyHistory = new Set();
+    this.keys = null; this.keyHistory = new Set(); this.msgIds = new Set();
     this._load();
   }
 
@@ -231,7 +233,9 @@ export class Ledger {
 
   _add(e, line) {
     this.entries.push(e); this.ids.push(sha256id(line)); this.lines.push(line);
-    if (KEY_TYPES.has(e.msg.type)) {
+    const mid = hash(e.msg), duplicate = this.msgIds.has(mid);  // a message recorded again changes nothing (6.2)
+    this.msgIds.add(mid);
+    if (KEY_TYPES.has(e.msg.type) && !duplicate) {
       this.keys.apply(e.msg);
       this.keyHistory.add(this.keys.owner);
       for (const d of this.keys.devices) this.keyHistory.add(d);

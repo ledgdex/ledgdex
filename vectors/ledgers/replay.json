@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 7,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":null,\"claims\":{\"sha256:64ef81624ea629a513af3515f71a62fef483a0160a12690302cdd11c138bf45f\":{\"buyer\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\",\"offer\":\"sha256:cbdfe5aea8272dcf6db4bead5bf6e97a0158c596cddd844c543e1c1485511832\",\"price\":120000,\"quantity\":2,\"status\":\"accepted\"}},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:ca2fc36aff453ff5a48d60483a41314be8049606d6c4f45e1871426a1fe56555\",\"seq\":6},\"ignored\":[{\"reason\":\"duplicate_message\",\"seq\":3},{\"reason\":\"duplicate_message\",\"seq\":6}],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{},\"offers\":{\"sha256:cbdfe5aea8272dcf6db4bead5bf6e97a0158c596cddd844c543e1c1485511832\":{\"remaining\":3,\"status\":\"open\",\"title\":\"Mangoes\"}},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "replay"
+}

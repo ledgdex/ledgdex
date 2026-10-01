@@ -28,6 +28,17 @@ def short(s):
     return s.split(':')[0] + ':' + s.split(':')[1][:12]
 
 
+def safe_url(u):
+    """Only http(s) addresses become links: a ledger names them, so a javascript: or data: address must not."""
+    return u.startswith(('http://', 'https://')) and all(' ' < c != '\x7f' for c in u)
+
+
+def url_link(u):
+    if safe_url(u):
+        return "<a href='" + esc(u) + "' rel='nofollow noopener noreferrer'>" + esc(u) + '</a>'
+    return code(u)
+
+
 def code(s):
     return '<code>' + esc(s) + '</code>'
 
@@ -81,7 +92,7 @@ SUMMARY = {
 def item_lines(item):
     """An item's text and media links (with their hashes)."""
     return ([esc(item['text'])] if item['text'] else []) + [
-        "Media: <a href='" + esc(md['url']) + "'>" + esc(md['url']) + '</a> ' + code(md['hash']) for md in item['media']]
+        "Media: " + url_link(md['url']) + ' ' + code(md['hash']) for md in item['media']]
 
 
 def pages(led, author_titles):
@@ -216,7 +227,7 @@ def pages(led, author_titles):
     if listings_title:
         body = [MARKER + str(len(st['listings'])) + ' ledgers listed']
         for lid, l in st['listings'].items():
-            body.append("<a href='" + esc(l['url']) + "'>" + esc(l['url']) + '</a> ledger ' + code(lid) + ', owner ' +
+            body.append(url_link(l['url']) + ' ledger ' + code(lid) + ', owner ' +
                         code(l['owner']) + (': ' + esc(l['note']) if l['note'] else ''))
         out.append({'title': listings_title, 'body': body})
 

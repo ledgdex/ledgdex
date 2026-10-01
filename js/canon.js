@@ -4,12 +4,13 @@ import { sha256, hex } from './sha.js';
 export const KEY = /^[a-z][a-z0-9_]*$/;
 export const ID_KEY = /^[\x21-\x7e]+$/;  // the state object (spec 6.3) is keyed by ids
 const MAX_INT = 2 ** 53 - 1;
+export const MAX_DEPTH = 32;  // spec 1.2 rule 9: arrays and objects nest at most this deep
 const LONE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;
 const enc = new TextEncoder();
 
 export class CanonError extends Error {}
 
-export function check(v, keys = KEY) {
+export function check(v, keys = KEY, depth = 1) {
   if (v === null || typeof v === 'boolean') return;
   if (typeof v === 'number') {
     if (!Number.isInteger(v)) throw new CanonError('floats are not allowed');
@@ -20,11 +21,12 @@ export function check(v, keys = KEY) {
     if (LONE.test(v)) throw new CanonError('string is not valid Unicode');
     return;
   }
-  if (Array.isArray(v)) { for (const x of v) check(x, keys); return; }
+  if (typeof v === 'object' && depth > MAX_DEPTH) throw new CanonError('too deeply nested');
+  if (Array.isArray(v)) { for (const x of v) check(x, keys, depth + 1); return; }
   if (typeof v === 'object') {
     for (const k of Object.keys(v)) {
       if (!keys.test(k)) throw new CanonError('bad key: ' + k);
-      check(v[k], keys);
+      check(v[k], keys, depth + 1);
     }
     return;
   }
@@ -68,7 +70,7 @@ export function parse(bytes) {
     text = dec.decode(bytes);
     v = JSON.parse(text);
   } catch (e) {
-    throw new CanonError('not JSON: ' + e.message);
+    throw new CanonError(e instanceof RangeError ? 'too deeply nested' : 'not JSON: ' + e.message);
   }
   if (canonString(v) !== text) throw new CanonError('not canonical JSON');
   return v;

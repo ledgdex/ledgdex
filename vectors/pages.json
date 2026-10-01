@@ -409,6 +409,55 @@
    ]
   }
  ],
+ "links": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 3 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 2, <code>sha256:27c4874fc83c1f2d47b65ee63c03c2a2334eb893d4472edd57e902290aa4af16</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='links.html'>Links</a>, <a href='farmlistings.html'>Farm listings</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Links, 2 dozen at INR 1,200.00 (120000) each <code>sha256:8e20afee6246</code>",
+    "2. 2026-10-01T09:02:00Z list by <code>ed25519:03a107bff3ce</code>: ledger <code>sha256:000000000000</code> javascript:alert(2) <code>sha256:27c4874fc83c</code>"
+   ]
+  },
+  {
+   "title": "Links",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 2 of 2 left, open",
+    "Media: <code>javascript:alert(1)</code> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Media: <code>JAVASCRIPT:alert(1)</code> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Media: <code> https://x.example</code> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Media: <code>https://x.example/a b</code> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Media: <a href='https://x.example/&#x27;&gt;&lt;script&gt;' rel='nofollow noopener noreferrer'>https://x.example/&#x27;&gt;&lt;script&gt;</a> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Media: <code>DATA:text/html,x</code> <code>sha256:2222222222222222222222222222222222222222222222222222222222222222</code>",
+    "Status: open",
+    "Remaining: 2 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:8e20afee6246bb7423f2b3e7f2cbf876d1a02d51465328cc37aef61ab9d755de</code>",
+    "Offer hash: <code>sha256:a6ec2d072e3e1315c42b0f686e8773975d7e81428d28b98a33dc803a235a9790</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:8e20afee6246bb7423f2b3e7f2cbf876d1a02d51465328cc37aef61ab9d755de --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>."
+   ]
+  },
+  {
+   "title": "Farm listings",
+   "body": [
+    "<!-- ledgdex -->1 ledgers listed",
+    "<code>javascript:alert(2)</code> ledger <code>sha256:0000000000000000000000000000000000000000000000000000000000000000</code>, owner <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>"
+   ]
+  }
+ ],
  "market": [
   {
    "title": "Farm ledger (ledgdex)",
@@ -454,7 +503,7 @@
    "body": [
     "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 3 left, open",
     "line one<br>line &quot;two&quot;",
-    "Media: <a href='https://example.com/m.jpg'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
+    "Media: <a href='https://example.com/m.jpg' rel='nofollow noopener noreferrer'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
     "Status: open",
     "Remaining: 1 of 3 dozen",
     "Price: INR 1,200.00 (120000) per dozen",
@@ -558,6 +607,49 @@
    ]
   }
  ],
+ "replay": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 7 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 6, <code>sha256:ca2fc36aff453ff5a48d60483a41314be8049606d6c4f45e1871426a1fe56555</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 5 dozen at INR 1,200.00 (120000) each <code>sha256:cbdfe5aea827</code>",
+    "2. 2026-10-01T09:03:00Z claim by <code>ed25519:79b5562e8fe6</code>: 2 of offer <code>sha256:cbdfe5aea827</code> <code>sha256:64ef81624ea6</code>",
+    "3. 2026-10-01T09:04:00Z claim by <code>ed25519:79b5562e8fe6</code>: 2 of offer <code>sha256:cbdfe5aea827</code> <code>sha256:7470b963971f</code>",
+    "4. 2026-10-01T09:05:00Z device by <code>ed25519:03a107bff3ce</code>: <code>ed25519:50b29e9fa638</code> (phone) <code>sha256:1125383ef93b</code>",
+    "5. 2026-10-01T09:06:00Z device_revoke by <code>ed25519:03a107bff3ce</code>: <code>ed25519:50b29e9fa638</code> <code>sha256:34405f6097dc</code>",
+    "6. 2026-10-01T09:07:00Z device by <code>ed25519:03a107bff3ce</code>: <code>ed25519:50b29e9fa638</code> (phone) <code>sha256:ca2fc36aff45</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 3 of 5 left, open",
+    "ripe",
+    "Status: open",
+    "Remaining: 3 of 5 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:cbdfe5aea8272dcf6db4bead5bf6e97a0158c596cddd844c543e1c1485511832</code>",
+    "Offer hash: <code>sha256:f901563dae3bbbed55f17dcfd3caf0658b6b05c542e68cc5813af9423901b734</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:cbdfe5aea8272dcf6db4bead5bf6e97a0158c596cddd844c543e1c1485511832 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:64ef81624ea6</code> by <code>ed25519:79b5562e8fe6</code>: 2 at INR 1,200.00 (120000), accepted"
+   ]
+  }
+ ],
  "root": [
   {
    "title": "Root ledger",
@@ -582,6 +674,23 @@
    "body": [
     "<!-- ledgdex -->1 keys admitted",
     "2026-10-01T09:02:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: Asha"
+   ]
+  }
+ ],
+ "year-99": [
+  {
+   "title": "Year 99 ledger",
+   "body": [
+    "<!-- ledgdex -->Year 99's ledger: 2 entries, whole",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:9c28ee4b33a1caa86fbc8cc729bc2fe9e6a9fa99795b3899fdb36d028f561992</code>",
+    "Head: seq 1, <code>sha256:33a9a42ee27d0d7eeac33f43b2d15fc06fb491ae3834e97c63a93603d5e72423</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Entries:",
+    "0. 0099-01-01T00:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:50adb9717644</code>",
+    "1. 0099-12-31T23:59:59Z note by <code>ed25519:03a107bff3ce</code>: about <code>sha256:50adb9717644</code>: early <code>sha256:33a9a42ee27d</code>"
    ]
   }
  ]

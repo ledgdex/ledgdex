@@ -54,6 +54,17 @@ class Keys(unittest.TestCase):
         led = Ledger(b.led.data + canon(e) + b'\n', cache=False)
         self.assertEqual(led.broken_at, len(b.led.entries))
 
+    def test_a_replayed_device_message_does_not_bring_it_back(self):
+        b = Book()
+        dev = message(SELLER, 'device', {'key': public(PHONE), 'name': 'phone'}, at=b.tick())
+        b.rec(dev)
+        b.own('device_revoke', {'key': public(PHONE), 'reason': 'lost'})
+        b.rec(dev)
+        led = Ledger(b.led.data, cache=False)
+        self.assertEqual((led.devices, state(led)['devices']), ([], []))
+        m = message(PHONE, 'note', {'ref': b.led.ids[0], 'text': 'still here?'}, at=b.tick())
+        self.assertRaises(Invalid, b.led.next_entry, PHONE, m, t(b.minute))
+
     def test_rotate(self):
         b = Book()
         b.own('rotate', {'key': public(NEWKEY)})

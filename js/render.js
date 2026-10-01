@@ -27,6 +27,9 @@ export const short = (s) => s.split(':')[0] + ':' + s.split(':')[1].slice(0, 12)
 export const code = (s) => '<code>' + esc(s) + '</code>';
 /** dexweb names each page file after its title: letters and digits only, lowercase. */
 export const htmlTitle = (t) => [...t].filter((c) => ALNUM.test(c)).join('').toLowerCase();
+// only http(s) addresses become links: a ledger names them, so a javascript: or data: address must not
+export const safeUrl = (u) => (u.startsWith('http://') || u.startsWith('https://')) && !/[\x00-\x20\x7f]/.test(u);
+const urlLink = (u) => safeUrl(u) ? "<a href='" + esc(u) + "' rel='nofollow noopener noreferrer'>" + esc(u) + '</a>' : code(u);
 const link = (title) => "<a href='" + htmlTitle(title) + ".html'>" + title + '</a>';
 const ref = (label, key) => (b) => label + code(short(b[key]));
 
@@ -59,7 +62,7 @@ const SUMMARY = {
 };
 
 const itemLines = (item) => (item.text ? [esc(item.text)] : []).concat(item.media.map((md) =>
-  "Media: <a href='" + esc(md.url) + "'>" + esc(md.url) + '</a> ' + code(md.hash)));
+  "Media: " + urlLink(md.url) + ' ' + code(md.hash)));
 const flags = (c) => {
   const f = ['paid', 'received', 'delivered', 'confirmed'].filter((k) => k in c);
   return f.length ? ', ' + f.join(', ') : '';
@@ -171,7 +174,7 @@ export function pages(led, authorTitles = []) {
   if (listingsTitle) {
     body = [MARKER + Object.keys(st.listings).length + ' ledgers listed'];
     for (const [lid, l] of Object.entries(st.listings)) {
-      body.push("<a href='" + esc(l.url) + "'>" + esc(l.url) + '</a> ledger ' + code(lid) + ', owner ' + code(l.owner) +
+      body.push(urlLink(l.url) + ' ledger ' + code(lid) + ', owner ' + code(l.owner) +
         (l.note ? ': ' + esc(l.note) : ''));
     }
     out.push({ title: listingsTitle, body });

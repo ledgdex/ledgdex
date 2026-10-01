@@ -1,5 +1,6 @@
 import unittest
 from helpers import Book, BUYER, OTHER, SELLER, t
+from ledgdex.core import message
 from ledgdex.core import public
 from ledgdex.state import state
 
@@ -56,6 +57,16 @@ class Claims(unittest.TestCase):
         oid, oh = b.offer(allow=[public(SELLER)])
         self.assertEqual(self.reason(b, b.claim(oid, oh, secret=SELLER)), 'self_claim')
         self.assertEqual(state(b.led)['offers'][oid]['remaining'], 2)
+
+    def test_a_claim_recorded_twice_counts_once(self):
+        b = Book()
+        oid, oh = b.offer()
+        m = message(BUYER, 'claim', {'offer': oid, 'offer_hash': oh, 'quantity': 1, 'price': 120000}, at=t(1))
+        first, again = b.rec(m), b.rec(m)
+        st = state(b.led)
+        self.assertNotIn(again, st['claims'])
+        self.assertEqual(st['offers'][oid]['remaining'], 1)
+        self.assertEqual(st['ignored'], [{'seq': 3, 'reason': 'duplicate_message'}])
 
     def test_price_comes_from_the_signed_offer(self):
         b = Book()

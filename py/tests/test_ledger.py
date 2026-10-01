@@ -125,6 +125,13 @@ class FoundByFuzzing(unittest.TestCase):
             self.assertEqual(led.broken_at, 1)
             self.assertIn('type', led.error)
 
+    def test_deep_nesting_breaks_instead_of_crashing(self):
+        b = Book()
+        for depth in (40, 5000):
+            led = Ledger(b.led.data + b'[' * depth + b']' * depth + b'\n', cache=False)
+            self.assertEqual((led.broken_at, led.error), (1, 'seq 1: too deeply nested'))
+        self.assertEqual(parse(b'[' * 32 + b']' * 32), [[]] and parse(b'[' * 32 + b']' * 32))
+
     def test_true_is_not_one(self):
         self.assertEqual(self.signed(lambda e: e['msg'].update(v=True)).broken_at, 1)
         self.assertEqual(self.signed(lambda e: e.update(seq=True)).broken_at, 1)

@@ -181,6 +181,32 @@ def scenarios():
     out['broken-type-object'] = (resigned(lambda e: e['msg'].update(type={})), None, None)      # crashed Python
     out['broken-version-true'] = (resigned(lambda e: e['msg'].update(v=True)), None, None)       # True == 1 in Python
     out['broken-seq-true'] = (resigned(lambda e: e.update(seq=True)), None, None)
+    # found by the security audit: replays, nesting, early years
+    rp = Book()
+    oid, oh = rp.offer(quantity=5)
+    claim = message(BUYER, 'claim', {'offer': oid, 'offer_hash': oh, 'quantity': 2, 'price': 120000}, at=rp.tick())
+    rp.rec(claim)
+    rp.rec(claim)                                                    # the same signed claim again: ignored
+    dev = message(SELLER, 'device', {'key': public(PHONE), 'name': 'phone'}, at=rp.tick())
+    rp.led.append(rp.led.next_entry(SELLER, dev, at=t(rp.minute)))
+    rp.own('device_revoke', {'key': public(PHONE), 'reason': 'lost'})
+    rp.led.append(rp.led.next_entry(SELLER, dev, at=t(rp.tick() and rp.minute)))  # replayed: no device again
+    out['replay'] = (rp, None, None)
+    from ledgdex.core import new_ledger
+    old = new_ledger(SELLER, 'Year 99', '', '', at='0099-01-01T00:00:00Z')
+    old.append(old.next_entry(SELLER, message(SELLER, 'note', {'ref': old.ids[0], 'text': 'early'},
+                                              at='0099-12-31T23:59:59Z'), at='0099-12-31T23:59:59Z'))
+    out['year-99'] = (old.data, None, None)
+    xs = Book()                                                      # addresses that must not become links
+    xs.offer(item={'title': 'Links', 'text': '', 'media': [
+        {'url': 'javascript:alert(1)', 'hash': 'sha256:' + '2' * 64},
+        {'url': 'JAVASCRIPT:alert(1)', 'hash': 'sha256:' + '2' * 64},
+        {'url': ' https://x.example', 'hash': 'sha256:' + '2' * 64},
+        {'url': 'https://x.example/a b', 'hash': 'sha256:' + '2' * 64},
+        {'url': "https://x.example/'><script>", 'hash': 'sha256:' + '2' * 64},
+        {'url': 'DATA:text/html,x', 'hash': 'sha256:' + '2' * 64}]})
+    xs.own('list', {'ledger': ZERO, 'url': 'javascript:alert(2)', 'owner': public(SELLER), 'note': ''})
+    out['links'] = (xs, None, None)
     out['broken-header-true'] = (b'{"ledger":true,"name":"x","owner":"' + public(SELLER).encode() + b'"}\n', None, None)
     out['broken-header'] = (b'{"ledger":1,"name":"x"}\n', None, None)
     return out
@@ -262,7 +288,8 @@ def build():
              '{"a":9007199254740991}', '{"a":9007199254740992}', '{"A":1}', '{"a-b":1}', '{"é":1}', '"\\u00e9"',
              '"é"', '"\\ud800"', '"\\b\\f\\n\\r\\t\\u0000\\u001f\x7f"', '"\\u001F"', '"\\/"', '[true,false,null]',
              '[1,2]', '[1, 2]', 'NaN', '{"a":"🥭"}', '{"a":"\\ud83e\\udd6d"}', '[]', '{}', '""', '{"z":{"b":[],"a":{}}}',
-             '\ufeff{"a":1}', '\ufeff""']  # a leading byte-order mark: JavaScript's decoder once dropped it
+             '\ufeff{"a":1}', '\ufeff""', '[' * 32 + ']' * 32, '[' * 33 + ']' * 33, '[' * 5000 + ']' * 5000,
+             '{"a":' * 33 + '1' + '}' * 33]  # a leading byte-order mark: JavaScript's decoder once dropped it
     files['canon.json'] = json.dumps([{'input': x, 'ok': _ok(x)} for x in texts], indent=1, ensure_ascii=False) + '\n'
 
     # signatures: the same key and value sign to the same bytes everywhere

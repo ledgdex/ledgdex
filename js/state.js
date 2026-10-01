@@ -55,8 +55,12 @@ export function state(led, root = null, now = null) {
     if (d.status === 'accepted' && has(d, 'received') && d.delivered && d.confirmed) d.status = 'closed';
   };
 
+  const recorded = new Set();  // message ids: a message recorded twice counts once (no replayed claims)
   led.entries.forEach((e, n) => {
     const id = led.ids[n], m = e.msg, b = m.body, t = m.type, at = e.time;
+    const mid = hash(m);
+    if (recorded.has(mid)) { ignore(n, 'duplicate_message'); return; }
+    recorded.add(mid);
     if (t === 'offer') {
       offers[id] = { title: b.item.title, remaining: b.quantity, status: 'open' };
       sellers[id] = b;

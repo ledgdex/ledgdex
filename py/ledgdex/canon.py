@@ -33,7 +33,7 @@ def check(v, keys=KEY):
     if isinstance(v, dict):
         for k, x in v.items():
             if not isinstance(k, str) or not keys.match(k):
-                raise CanonError('bad key: ' + repr(k))
+                raise CanonError('bad key: ' + str(k))
             check(x, keys)
         return
     raise CanonError('value of type ' + type(v).__name__ + ' is not allowed')

@@ -1,7 +1,7 @@
 import json, unittest
 from helpers import Book, BUYER, OTHER, SELLER, offer_body, t
 from ledgdex.canon import canon, parse
-from ledgdex.core import Ledger, Invalid, message, sign, unsigned
+from ledgdex.core import Ledger, Invalid, message, public, sign, unsigned
 
 
 def trade():
@@ -105,6 +105,31 @@ class Structure(unittest.TestCase):
         m['body']['claim'] = 'sha256:' + '2' * 64
         b = Book()
         self.assertRaises(Invalid, lambda: b.led.append(b.led.next_entry(SELLER, m)))
+
+
+class FoundByFuzzing(unittest.TestCase):
+    """tests/fuzz.py found these: a crash on a non-string type, and true passing for 1."""
+
+    def signed(self, change):
+        b = Book()
+        oid, _ = b.offer()
+        e = json.loads(b.led.lines[1])
+        change(e)
+        e['msg']['sig'] = sign(SELLER, unsigned(e['msg']))
+        e['sig'] = sign(SELLER, unsigned(e))
+        return Ledger(b.led.header_line + b'\n' + b.led.lines[0] + b'\n' + canon(e) + b'\n', cache=False)
+
+    def test_non_string_type_breaks_instead_of_crashing(self):
+        for bad in ({}, [], 1, None, True):
+            led = self.signed(lambda e: e['msg'].update(type=bad))
+            self.assertEqual(led.broken_at, 1)
+            self.assertIn('type', led.error)
+
+    def test_true_is_not_one(self):
+        self.assertEqual(self.signed(lambda e: e['msg'].update(v=True)).broken_at, 1)
+        self.assertEqual(self.signed(lambda e: e.update(seq=True)).broken_at, 1)
+        led = Ledger(b'{"ledger":true,"name":"x","owner":"' + public(SELLER).encode() + b'"}\n', cache=False)
+        self.assertIsNone(led.header)
 
 
 class Receipts(unittest.TestCase):

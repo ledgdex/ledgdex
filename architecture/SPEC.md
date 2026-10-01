@@ -111,7 +111,10 @@ Rules:
 5. No whitespace anywhere outside strings.
 6. String escaping: `"` → `\"`, `\` → `\\`, U+0008 → `\b`, U+000C → `\f`, U+000A → `\n`, U+000D → `\r`,
    U+0009 → `\t`, other U+0000..U+001F → `\u00xx` (lowercase hex). Every other character is written as itself.
-7. Output is UTF-8 bytes.
+7. Output is UTF-8 bytes. Parsing accepts exactly these bytes: no byte-order mark, no whitespace, no other spelling
+   of the same value.
+8. `true` and `false` are never numbers: where a field MUST be the integer 1 (`v`, the header's `ledger`) or a
+   position (`seq`), the JSON value `true` does not count.
 
 Reference behaviour:
 - Python: `json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")` after
@@ -768,6 +771,12 @@ All ten milestones are built, plus indexes (5.7), the root, checks over time (9.
 verification cache. Python has everything; JavaScript has the core (canonical JSON, SHA-256/512, Ed25519, messages,
 verification, state) and the viewer, and reproduces every shared vector byte for byte. Ed25519 vectors come from
 djb's `sign.input` (as shipped in `cryptography_vectors`), whose first three rows are RFC 8032 section 7.1 TEST 1 to 3.
+
+Differential fuzzing (`py/tests/fuzz.py`) runs random ledgers of every type, byte and line corruptions, field
+changes re-signed so they reach the deeper rules, and tricky JSON texts through both languages, and fails on any
+difference in a verdict, a breaking point, a reason or `canon(state)`. It found a Python crash on a non-string `type`,
+Python reading `true` as 1, and JavaScript dropping a leading byte-order mark; all three are fixed and kept as vectors.
+CI fuzzes a new seed on every push.
 
 Not done: the JavaScript Ed25519 is the vendored code only. Web Crypto's Ed25519 is asynchronous, so it is not used
 yet, and the "Web Crypto and vendored JS agree" half of milestone 2 is open.

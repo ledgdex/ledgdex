@@ -109,7 +109,8 @@ export class Keys {
 }
 
 export function checkBody(type, body) {
-  if (typeof type !== 'string' || !has(BODIES, type)) throw new Invalid('unknown type: ' + type);
+  if (typeof type !== 'string') throw new Invalid('the type must be a string');
+  if (!has(BODIES, type)) throw new Invalid('unknown type: ' + type);
   const [req, opt] = BODIES[type];
   if (!isObject(body)) throw new Invalid(type + ': body is not an object');
   for (const k of Object.keys(body)) if (!has(req, k) && !has(opt, k)) throw new Invalid(type + ': unexpected field ' + k);

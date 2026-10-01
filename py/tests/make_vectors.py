@@ -170,6 +170,18 @@ def scenarios():
     e['sig'] = sign(OTHER, {k: v for k, v in e.items() if k != 'sig'})
     out['broken-signer'] = (b'\n'.join(lines[:3] + [canon(e)] + lines[4:]), None, None)
     out['broken-noroot'] = (r, None, None)
+
+    # found by tests/fuzz.py: values Python and JavaScript once read differently
+    def resigned(change, seq=1):
+        e = json.loads(lines[seq + 1])
+        change(e)
+        e['msg']['sig'] = sign(SELLER, {k: v for k, v in e['msg'].items() if k != 'sig'})
+        e['sig'] = sign(SELLER, {k: v for k, v in e.items() if k != 'sig'})
+        return b'\n'.join(lines[:seq + 1] + [canon(e)] + lines[seq + 2:seq + 3]) + b'\n'
+    out['broken-type-object'] = (resigned(lambda e: e['msg'].update(type={})), None, None)      # crashed Python
+    out['broken-version-true'] = (resigned(lambda e: e['msg'].update(v=True)), None, None)       # True == 1 in Python
+    out['broken-seq-true'] = (resigned(lambda e: e.update(seq=True)), None, None)
+    out['broken-header-true'] = (b'{"ledger":true,"name":"x","owner":"' + public(SELLER).encode() + b'"}\n', None, None)
     out['broken-header'] = (b'{"ledger":1,"name":"x"}\n', None, None)
     return out
 
@@ -200,7 +212,8 @@ def build():
     texts = ['{"a":1}', '{ "a":1}', '{"b":1,"a":2}', '{"a":1,"a":1}', '{"a":1.0}', '{"a":1e3}', '{"a":-0}',
              '{"a":9007199254740991}', '{"a":9007199254740992}', '{"A":1}', '{"a-b":1}', '{"é":1}', '"\\u00e9"',
              '"é"', '"\\ud800"', '"\\b\\f\\n\\r\\t\\u0000\\u001f\x7f"', '"\\u001F"', '"\\/"', '[true,false,null]',
-             '[1,2]', '[1, 2]', 'NaN', '{"a":"🥭"}', '{"a":"\\ud83e\\udd6d"}', '[]', '{}', '""', '{"z":{"b":[],"a":{}}}']
+             '[1,2]', '[1, 2]', 'NaN', '{"a":"🥭"}', '{"a":"\\ud83e\\udd6d"}', '[]', '{}', '""', '{"z":{"b":[],"a":{}}}',
+             '\ufeff{"a":1}', '\ufeff""']  # a leading byte-order mark: JavaScript's decoder once dropped it
     files['canon.json'] = json.dumps([{'input': x, 'ok': _ok(x)} for x in texts], indent=1, ensure_ascii=False) + '\n'
 
     # signatures: the same key and value sign to the same bytes everywhere

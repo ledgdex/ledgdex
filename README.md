@@ -129,4 +129,5 @@ Each command rewrites the ledgdex pages in `data.json` (pages whose first paragr
 ```
 cd py && python -m unittest discover -s tests
 node js/test.mjs
+cd py && python tests/fuzz.py --seed 7 --ledgers 1000      Python and JavaScript must agree on random and corrupted ledgers
 ```

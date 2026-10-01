@@ -24,3 +24,11 @@ jobs:
         run: cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests
       - name: JavaScript against the shared vectors
         run: node js/test.mjs
+      - name: Differential fuzzing (a new seed every run; rerun one with --seed N)
+        run: cd py && python tests/fuzz.py --seed ${{ github.run_number }} --ledgers 200 --texts 3000 --keep fuzz-out
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: fuzz-differences
+          path: py/fuzz-out/
+          if-no-files-found: ignore

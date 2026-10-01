@@ -58,7 +58,8 @@ export function hash(v) {
   return sha256id(canon(v));
 }
 
-const dec = new TextDecoder('utf-8', { fatal: true });
+// ignoreBOM: keep a leading U+FEFF in the text (the default drops it silently), so it is rejected like any byte
+const dec = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 
 /** Parse bytes that MUST already be canonical JSON. */
 export function parse(bytes) {

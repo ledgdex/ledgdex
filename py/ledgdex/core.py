@@ -97,8 +97,13 @@ def _arbiter(v):
     return isinstance(v, dict) and set(v) == {'key', 'url'} and is_key(v['key']) and _str(v['url'])
 
 
+def _one(v):
+    # exactly the integer 1: in Python True == 1, and the JSON value true must not pass for 1
+    return type(v) is int and v == 1
+
+
 def _header(v):
-    return (isinstance(v, dict) and set(v) == {'ledger', 'name', 'owner'} and v['ledger'] == 1 and _str(v['name'])
+    return (isinstance(v, dict) and set(v) == {'ledger', 'name', 'owner'} and _one(v['ledger']) and _str(v['name'])
             and is_key(v['owner']))
 
 
@@ -193,8 +198,10 @@ class Keys:
 
 
 def check_body(type_, body):
+    if not isinstance(type_, str):
+        raise Invalid('the type must be a string')
     if type_ not in BODIES:
-        raise Invalid('unknown type: ' + str(type_))
+        raise Invalid('unknown type: ' + type_)
     req, opt = BODIES[type_]
     if not isinstance(body, dict):
         raise Invalid(type_ + ': body is not an object')
@@ -220,7 +227,7 @@ def check_message(m):
         check(m)
     except CanonError as e:
         raise Invalid(str(e))
-    if m['v'] != 1:
+    if not _one(m['v']):
         raise Invalid('message version must be 1')
     if not is_key(m['by']):
         raise Invalid('bad author key')
@@ -402,7 +409,7 @@ class Ledger:
         """Spec 3.3, rules 1-8, for entry n on top of the entries already loaded."""
         if not isinstance(e, dict) or set(e) != {'seq', 'prev', 'time', 'msg', 'sig'}:
             raise Invalid('an entry has exactly the keys seq, prev, time, msg, sig')
-        if e['seq'] != n:
+        if type(e['seq']) is not int or e['seq'] != n:
             raise Invalid('seq must be ' + str(n))
         if e['prev'] != (self.ids[-1] if self.ids else self.id):
             raise Invalid('prev does not match the previous entry')

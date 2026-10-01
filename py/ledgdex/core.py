@@ -1,6 +1,6 @@
 """Keys, messages, entries and ledger verification (spec 1-5)."""
-import datetime, os, re
-from . import ed25519
+import datetime, hashlib, json, os, re
+from .sig import backend
 from .canon import canon, hash_, sha256, parse, check, CanonError
 
 KEY_RE = re.compile(r'ed25519:[0-9a-f]{64}\Z')
@@ -21,17 +21,17 @@ def new_secret():
 
 
 def public(secret):
-    return 'ed25519:' + ed25519.public_key(secret).hex()
+    return 'ed25519:' + backend.public_key(secret).hex()
 
 
 def sign(secret, obj):
-    return ed25519.sign(secret, canon(obj)).hex()
+    return backend.sign(secret, canon(obj)).hex()
 
 
 def verify(key, obj, sig):
     if not is_key(key) or not isinstance(sig, str) or not SIG_RE.match(sig):
         return False
-    return ed25519.verify(bytes.fromhex(key[8:]), canon(obj), bytes.fromhex(sig))
+    return backend.verify(bytes.fromhex(key[8:]), canon(obj), bytes.fromhex(sig))
 
 
 def is_key(v):
@@ -191,10 +191,21 @@ def message(secret, type_, body, at=None):
 
 # ---------- ledgers (spec 3) ----------
 
-class Ledger:
-    """A parsed ledger. Verification stops at the first structurally invalid line (spec 3.3)."""
+def cache_dir():
+    return os.environ.get('LEDGDEX_CACHE') or os.path.join(
+        os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache'), 'ledgdex')
 
-    def __init__(self, data):
+
+class Ledger:
+    """A parsed ledger. Verification stops at the first structurally invalid line (spec 3.3).
+
+    Verified prefixes are cached (in ~/.cache/ledgdex, by ledger id, length and SHA-256 of the exact bytes), so a
+    ledger that only grew is verified only from where it was verified before. Any changed byte misses the cache and
+    is verified in full. cache=False, or LEDGDEX_NO_CACHE=1, always verifies everything."""
+
+    def __init__(self, data, cache=True):
+        self.use_cache = cache and not os.environ.get('LEDGDEX_NO_CACHE')
+        self.cached = 0     # entries taken from the cache instead of verified again
         if isinstance(data, str):
             data = data.encode('utf-8')
         self.data = data
@@ -223,7 +234,13 @@ class Ledger:
             self.error = 'header: must be {"ledger":1,"name":str,"owner":key}'
             return
         self.header, self.header_line, self.id = h, lines[0], sha256(lines[0])
+        hit = self._cache_get(len(lines) - 1)
         for n, line in enumerate(lines[1:]):
+            if n < hit:  # these exact bytes were verified before
+                self.entries.append(json.loads(line))
+                self.ids.append(sha256(line))
+                self.lines.append(line)
+                continue
             try:
                 e = parse(line)
                 self.check_entry(n, e)
@@ -236,6 +253,41 @@ class Ledger:
         if partial:
             n = len(self.entries)
             self.broken_at, self.error = n, 'seq ' + str(n) + ': the line does not end with a newline'
+        self.cached = hit
+        if len(self.entries) > hit:
+            self._cache_put()
+
+    def _cache_path(self):
+        return os.path.join(cache_dir(), 'verified', self.id[7:] + '.json')
+
+    def _cache_get(self, available):
+        """How many entries at the start of this data were verified before (0 if none)."""
+        if not self.use_cache:
+            return 0
+        try:
+            with open(self._cache_path()) as f:
+                c = json.load(f)
+            n, length = c['entries'], c['length']
+            if (0 < n <= available and length <= len(self.data) and self.data[length - 1:length] == b'\n'
+                    and hashlib.sha256(self.data[:length]).hexdigest() == c['sha256']):
+                return n
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        return 0
+
+    def _cache_put(self):
+        if not self.use_cache:
+            return
+        length = len(self.header_line) + 1 + sum(len(x) + 1 for x in self.lines)
+        c = {'entries': len(self.lines), 'length': length, 'sha256': hashlib.sha256(self.data[:length]).hexdigest()}
+        try:
+            os.makedirs(os.path.dirname(self._cache_path()), exist_ok=True)
+            tmp = self._cache_path() + '.' + str(os.getpid())
+            with open(tmp, 'w') as f:
+                json.dump(c, f)
+            os.replace(tmp, self._cache_path())
+        except OSError:
+            pass  # the cache is only a shortcut
 
     @property
     def owner(self):

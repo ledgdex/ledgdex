@@ -10,6 +10,9 @@ requires-python = ">=3.8"
 license = {text = "CC0-1.0"}
 dependencies = ["dexweb>=4.2.5"]
 
+[project.optional-dependencies]
+fast = ["cryptography>=3.1"]
+
 [project.urls]
 Homepage = "https://github.com/matrixdex/ledgdex"
 

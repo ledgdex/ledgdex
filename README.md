@@ -12,6 +12,8 @@ pip install -e py
 
 Python 3.8 or later. The only dependency is dexweb (4.2.5 or later). Private keys live in `~/.ledgdex` (or `$LEDGDEX_HOME`), never in a dex.
 
+For speed, `pip install -e "py[fast]"` adds the `cryptography` package: signing and verifying get about 20 to 25 times faster. Without it ledgdex uses its own pure-Python Ed25519, with the same results. Verified ledgers are also cached (in `~/.cache/ledgdex`, or `$LEDGDEX_CACHE`) by the exact bytes already verified, so a ledger that grew is only verified from where it was verified before; any changed byte is verified in full. `ledgdex verify --full` and `LEDGDEX_NO_CACHE=1` skip the cache, and `LEDGDEX_PURE=1` forces the pure-Python Ed25519.
+
 ## Sell
 
 ```

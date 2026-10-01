@@ -242,9 +242,11 @@ def c_sign(a):
 
 
 def c_verify(a):
-    led, _ = fetch(a.ledger)
+    from .sig import backend
+    led, _ = fetch(a.ledger, cache=not a.full)
     if led.whole:
-        print('whole: ' + str(len(led.entries)) + ' entries, ledger ' + str(led.id))
+        print('whole: ' + str(len(led.entries)) + ' entries, ledger ' + str(led.id) + ' (' +
+              (str(led.cached) + ' entries from the cache, ' if led.cached else '') + backend.name + ' Ed25519)')
         return
     print('broken' + ('' if led.broken_at is None else ' at seq ' + str(led.broken_at)) + ': ' + str(led.error))
     sys.exit(1)
@@ -336,7 +338,8 @@ def parser():
         (['--entry'], {'help': 'only this entry id'}))
     cmd('sign', c_sign, 'print a signed message (advanced)', (['type'], {}), (['file'], {}),
         (['--key'], {'required': True}))
-    cmd('verify', c_verify, 'check a ledger; exit code 0 only if whole', (['ledger'], {'help': 'dex, file or URL'}))
+    cmd('verify', c_verify, 'check a ledger; exit code 0 only if whole', (['ledger'], {'help': 'dex, file or URL'}),
+        (['--full'], {'action': 'store_true', 'help': 'verify every line, ignoring the verification cache'}))
     cmd('state', c_state, "print a ledger's state", (['ledger'], {'help': 'dex, file or URL'}))
     cmd('render', c_render, 'rewrite the generated pages and rebuild the site', D)
     cmd('check', c_check, 'check ledgers for tampering over time: rewrites, missing receipts, changed addresses',

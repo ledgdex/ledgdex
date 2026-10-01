@@ -91,13 +91,13 @@ def write(dex, data):
 
 # ---------- other ledgers ----------
 
-def fetch(src):
+def fetch(src, cache=True):
     """Read a ledger from a dex folder, a file, or a dex URL. Returns (Ledger, url)."""
     if re.match(r'https?://', src):
         url = src if src.endswith('.jsonl') else src.rstrip('/') + '/' + LEDGER
         req = urllib.request.Request(url, headers={'User-Agent': 'ledgdex'})
         with urllib.request.urlopen(req, timeout=30) as r:
-            return Ledger(r.read()), url
+            return Ledger(r.read(), cache), url
     path = os.path.join(src, LEDGER) if os.path.isdir(src) else src
     with open(path, 'rb') as f:
-        return Ledger(f.read()), os.path.abspath(path)
+        return Ledger(f.read(), cache), os.path.abspath(path)

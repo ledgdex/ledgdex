@@ -1,6 +1,7 @@
-import os, sys
+import os, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ledgdex.core import message, new_ledger, public  # noqa: E402
+os.environ['LEDGDEX_CACHE'] = tempfile.mkdtemp(prefix='ledgdex-cache-')  # never the user's cache
+from ledgdex.core import message, new_ledger, public, seconds, utc  # noqa: E402
 from ledgdex.canon import hash_  # noqa: E402
 
 SELLER = bytes(range(32))
@@ -10,7 +11,7 @@ T0 = '2026-10-01T09:00:00Z'
 
 
 def t(minutes):
-    return '2026-10-01T%02d:%02d:00Z' % (9 + minutes // 60, minutes % 60)
+    return utc(seconds(T0) + 60 * minutes)
 
 
 def offer_body(**kw):

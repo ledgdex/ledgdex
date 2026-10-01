@@ -622,6 +622,12 @@ from cron, as a worker, or as a GitHub workflow; its exit code is 1 only on erro
 - Vendor a pure Ed25519 implementation in both languages, written from RFC 8032 (section 5.1 and the Python reference
   code in section 6). In the browser, use Web Crypto's Ed25519 when available and fall back to the vendored code.
   Python's `hashlib` provides SHA-256; browsers provide it through Web Crypto (and the vendored code MAY include its own).
+- A platform Ed25519 MAY be used instead of the vendored code when it is available (Python: the optional
+  `cryptography` package; browsers: Web Crypto), only after it passes a known-answer test, and only behind the same
+  strictness as the vendored code (non-canonical `s` and point encodings are rejected first), so a ledger verifies the
+  same either way.
+- Verification MAY be cached by the exact bytes already verified (ledger id, length and SHA-256 of that prefix):
+  a ledger that only grew is verified from where it was verified before, and any changed byte misses the cache.
 - Every function has one Python and one JavaScript implementation with the same name and behaviour.
 - All tests run offline.
 
@@ -638,6 +644,7 @@ ledgdex/
     pyproject.toml        installs the ledgdex command
     ledgdex/canon.py      canonical JSON (1.2)
     ledgdex/ed25519.py    vendored Ed25519 (RFC 8032)
+    ledgdex/sig.py        Ed25519 backend: cryptography when installed and passing its self-test, else vendored
     ledgdex/core.py       messages, entries, verification (2, 3)
     ledgdex/state.py      state (6)
     ledgdex/dex.py        the ledger file in a dex, keys in ~/.ledgdex, reading other ledgers (7.1, 8)
@@ -676,7 +683,7 @@ ledgdex confirm DEX SELLER CLAIM_ID
 ledgdex receipt DEX SELLER [--entry ID]          keep the seller's entries that record this self's messages
 anyone
 ledgdex sign TYPE body.json --key NAME           print a signed message
-ledgdex verify DEX_OR_URL                        structural check; exit code 0 only if whole
+ledgdex verify DEX_OR_URL [--full]               structural check; exit code 0 only if whole
 ledgdex state DEX_OR_URL                         print canon(state)
 ledgdex check [SOURCE...] [--every S] [--media] [--published] [--json F] [--state D]
                                                  tamper checks over time (9.1); exit code 1 on errors

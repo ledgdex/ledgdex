@@ -1,7 +1,7 @@
 """ledgdex command-line tool (spec Part III). Run "ledgdex -h"."""
 import argparse, json, os, sys, time
 from .canon import canon, hash_, ID_KEY
-from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_key
+from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_id, is_key
 from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, load_root, record, signer
 from .render import render
 from .state import state
@@ -26,6 +26,13 @@ def key_or_new(name):
     except Invalid:
         keygen(name)
         return load_key(name), True
+
+
+def id_arg(s):
+    """An id on the command line: sha256: and 64 lowercase hex digits (ids also name files, so nothing else)."""
+    if not is_id(s):
+        raise argparse.ArgumentTypeError('not an id (sha256: and 64 hex digits): ' + s)
+    return s
 
 
 def key_arg(k):
@@ -128,19 +135,19 @@ def c_auction(a):
 
 # commands that record one message, built from the arguments, in the dex's own ledger
 SIMPLE = {
-    'withdraw': ('withdraw an offer', [(['offer'], {})], lambda a: ('withdraw', {'offer': a.offer})),
-    'received': ('record that a payment arrived', [(['claim'], {}), (['amount'], {'type': int})],
+    'withdraw': ('withdraw an offer', [(['offer'], {'type': id_arg})], lambda a: ('withdraw', {'offer': a.offer})),
+    'received': ('record that a payment arrived', [(['claim'], {'type': id_arg}), (['amount'], {'type': int})],
                  lambda a: ('received', {'claim': a.claim, 'amount': a.amount})),
-    'delivered': ('record delivery', [(['claim'], {}), (['--note'], {'default': ''})],
+    'delivered': ('record delivery', [(['claim'], {'type': id_arg}), (['--note'], {'default': ''})],
                   lambda a: ('delivered', {'claim': a.claim, 'note': a.note})),
     'admit': ('admit a key (for offers with "allow": "admitted")',
               [(['key'], {}), (['--name'], {'default': ''}), (['--note'], {'default': ''})],
               lambda a: ('admit', {'key': a.key, 'name': a.name, 'note': a.note})),
     'revoke': ('revoke an admitted key', [(['key'], {}), (['--reason'], {'default': ''})],
                lambda a: ('revoke', {'key': a.key, 'reason': a.reason})),
-    'note': ('add a remark about an earlier entry', [(['ref'], {}), (['text'], {})],
+    'note': ('add a remark about an earlier entry', [(['ref'], {'type': id_arg}), (['text'], {})],
              lambda a: ('note', {'ref': a.ref, 'text': a.text})),
-    'delist': ('index: delist a ledger', [(['ledger'], {'help': 'ledger id'}), (['--reason'], {'default': ''})],
+    'delist': ('index: delist a ledger', [(['ledger'], {'type': id_arg, 'help': 'ledger id'}), (['--reason'], {'default': ''})],
                lambda a: ('delist', {'ledger': a.ledger, 'reason': a.reason})),
     'device': ('add or revoke a device key (needs the owner key)',
                [(['action'], {'choices': ['add', 'revoke']}), (['key'], {'help': 'public key, or the name of a key '
@@ -377,7 +384,7 @@ def c_discover(a):
         item = dict(l, ledger=lid)
         if a.offers:
             try:
-                led, _ = fetch(l['url'])
+                led, _ = fetch(l['url'], remote=True)
                 if led.id != lid:
                     raise Invalid('that address serves another ledger')
                 st = state(led)
@@ -435,28 +442,28 @@ def parser():
     cmd('record', c_record, 'record claims, payments and confirmations from buyers', D,
         (['files'], {'nargs': '*', 'help': 'message files'}),
         (['--from'], {'dest': 'sources', 'action': 'append', 'help': "a buyer's dex: collect what they sent you"}))
-    cmd('claim', c_claim, "buy: sign a claim for a seller's offer", D, S, (['offer'], {}),
+    cmd('claim', c_claim, "buy: sign a claim for a seller's offer", D, S, (['offer'], {'type': id_arg}),
         (['--quantity'], {'type': int, 'default': 1}), O)
-    cmd('pay', c_pay, 'tell the seller you paid', D, S, (['claim'], {'help': 'claim id (or your claim message id)'}),
+    cmd('pay', c_pay, 'tell the seller you paid', D, S, (['claim'], {'type': id_arg, 'help': 'claim id (or your claim message id)'}),
         (['--method'], {'required': True}), (['--ref'], {'default': ''}), O)
-    cmd('confirm', c_confirm, 'confirm you received the goods', D, S, (['claim'], {}), O)
+    cmd('confirm', c_confirm, 'confirm you received the goods', D, S, (['claim'], {'type': id_arg}), O)
     cmd('receipt', c_receipt, "keep the seller's records of your messages as receipts", D, S,
-        (['--entry'], {'help': 'only this entry id'}))
+        (['--entry'], {'type': id_arg, 'help': 'only this entry id'}))
     cmd('rotate', c_rotate, 'replace the owner key (signed by the old one)', D,
         (['--key'], {'required': True, 'help': 'name of the new key in ~/.ledgdex (made if missing)'}))
     cmd('recover', c_recover, "root: name a new key for a ledger whose owner lost theirs", D,
         (['ledger'], {'help': 'the ledger (dex, file or URL)'}), (['key'], {'help': 'the new public key'}))
     cmd('recovered', c_recovered, 'take a ledger back with the key the root named', D,
         (['--root'], {'required': True}), (['--key'], {'required': True, 'help': 'name of the new key'}))
-    cmd('dispute', c_dispute, 'open a dispute about a claim', D, (['claim'], {}), (['--text'], {'default': ''}),
+    cmd('dispute', c_dispute, 'open a dispute about a claim', D, (['claim'], {'type': id_arg}), (['--text'], {'default': ''}),
         (['--evidence'], {'action': 'append', 'help': 'an entry id or URL (repeatable)'}),
         (['--seller'], {'help': "buyer: the seller's dex (without it, a dispute in your own ledger)"}), O)
-    cmd('ruling', c_ruling, "arbiter: rule on a dispute in a seller's ledger", D, S, (['dispute'], {}),
+    cmd('ruling', c_ruling, "arbiter: rule on a dispute in a seller's ledger", D, S, (['dispute'], {'type': id_arg}),
         (['--outcome'], {'required': True, 'choices': ['release', 'refund', 'split']}), (['--text'], {'default': ''}), O)
     cmd('auction', c_auction, 'start a sealed-bid auction from a JSON file', D, (['file'], {}))
-    cmd('bid', c_bid, "bid in a seller's auction (the amount stays secret until you reveal)", D, S, (['auction'], {}),
+    cmd('bid', c_bid, "bid in a seller's auction (the amount stays secret until you reveal)", D, S, (['auction'], {'type': id_arg}),
         (['--amount'], {'type': int, 'required': True}), O)
-    cmd('reveal', c_reveal, 'reveal your bid after the auction closes', D, S, (['auction'], {}), O)
+    cmd('reveal', c_reveal, 'reveal your bid after the auction closes', D, S, (['auction'], {'type': id_arg}), O)
     cmd('list', c_list, 'index: list a ledger', D, L, (['--url'], {'help': 'address to list (default: its dex address)'}),
         (['--note'], {'default': ''}))
     cmd('discover', c_discover, 'read an index: listed ledgers, and with --offers what they sell',

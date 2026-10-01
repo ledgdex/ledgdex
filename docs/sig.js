@@ -21,8 +21,9 @@ export function vendoredSigner(secret) {
 export async function webCryptoSigner(secret) {
   const subtle = globalThis.crypto.subtle, der = new Uint8Array(48);
   der.set(PKCS8); der.set(secret, 16);
-  const key = await subtle.importKey('pkcs8', der, { name: 'Ed25519' }, true, ['sign']);
-  const x = (await subtle.exportKey('jwk', key)).x;  // the public key, base64url
+  const x = (await subtle.exportKey('jwk', await subtle.importKey('pkcs8', der, { name: 'Ed25519' }, true, ['sign']))).x;
+  const key = await subtle.importKey('pkcs8', der, { name: 'Ed25519' }, false, ['sign']);  // signs; cannot be read back
+  der.fill(0);
   const pub = Uint8Array.from(atob(x.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
   return { name: 'webcrypto', public: 'ed25519:' + hex(pub), sign: async (b) => new Uint8Array(await subtle.sign('Ed25519', key, b)) };
 }

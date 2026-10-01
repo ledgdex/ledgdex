@@ -78,6 +78,17 @@ class Cache(unittest.TestCase):
         self.assertEqual(led.cached, 0)
         self.assertEqual(led.broken_at, 0)
 
+    @unittest.skipUnless(hasattr(os, 'getuid'), 'POSIX only')
+    def test_a_cache_others_can_write_is_not_trusted(self):
+        b = self.book(2)
+        Ledger(b.led.data)
+        verified = os.path.join(os.environ['LEDGDEX_CACHE'], 'verified')
+        self.assertEqual(os.stat(verified).st_mode & 0o777, 0o700)
+        os.chmod(verified, 0o777)
+        self.assertEqual(Ledger(b.led.data).cached, 0)
+        os.chmod(verified, 0o700)
+        self.assertEqual(Ledger(b.led.data).cached, 4)
+
     def test_off_switches(self):
         b = self.book(2)
         Ledger(b.led.data)

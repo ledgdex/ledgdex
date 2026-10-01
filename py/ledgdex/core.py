@@ -1,6 +1,6 @@
 """Keys, messages, entries and ledger verification (spec 1-5)."""
 import datetime, hashlib, json, os, re
-from .sig import backend
+from .sig import backend, sign as _sign
 from .canon import canon, hash_, sha256, parse, check, CanonError
 
 KEY_RE = re.compile(r'ed25519:[0-9a-f]{64}\Z')
@@ -26,7 +26,7 @@ def public(secret):
 
 
 def sign(secret, obj):
-    return backend.sign(secret, canon(obj)).hex()
+    return _sign(secret, canon(obj)).hex()
 
 
 def verify(key, obj, sig):
@@ -351,11 +351,24 @@ class Ledger:
     def _cache_path(self):
         return os.path.join(cache_dir(), 'verified', self.id[7:] + '.json')
 
+    @staticmethod
+    def _cache_trusted(path):
+        """Only a cache this user owns and no one else can write to is trusted (it decides what is not verified)."""
+        if not hasattr(os, 'getuid'):
+            return True
+        for p in (os.path.dirname(path), path):
+            st = os.stat(p)
+            if st.st_uid != os.getuid() or st.st_mode & 0o022:
+                return False
+        return True
+
     def _cache_get(self, available):
         """How many entries at the start of this data were verified before (0 if none)."""
         if not self.use_cache:
             return 0
         try:
+            if not self._cache_trusted(self._cache_path()):
+                return 0
             with open(self._cache_path()) as f:
                 c = json.load(f)
             n, length = c['entries'], c['length']
@@ -372,7 +385,7 @@ class Ledger:
         length = len(self.header_line) + 1 + sum(len(x) + 1 for x in self.lines)
         c = {'entries': len(self.lines), 'length': length, 'sha256': hashlib.sha256(self.data[:length]).hexdigest()}
         try:
-            os.makedirs(os.path.dirname(self._cache_path()), exist_ok=True)
+            os.makedirs(os.path.dirname(self._cache_path()), mode=0o700, exist_ok=True)
             tmp = self._cache_path() + '.' + str(os.getpid())
             with open(tmp, 'w') as f:
                 json.dump(c, f)

@@ -8,6 +8,7 @@ import { hex, unhex } from './sha.js';
 import { pages, htmlTitle, short, LEDGER } from './render.js';
 import { makeDex } from './dexweb.js';
 import { zip } from './zip.js';
+import { sealKey, openKey, sealWith, openWith } from './keystore.js';
 
 const $ = (id) => document.getElementById(id);
 const store = {  // browser storage can be missing (private windows): then things last for this page only
@@ -16,7 +17,8 @@ const store = {  // browser storage can be missing (private windows): then thing
   del(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing stored */ } },
 };
 const enc = new TextEncoder(), dec = new TextDecoder();
-// sgn signs with Web Crypto when this browser has it (sig.js); secret is kept only to store and restore the key
+// sgn signs with Web Crypto when this browser has it (sig.js). secret stays in this page's memory: it is stored only
+// sealed with a passphrase (keystore.js), and bids only sealed with the key.
 let led = null, st = null, own = null, secret = null, sgn = null, lastMsg = null, loadedFrom = '', shown = [];
 
 const say = (id, text) => { $(id).textContent = text; };
@@ -80,13 +82,51 @@ async function load() {
 
 // ---------- your key and your ledger ----------
 
-async function setKey(s) {
+const KEPT = 'ledgdex-key';  // the sealed key: {v, kdf, rounds, salt, iv, ct, pub}
+const kept = () => { try { return JSON.parse(store.get(KEPT)); } catch (e) { return null; } };
+
+async function setKey(s, note) {
   secret = s;
   sgn = s ? await signer(s) : null;
   say('pub', sgn ? sgn.public : 'none');
   $('pub').title = sgn ? 'signs with ' + (sgn.name === 'webcrypto' ? "this browser's Web Crypto" : 'the built-in code') : '';
-  if (s) store.set('ledgdex-secret', hex(s)); else store.del('ledgdex-secret');
+  const box = kept();
+  say('keystate', note || (sgn && box && box.pub === sgn.public ? 'Kept in this browser, sealed with your passphrase.'
+    : sgn ? 'This key lives only in this page: keep it here sealed with a passphrase, or download a backup.'
+      : box ? 'A key (' + short(box.pub) + ') is kept here, sealed: enter its passphrase and unlock it.' : ''));
   showOwn();
+}
+async function keepKey() {
+  say('err', '');
+  try {
+    if (!sgn) throw new Invalid('make or paste a key first');
+    const box = await sealKey(secret, $('pass').value, sgn.public);
+    store.set(KEPT, JSON.stringify(box));
+    if (store.get(KEPT) !== JSON.stringify(box)) throw new Error('this browser does not keep anything for this page');
+    $('pass').value = '';
+    setKey(secret);
+  } catch (e) { fail(e); }
+}
+async function unlockKey() {
+  say('err', '');
+  try {
+    const box = kept();
+    if (!box) throw new Invalid('no key is kept in this browser');
+    const s = await openKey(box, $('pass').value);
+    $('pass').value = '';
+    setKey(s);
+  } catch (e) { fail(e); }
+}
+function forgetKey() {
+  if (kept() && !confirm('Remove the kept key from this browser? Without a backup it is gone for good.')) return;
+  store.del(KEPT);
+  setKey(null);
+}
+function backupKey() {
+  if (!sgn) return fail(new Error('no key to back up'));
+  download(new Blob([JSON.stringify({ public: sgn.public, secret: hex(secret) }, null, 1) + '\n']),
+    'ledgdex-key-' + sgn.public.slice(8, 20) + '.json');
+  say('keystate', 'Backup downloaded. Anyone with that file can sign as you: keep it offline.');
 }
 function setOwn(l) {
   own = l;
@@ -159,7 +199,7 @@ function buildForm() {
   }[$('type').value]();
 }
 
-function body() {
+async function body() {
   const t = $('type').value, v = (id) => $(id) ? $(id).value : '';
   if (!led || !led.whole) throw new Invalid('load a whole ledger first');
   if (t === 'claim') {
@@ -176,12 +216,15 @@ function body() {
     if (!(amount >= 0)) throw new Invalid('enter the amount');
     if (store.get(slot)) throw new Invalid('this key already bid in this auction (one bid per key)');
     const nonce = hex(crypto.getRandomValues(new Uint8Array(32)));
-    store.set(slot, JSON.stringify({ amount, nonce }));
+    const box = JSON.stringify(await sealWith(secret, { amount, nonce }));  // secret until the reveal
+    store.set(slot, box);
+    if (store.get(slot) !== box) throw new Invalid('this browser cannot keep the bid until the reveal (private window?)');
     return { auction, commit: hash({ amount, nonce }) };
   }
   const saved = JSON.parse(store.get(slot) || 'null');
   if (!saved) throw new Invalid('this browser has no bid of this key for that auction');
-  return { auction, amount: saved.amount, nonce: saved.nonce };
+  const bid = saved.ct ? await openWith(secret, saved) : saved;  // older viewers kept bids unsealed
+  return { auction, amount: bid.amount, nonce: bid.nonce };
 }
 
 async function signIt() {
@@ -190,7 +233,7 @@ async function signIt() {
     if (!sgn) throw new Invalid('make or paste a key first');
     if (own && own.owner !== sgn.public) throw new Invalid('sign with your ledger\'s owner key: it is who you are in other ledgers');
     if (own && led && led.id === own.id) throw new Invalid('this is your own ledger');
-    lastMsg = await messageA(sgn, $('type').value, body());
+    lastMsg = await messageA(sgn, $('type').value, await body());
     if (own) await append(await messageA(sgn, 'sent', { to: led.owner, msg: lastMsg }));
     say('signed', own ? 'Signed, and kept as "sent" in your ledger: download your dex and publish it, and the seller ' +
       'collects it from there. Or send this file:' : 'Signed. Send this file to the ledger owner:');
@@ -213,7 +256,11 @@ function main() {
     say('err', '');
     setKey(unhex(v));
   };
-  $('forget').onclick = () => setKey(null);
+  $('forget').onclick = forgetKey;
+  $('keep').onclick = keepKey;
+  $('unlock').onclick = unlockKey;
+  $('backup').onclick = backupKey;
+  $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') (kept() && !sgn ? unlockKey : keepKey)(); });
   $('newledger').onclick = async () => {
     try {
       if (!sgn) throw new Invalid('make or paste a key first');
@@ -241,8 +288,12 @@ function main() {
     const f = $('file').files[0];
     if (f) { loadedFrom = ''; show(new Uint8Array(await f.arrayBuffer()), await rootLedger().catch(() => null)); }
   };
-  const saved = store.get('ledgdex-secret');
-  if (saved && /^[0-9a-f]{64}$/.test(saved)) setKey(unhex(saved));
+  const plain = store.get('ledgdex-secret');  // older viewers kept the key unsealed: take it out of storage
+  store.del('ledgdex-secret');
+  if (plain && /^[0-9a-f]{64}$/.test(plain)) {
+    setKey(unhex(plain), 'Your key was stored unsealed by an older viewer and is now removed from storage. Enter a ' +
+      'passphrase and keep it, or download a backup, before you leave this page.');
+  } else setKey(null);
   const ownText = store.get('ledgdex-own');
   if (ownText) { const l = new Ledger(enc.encode(ownText)); if (l.header) setOwn(l); }
   const q = new URLSearchParams(location.search);

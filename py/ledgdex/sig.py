@@ -75,3 +75,14 @@ def _choose():
 
 backend = _choose()
 pure = _Pure()
+_warned = []
+
+
+def sign(secret, msg):
+    """Sign with the chosen backend. The vendored code is not constant time: say so once, unless asked for."""
+    if backend.name == 'pure' and not _warned and not os.environ.get('LEDGDEX_PURE'):
+        _warned.append(1)
+        import sys
+        print('ledgdex: signing with the pure-Python Ed25519, which is not constant time. On a shared machine, '
+              'install the "cryptography" package (pip install cryptography).', file=sys.stderr)
+    return backend.sign(secret, msg)

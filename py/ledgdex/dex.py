@@ -22,10 +22,14 @@ def key_dir():
     return os.environ.get('LEDGDEX_HOME') or os.path.join(os.path.expanduser('~'), '.ledgdex')
 
 
-def keygen(name):
-    """Write a new secret key to ~/.ledgdex/NAME.key (mode 600) and return its public key."""
+def _key_name(name):
     if not re.match(r'[A-Za-z0-9][A-Za-z0-9._-]*\Z', name):
         raise Invalid('a key name uses letters, digits, ".", "_" and "-"')
+
+
+def keygen(name):
+    """Write a new secret key to ~/.ledgdex/NAME.key (mode 600) and return its public key."""
+    _key_name(name)
     os.makedirs(key_dir(), mode=0o700, exist_ok=True)
     path = os.path.join(key_dir(), name + '.key')
     if os.path.exists(path):
@@ -38,6 +42,7 @@ def keygen(name):
 
 
 def load_key(name):
+    _key_name(name)
     path = os.path.join(key_dir(), name + '.key')
     if not os.path.exists(path):
         raise Invalid('no key named ' + name + ' in ' + key_dir())
@@ -45,6 +50,11 @@ def load_key(name):
 
 
 def _read_key(path):
+    """A secret key file, refused if anyone but its owner can read it (as ssh refuses private keys)."""
+    if hasattr(os, 'getuid'):
+        mode = os.stat(path).st_mode
+        if mode & 0o077:
+            raise Invalid(path + ' can be read by others (mode ' + oct(mode & 0o777) + '): run chmod 600 ' + path)
     with open(path) as f:
         return bytes.fromhex(f.read().strip())
 
@@ -57,7 +67,9 @@ def find_key(pub):
             if name.endswith('.key'):
                 try:
                     secret = _read_key(os.path.join(d, name))
-                except ValueError:
+                except Invalid:
+                    raise
+                except ValueError:  # not a key file
                     continue
                 if len(secret) == 32 and public(secret) == pub:
                     return secret
@@ -94,25 +106,47 @@ def load(dex, root=None):
     return led
 
 
+@contextlib.contextmanager
+def locked(dex):
+    """One writer at a time: two appends at once would both take the next seq, and the second would break the
+    ledger. The lock file stays in the dex folder (dexweb publishes only gen/)."""
+    with open(os.path.join(dex, '.ledgdex.lock'), 'a') as f:
+        try:
+            import fcntl
+        except ImportError:  # Windows: no lock
+            yield
+            return
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def record(dex, msgs, at=None, secret=None, root=None):
     """Record messages in this dex's ledger. Only appends. Returns the entry ids. Signed with secret, or with the
     key signer() picks."""
-    led = load(dex, root=root)
-    start = len(led.lines)
-    ids = []
-    for m in msgs:
-        key = secret or signer(led)
-        ids.append(led.append(led.next_entry(key, m, at=at)))
-    with open(ledger_path(dex), 'ab') as f:
-        f.write(b''.join(line + b'\n' for line in led.lines[start:]))
+    with locked(dex):
+        led = load(dex, root=root)
+        start = len(led.lines)
+        ids = []
+        for m in msgs:
+            key = secret or signer(led)
+            ids.append(led.append(led.next_entry(key, m, at=at)))
+        with open(ledger_path(dex), 'ab') as f:
+            f.write(b''.join(line + b'\n' for line in led.lines[start:]))
+            f.flush()
+            os.fsync(f.fileno())
     return ids
 
 
 def write(dex, data):
-    """Replace the ledger file (only for re-sequencing unpublished entries, spec 3.5)."""
+    """Replace the ledger file (only for re-sequencing unpublished entries, spec 3.5). The caller holds locked(dex)."""
     tmp = ledger_path(dex) + '.tmp'
     with open(tmp, 'wb') as f:
         f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, ledger_path(dex))
 
 
@@ -130,13 +164,45 @@ def load_root(dex):
     return fetch(src)[0] if src else None
 
 
-def fetch(src, cache=True, root=None):
-    """Read a ledger from a dex folder, a file, or a dex URL. Returns (Ledger, url)."""
+MAX_BYTES = int(os.environ.get('LEDGDEX_MAX_BYTES') or 64 << 20)   # the most read from any one address
+
+
+class _HttpOnly(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not re.match(r'https?://', newurl):
+            raise Invalid('refused a redirect to ' + newurl + ': only http(s) is followed')
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_opener = urllib.request.build_opener(_HttpOnly)
+
+
+def http_get(url, limit=None):
+    """The bytes at an http(s) address, at most limit (default MAX_BYTES) of them."""
+    limit = limit or MAX_BYTES
+    if not re.match(r'https?://', url):
+        raise Invalid('only http(s) addresses are read: ' + url)
+    req = urllib.request.Request(url, headers={'User-Agent': 'ledgdex'})
+    with _opener.open(req, timeout=30) as r:
+        data = r.read(limit + 1)
+    if len(data) > limit:
+        raise Invalid(url + ' is larger than ' + str(limit) + ' bytes (LEDGDEX_MAX_BYTES)')
+    return data
+
+
+def fetch(src, cache=True, root=None, remote=False):
+    """Read a ledger from a dex folder, a file, or a dex URL. Returns (Ledger, url). remote: src came from a ledger
+    (a receipt, a listing), so besides http(s) only a dex folder or a .jsonl file is read (ledgers kept on one
+    machine), never any other local file."""
     if re.match(r'https?://', src):
         url = src if src.endswith('.jsonl') else src.rstrip('/') + '/' + LEDGER
-        req = urllib.request.Request(url, headers={'User-Agent': 'ledgdex'})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return Ledger(r.read(), cache, root), url
+        return Ledger(http_get(url), cache, root), url
+    if re.match(r'[A-Za-z][A-Za-z0-9+.-]*:', src) and not os.path.exists(src):
+        raise Invalid('only http(s) addresses, dex folders and ledger files are read: ' + src)
     path = os.path.join(src, LEDGER) if os.path.isdir(src) else src
+    if remote and not path.endswith('.jsonl'):
+        raise Invalid('a ledger names ' + src + ': only http(s) addresses, dex folders and .jsonl files are read')
+    if os.path.getsize(path) > MAX_BYTES:
+        raise Invalid(path + ' is larger than ' + str(MAX_BYTES) + ' bytes (LEDGDEX_MAX_BYTES)')
     with open(path, 'rb') as f:
         return Ledger(f.read(), cache, root), os.path.abspath(path)

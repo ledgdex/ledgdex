@@ -2,8 +2,9 @@
     {
         "title": "Viewer",
         "body": [
-            "Load any ledgdex ledger and check every signature and hash in your browser. Keep your own ledger here too, sign messages to sellers, collect their receipts, and download your ledger as a complete dex. Nothing is uploaded: your key stays in this browser.",
-            "Your key: <code id=\"pub\">none</code> <button id=\"gen\">New key</button> <input id=\"secret\" type=\"password\" placeholder=\"or paste a secret key (64 hex)\" aria-label=\"Secret key\"> <button id=\"import\">Use this key</button> <button id=\"forget\">Forget key</button>",
+            "Load any ledgdex ledger and check every signature and hash in your browser. Keep your own ledger here too, sign messages to sellers, collect their receipts, and download your ledger as a complete dex. Nothing is uploaded: your key stays in this browser, and is stored only sealed with your passphrase.",
+            "Your key: <code id=\"pub\">none</code> <button id=\"gen\">New key</button> <input id=\"secret\" type=\"password\" placeholder=\"or paste a secret key (64 hex)\" aria-label=\"Secret key\"> <button id=\"import\">Use this key</button> <button id=\"forget\">Forget key</button> <button id=\"backup\">Download key backup</button>",
+            "Keep it here: <input id=\"pass\" type=\"password\" placeholder=\"passphrase (12+ characters)\" aria-label=\"Passphrase\" autocomplete=\"new-password\"> <button id=\"keep\">Keep, sealed</button> <button id=\"unlock\">Unlock</button> <span id=\"keystate\"></span>",
             "Your ledger: <span id=\"own\">none open</span>",
             "<input id=\"ownurl\" placeholder=\"your dex address\" aria-label=\"Your dex address\"> <button id=\"ownload\">Open</button> <input id=\"ownfile\" type=\"file\" accept=\".jsonl,text/plain\" aria-label=\"Your ledger file\">",
             "New ledger: <input id=\"newname\" placeholder=\"name\" aria-label=\"Name\"> <input id=\"newabout\" placeholder=\"about\" aria-label=\"About\"> <input id=\"newdex\" placeholder=\"your dex address\" aria-label=\"Your dex address\"> <button id=\"newledger\">Create with your key</button>",

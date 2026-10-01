@@ -2,7 +2,7 @@
 import json, os
 from .canon import hash_
 from .core import Ledger, Invalid, OWNER_ONLY
-from .dex import LEDGER, find_key, inside, load, signer, write
+from .dex import LEDGER, find_key, inside, load, locked, signer, write
 from .render import render
 
 TRIES = 3
@@ -20,6 +20,11 @@ def check_config(dex):
 
 def catch_up(dex, old, at=None):
     """Put this dex's unpublished entries on top of the published ledger `old` (bytes). Spec 3.5 rule 3."""
+    with locked(dex):
+        return _catch_up(dex, old, at)
+
+
+def _catch_up(dex, old, at):
     local = load(dex)
     if local.data.startswith(old):
         return 0

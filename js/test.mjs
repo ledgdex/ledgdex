@@ -10,6 +10,8 @@ import { buildGen, makeDex } from './dexweb.js';
 import * as ed from './ed25519.js';
 import { unhex, hex } from './sha.js';
 import { signer, vendoredSigner, webCryptoSigner, webCryptoWorks } from './sig.js';
+import { sealKey, openKey, sealWith, openWith } from './keystore.js';
+import { safeUrl } from './render.js';
 
 const V = join(dirname(fileURLToPath(import.meta.url)), '..', 'vectors');
 const json = (p) => JSON.parse(readFileSync(join(V, p), 'utf8'));
@@ -132,6 +134,30 @@ if (await webCryptoWorks()) {
   ok(new Ledger(a.data).whole, 'a ledger signed with Web Crypto verifies');
 } else {
   console.log('(no Ed25519 in this Web Crypto: skipped its checks)');
+}
+
+// keys and bids kept in the browser are sealed (keystore.js)
+{
+  const secret = unhex('9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60');
+  const box = await sealKey(secret, 'correct horse battery', 'ed25519:x', 1000 * 100);
+  ok(!JSON.stringify(box).includes(hex(secret)), 'a sealed key does not hold the secret in the clear');
+  ok(hex(await openKey(box, 'correct horse battery')) === hex(secret), 'the passphrase opens a sealed key');
+  let wrong = false;
+  try { await openKey(box, 'correct horse batterz'); } catch (e) { wrong = e.message === 'wrong passphrase'; }
+  ok(wrong, 'a wrong passphrase does not open it');
+  let changed = false;
+  try { await openKey({ ...box, ct: box.ct.slice(0, -2) + (box.ct.endsWith('00') ? '01' : '00') }, 'correct horse battery'); } catch (e) { changed = true; }
+  ok(changed, 'a changed sealed key does not open');
+  let short = false;
+  try { await sealKey(secret, 'short', 'ed25519:x'); } catch (e) { short = true; }
+  ok(short, 'short passphrases are refused');
+  const bid = await sealWith(secret, { amount: 5, nonce: 'ab' });
+  ok(!JSON.stringify(bid).includes('"amount"') && (await openWith(secret, bid)).amount === 5, 'bids are sealed with the key');
+  let other = false;
+  try { await openWith(unhex('4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb'), bid); } catch (e) { other = true; }
+  ok(other, 'another key cannot open a bid');
+  ok(safeUrl('https://a.example/x') && !safeUrl('javascript:alert(1)') && !safeUrl('https://a b') && !safeUrl(' https://a'),
+    'only http(s) addresses become links');
 }
 
 console.log(passed + ' passed, ' + failed + ' failed');

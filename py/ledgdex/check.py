@@ -5,10 +5,10 @@ cannot see: whether a ledger still extends the copy seen last time, whether ever
 it came from, whether the same address still serves the same ledger, and (optionally) whether offer media still match
 their hashes. Errors mean tampering or equivocation and come with signed proof where there is one. Warnings mean
 something could not be checked (a site is down)."""
-import datetime, hashlib, json, os, re, urllib.request
+import datetime, hashlib, json, os, re
 from .canon import hash_
 from .core import Ledger
-from .dex import LEDGER, fetch, inside
+from .dex import LEDGER, fetch, http_get, inside
 
 STATE = '.ledgdex-check'
 
@@ -56,7 +56,7 @@ class Store:
 
 class Checker:
     def __init__(self, state_dir=STATE, media=False, log=print, root=None):
-        self.root = fetch(root)[0] if root else None   # needed for ledgers with a "recovered" entry
+        self.root = fetch(root, cache=False)[0] if root else None   # needed for ledgers with a "recovered" entry
         self.store = Store(state_dir)
         self.media = media
         self.log = log
@@ -73,9 +73,10 @@ class Checker:
         self.problems.append(p)
         self.log(level.upper() + ' ' + code + ': ' + url + ': ' + detail + (' (proof: ' + proof + ')' if proof else ''))
 
-    def load(self, src, level='error'):
+    def load(self, src, level='error', remote=False):
+        # never the verification cache: a check verifies every entry, every time
         try:
-            led, _ = fetch(src, root=self.root)
+            led, _ = fetch(src, cache=False, root=self.root, remote=remote)
             return led
         except Exception as e:  # unreachable, missing, not a ledger
             self.problem(level, 'unreachable', src, str(e))
@@ -109,7 +110,7 @@ class Checker:
         return ok
 
     def rewritten(self, led, url, old):
-        prev = Ledger(old)
+        prev = Ledger(old, cache=False)
         n = 0
         while n < len(prev.lines) and n < len(led.lines) and prev.lines[n] == led.lines[n]:
             n += 1
@@ -134,9 +135,7 @@ class Checker:
                 continue
             for m in e['msg']['body']['item']['media']:
                 try:
-                    req = urllib.request.Request(m['url'], headers={'User-Agent': 'ledgdex'})
-                    with urllib.request.urlopen(req, timeout=30) as r:
-                        got = 'sha256:' + hashlib.sha256(r.read()).hexdigest()
+                    got = 'sha256:' + hashlib.sha256(http_get(m['url'])).hexdigest()
                 except Exception as err:
                     self.problem('warning', 'media_unavailable', m['url'], str(err), led.id)
                     continue
@@ -160,7 +159,7 @@ class Checker:
             for u in urls:
                 if any(u == c_url for c_url, _ in self.copies.get(ledger_id, [])):
                     continue
-                other = self.load(u, level='warning')
+                other = self.load(u, level='warning', remote=True)
                 if other is None or other.header is None:
                     continue
                 dex = other.dex
@@ -174,7 +173,7 @@ class Checker:
             copies = list(self.copies.get(ledger_id, []))
             seen = self.store.seen(ledger_id)
             if seen is not None:
-                copies.append(('last seen copy', Ledger(seen)))
+                copies.append(('last seen copy', Ledger(seen, cache=False)))
             if not copies:
                 self.problem('warning', 'receipts_unchecked', url, 'could not reach ledger ' + ledger_id)
                 continue

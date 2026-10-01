@@ -192,6 +192,44 @@ class Dex(unittest.TestCase):
         with open('shop/' + LEDGER, 'rb') as f:
             self.assertEqual(f.read(), self.published())
 
+    def test_keys_readable_by_others_are_refused(self):
+        self.shop()
+        key = os.path.join(os.environ['LEDGDEX_HOME'], 'farm.key')
+        os.chmod(key, 0o644)
+        oid = list(self.state('shop')['offers'])[0]
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(io.StringIO()) as err:
+                run('note', 'shop', oid, 'x')
+        self.assertIn('chmod 600', err.getvalue())
+        os.chmod(key, 0o600)
+        run('note', 'shop', oid, 'x')
+
+    def test_ids_and_key_names_are_checked(self):
+        self.shop()
+        for args in (['withdraw', 'shop', '../../etc/passwd'], ['reveal', 'shop', 'shop', 'sha256:../../x'],
+                     ['init', 'x', '--name', 'x', '--key', '../evil']):
+            with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+                run(*args)
+        self.assertFalse(os.path.exists('x/' + LEDGER))
+
+    def test_concurrent_appends_keep_the_ledger_whole(self):
+        import threading
+        from ledgdex.core import message
+        from ledgdex.dex import find_key, record
+        self.shop()
+        led = load('shop')
+        oid, secret = list(self.state('shop')['offers'])[0], find_key(led.owner)
+        threads = [threading.Thread(target=lambda i=i: record('shop', [message(secret, 'note', {
+            'ref': oid, 'text': str(i)})])) for i in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        led = load('shop')
+        self.assertTrue(led.whole)
+        self.assertEqual(sorted(str(i) for i in range(8)),
+                         sorted(e['msg']['body']['text'] for e in led.entries if e['msg']['type'] == 'note'))
+
 
 if __name__ == '__main__':
     unittest.main()

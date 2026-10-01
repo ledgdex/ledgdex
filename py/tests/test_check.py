@@ -119,17 +119,62 @@ class Check(unittest.TestCase):
         self.put('seller.jsonl', bytes(data))
         self.assertIn(('error', 'broken'), self.codes(self.run_check(sp)))
 
+    def serve(self):
+        """Serve self.tmp over local HTTP; returns its address."""
+        import functools, http.server, threading
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=self.tmp)
+        handler.log_message = lambda *a: None
+        httpd = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        self.addCleanup(httpd.shutdown)
+        return 'http://127.0.0.1:' + str(httpd.server_port)
+
     def test_media(self):
         pic = self.put('pic.png', b'picture')
+        base = self.serve()
         b = Book()
         h = 'sha256:' + __import__('hashlib').sha256(b'picture').hexdigest()
-        b.own('offer', offer_body(item={'title': 'x', 'text': '', 'media': [{'url': 'file://' + pic, 'hash': h}]}))
+        b.own('offer', offer_body(item={'title': 'x', 'text': '', 'media': [{'url': base + '/pic.png', 'hash': h}]}))
         sp = self.put('s.jsonl', b.led.data)
         self.assertTrue(self.run_check(sp, media=True)['ok'])
         self.put('pic.png', b'another picture')
         self.assertIn(('error', 'media_changed'), self.codes(self.run_check(sp, media=True)))
         os.remove(pic)
         self.assertIn(('warning', 'media_unavailable'), self.codes(self.run_check(sp, media=True)))
+
+    def test_media_is_only_fetched_over_http(self):
+        pic = self.put('pic.png', b'picture')
+        h = 'sha256:' + __import__('hashlib').sha256(b'picture').hexdigest()
+        b = Book()
+        b.own('offer', offer_body(item={'title': 'x', 'text': '', 'media': [{'url': 'file://' + pic, 'hash': h}]}))
+        r = self.run_check(self.put('s.jsonl', b.led.data), media=True)
+        self.assertEqual([('warning', 'media_unavailable')], self.codes(r))
+        self.assertIn('only http(s)', r['problems'][0]['detail'])
+
+    def test_a_ledger_cannot_make_check_read_local_files(self):
+        secret = self.put('secret.txt', b'not a ledger')
+        seller, buyer = Book(), Book(BUYER, 'Asha')
+        oid, oh = seller.offer()
+        seller.claim(oid, oh)
+        for src in (secret, 'file://' + secret):
+            buyer.own('receipt', {'ledger': seller.led.id, 'url': src, 'header': seller.led.header,
+                                  'entry': json.loads(seller.led.lines[1])})
+        r = self.run_check(self.put('buyer.jsonl', buyer.led.data))
+        self.assertEqual(2, sum(1 for p in r['problems'] if p['code'] == 'unreachable' and 'only http' in p['detail']))
+
+    def test_size_limit(self):
+        import ledgdex.dex as dex
+        from ledgdex.core import Invalid
+        self.put('big.jsonl', b'x' * 2000)
+        base = self.serve()
+        old, dex.MAX_BYTES = dex.MAX_BYTES, 1000
+        try:
+            with self.assertRaises(Invalid):
+                dex.fetch(base + '/big.jsonl')
+            with self.assertRaises(Invalid):
+                dex.fetch(os.path.join(self.tmp, 'big.jsonl'))
+        finally:
+            dex.MAX_BYTES = old
 
     def test_workflow(self):
         w = workflow(['seller/ledgdex.jsonl', 'buyer/ledgdex.jsonl'], cron='5 4 * * *')

@@ -13,6 +13,7 @@ from helpers import T0  # noqa: E402
 from ledgdex.canon import canon, hash_, parse, CanonError, ID_KEY  # noqa: E402
 from ledgdex.core import Invalid, Keys, Ledger, message, new_ledger, public, seconds, sign, unsigned, utc  # noqa: E402
 from ledgdex.state import state  # noqa: E402
+from ledgdex.render import pages  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 JS = os.path.join(HERE, '..', '..', 'js', 'fuzz.mjs')
@@ -289,6 +290,8 @@ def py_ledger(data, root, now):
          'entries': len(led.entries), 'error': led.error}
     if led.header is not None:
         v['state'] = canon(state(led, root=root_led, now=now), ID_KEY).decode('utf-8')
+    if led.whole:
+        v['pages'] = json.dumps(pages(led, ['Mangoes', 'About']), ensure_ascii=False, separators=(',', ':'))
     return v
 
 

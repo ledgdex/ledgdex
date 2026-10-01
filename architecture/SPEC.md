@@ -696,10 +696,15 @@ ledgdex/
   js/
     sha.js                SHA-256 and SHA-512, synchronous
     canon.js  ed25519.js  core.js  state.js     the same functions as the Python modules
-    viewer.html viewer.js static page: load a ledger, verify, show state, sign messages, keep your own ledger
+    render.js             the dex pages (7.2), byte for byte as render.py
+    dexweb.js  zip.js     a complete dex as dexweb builds it, downloaded as a zip
+    viewer.js             the viewer page's script
+  viewer/                 the viewer, a dex: data.json config.json styles.css run.py (dexweb, published to docs/)
+  docs/                   the published viewer dex (GitHub Pages)
     test.mjs              node js/test.mjs: JavaScript against the shared vectors
   vectors/                shared test vectors used by both test suites: ed25519.json, canon.json, signatures.json,
-                          and ledgers/ (test ledgers with their expected verification and canon(state))
+                          ledgers/ (test ledgers with their expected verification and canon(state)), pages.json
+                          (their dex pages) and dex/ (whole dexs built by dexweb)
 ```
 
 ## Command-line tool
@@ -760,11 +765,13 @@ buyer's ledger as `sent`, so a seller can collect them from the buyer's publishe
 With a device key on a machine, everyday commands there sign with it; owner-only types and messages to other ledgers
 use the owner key (4).
 
-The viewer page (`js/viewer.html`) does the reading and signing in the browser: it loads a ledger from an address or a
-file, verifies it, shows its state, and signs `claim`, `paid`, `confirmed`, `dispute`, `bid` and `reveal` messages
-as downloadable files. It also keeps the viewer's own ledger (new, or opened from a file or address): each message it
-signs is appended as `sent`, "collect receipts" appends `receipt` entries for the loaded ledger's records of them,
-and the ledger is downloaded to be published, so a browser-only buyer has full triple entry. It never needs a server of its own, and its key is generated or imported in the browser,
+The viewer is itself a dex (`viewer/`, built with dexweb and published to `docs/`), and does the reading and signing
+in the browser: it loads a ledger from an address or a file, verifies it, shows it as the pages its dex has (7.2),
+and signs `claim`, `paid`, `confirmed`, `dispute`, `bid` and `reveal` messages as downloadable files. It also keeps
+the viewer's own ledger (new, or opened from a file or address): each message it signs is appended as `sent`,
+"collect receipts" appends `receipt` entries for the loaded ledger's records of them, and "download your dex" gives
+the ledger as a complete dex (7.1), file for file what `ledgdex init` and dexweb make. So a browser-only self is a
+ledgdex too, with full triple entry. It never needs a server of its own, and its key is generated or imported in the browser,
 stored there, and never uploaded. A bid's amount and nonce are stored in the browser until the reveal.
 
 ## Build status

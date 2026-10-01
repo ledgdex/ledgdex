@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { canonString, parse, ID_KEY } from './canon.js';
 import { Ledger } from './core.js';
 import { state } from './state.js';
+import { pages } from './render.js';
 
 const [, , corpus, out] = process.argv;
 const b64 = (s) => new Uint8Array(Buffer.from(s, 'base64'));
@@ -19,6 +20,7 @@ for (const line of readFileSync(corpus, 'utf8').split('\n')) {
     r = { header: led.header !== null, whole: led.whole, broken_at: led.broken_at, entries: led.entries.length,
       error: led.error };
     if (led.header !== null) r.state = canonString(state(led, root, c.now), ID_KEY);
+    if (led.whole) r.pages = JSON.stringify(pages(led, ['Mangoes', 'About']));
   }
   rows.push(JSON.stringify({ id: c.id, ...r }));
 }

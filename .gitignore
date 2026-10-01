@@ -2,3 +2,6 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+viewer/gen/
+viewer/backup/
+viewer/to_add/

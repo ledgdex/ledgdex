@@ -1,10 +1,12 @@
 // node js/test.mjs: JavaScript must reproduce the shared vectors (made by py/tests/make_vectors.py) byte for byte.
-import { readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { canonString, parse, hash, ID_KEY } from './canon.js';
 import { Ledger, publicKey, sign, verify, message, newLedger, Invalid } from './core.js';
 import { state } from './state.js';
+import { pages } from './render.js';
+import { buildGen, makeDex } from './dexweb.js';
 import * as ed from './ed25519.js';
 import { unhex, hex } from './sha.js';
 
@@ -52,6 +54,50 @@ for (const f of readdirSync(join(V, 'ledgers')).filter((f) => f.endsWith('.json'
         console.log('  first difference at ' + i + ':\n  js: ' + got.slice(i - 80, i + 80) + '\n  py: ' + x.state.slice(i - 80, i + 80));
         break;
       }
+    }
+  }
+}
+
+// the dex pages: render.js must give exactly what Python's render.py gives
+const rendered = json('pages.json');
+for (const name of Object.keys(rendered)) {
+  const x = existsSync(join(V, 'ledgers', name + '.json')) ? json(join('ledgers', name + '.json')) : {};
+  const led = new Ledger(ledgers[x.ledger || name], x.root ? new Ledger(ledgers[x.root]) : null);
+  const got = JSON.stringify(pages(led, ['Mangoes', 'About', 'Farm ledger']));
+  ok(got === JSON.stringify(rendered[name]), 'pages ' + name);
+  if (got !== JSON.stringify(rendered[name])) {
+    const want = JSON.stringify(rendered[name]);
+    for (let i = 0; i < got.length; i++) if (got[i] !== want[i]) {
+      console.log('  js: ' + got.slice(i - 60, i + 80) + '\n  py: ' + want.slice(i - 60, i + 80)); break;
+    }
+  }
+}
+
+// whole dexs: dexweb.js must build every file dexweb built (vectors/dex/)
+const template = JSON.parse(readFileSync(join(V, '..', 'js', 'dexweb-template.json'), 'utf8'));
+const walk = (dir, base = dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+  d.isDirectory() ? walk(join(dir, d.name), base) : [join(dir, d.name).slice(base.length + 1)]);
+for (const name of readdirSync(join(V, 'dex'))) {
+  const dir = join(V, 'dex', name), want = walk(dir).sort();
+  let got;
+  if (name.endsWith('-variant')) {
+    const base = name.slice(0, -8), cfg = JSON.parse(readFileSync(join(V, 'dex', base, 'config.json'), 'utf8'));
+    Object.assign(cfg, { index_list_type_para: false, page_javascript: '<script src="p.js"></script>',
+      index_javascript: '<script src="i.js"></script>' });
+    const data = JSON.parse(readFileSync(join(V, 'dex', base, 'data.json'), 'utf8'));
+    got = Object.fromEntries(Object.entries(buildGen(data, cfg)).map(([p, h]) => ['gen/' + p, new TextEncoder().encode(h)]));
+    for (const f of ['gen/ledgdex.jsonl', 'gen/styles.css']) got[f] = new Uint8Array(readFileSync(join(dir, f)));
+  } else {
+    const cfg = JSON.parse(readFileSync(join(dir, 'config.json'), 'utf8'));
+    got = makeDex(new Uint8Array(readFileSync(join(dir, 'ledgdex.jsonl'))), cfg.dexname, template).files;
+  }
+  ok(JSON.stringify(Object.keys(got).sort()) === JSON.stringify(want), 'dex ' + name + ' file list: ' + Object.keys(got).sort().join(' '));
+  for (const f of want) {
+    const a = got[f] ? Buffer.from(got[f]) : null, b = readFileSync(join(dir, f));
+    ok(a && a.equals(b), 'dex ' + name + '/' + f);
+    if (a && !a.equals(b)) {
+      const x = a.toString(), y = b.toString();
+      for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) { console.log('  js: ' + JSON.stringify(x.slice(i - 50, i + 60)) + '\n  py: ' + JSON.stringify(y.slice(i - 50, i + 60))); break; }
     }
   }
 }

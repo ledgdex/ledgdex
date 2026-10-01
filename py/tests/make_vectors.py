@@ -189,9 +189,11 @@ def scenarios():
 def build():
     files = {}
     ledgers = {}
+    scenarios_root = {}
     for name, (src, root, now) in scenarios().items():
         data = src if isinstance(src, bytes) else src.led.data
         ledgers[name] = data
+        scenarios_root[name] = root
     for name, (src, root, now) in scenarios().items():
         data = ledgers[name]
         root_led = Ledger(ledgers[root], cache=False) if root else None
@@ -207,6 +209,51 @@ def build():
             continue
         files['ledgers/' + name + '.jsonl'] = data
         files['ledgers/' + name + '.json'] = json.dumps(dict(expect, ledger=name), indent=1, ensure_ascii=False) + '\n'
+
+    # the dex pages each whole ledger renders to (spec 7.2): JavaScript's render.js must match
+    from ledgdex.render import pages
+    rendered = {}
+    for name in sorted(ledgers):
+        root_name = scenarios_root.get(name)
+        led = Ledger(ledgers[name], cache=False, root=Ledger(ledgers[root_name], cache=False) if root_name else None)
+        if led.whole:
+            rendered[name] = pages(led, ['Mangoes', 'About', 'Farm ledger'])
+    files['pages.json'] = json.dumps(rendered, indent=1, ensure_ascii=False) + '\n'
+
+    # whole dexs built by dexweb (what "ledgdex init" makes): JavaScript's dexweb.js must build the same files
+    import contextlib, io, shutil, tempfile
+    from dexweb import dexgen
+    from ledgdex.render import create_dex, render
+    tmp = tempfile.mkdtemp(prefix='ledgdex-vectors-')
+    try:
+        for name, dexname in (('market', 'Farm ü'), ('buyer', 'आम Asha'), ('index', 'Market'), ('auctions', 'Maps & co')):
+            dex = os.path.join(tmp, name)
+            with contextlib.redirect_stdout(io.StringIO()):
+                create_dex(dex, ledgers[name], dexname)
+            files.update(dex_files(dex, 'dex/' + name + '/'))
+        # the same ledger with dexweb's other index style and script hooks: only gen/ changes
+        dex = os.path.join(tmp, 'market')
+        with open(os.path.join(dex, 'config.json')) as f:
+            cfg = json.load(f)
+        cfg.update(index_list_type_para=False, page_javascript='<script src="p.js"></script>',
+                   index_javascript='<script src="i.js"></script>')
+        with open(os.path.join(dex, 'config.json'), 'w') as f:
+            f.write(json.dumps(cfg, indent=4))
+        with contextlib.redirect_stdout(io.StringIO()):
+            render(dex)
+        files.update({k: v for k, v in dex_files(dex, 'dex/market-variant/').items() if '/gen/' in k})
+        # dexweb's own template and styles, for building dexs in the browser
+        g = dexgen.Dexgen.__new__(dexgen.Dexgen)
+        g.dexname = ''
+        g.save_dexname_in_config(tmp, '')
+        with open(os.path.join(tmp, 'config.json')) as f:
+            config = json.load(f)
+        import importlib_resources
+        styles = importlib_resources.files('dexweb').joinpath('styles.css').read_text()
+        files['../js/dexweb-template.json'] = json.dumps({'config': config, 'styles': styles}, indent=1,
+                                                         ensure_ascii=False) + '\n'
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
     # canonical JSON: does parse() accept these exact bytes?
     texts = ['{"a":1}', '{ "a":1}', '{"b":1,"a":2}', '{"a":1,"a":1}', '{"a":1.0}', '{"a":1e3}', '{"a":-0}',
@@ -224,6 +271,16 @@ def build():
                          'hash': hash_(v), 'sig': sign(secret, v)})
     files['signatures.json'] = json.dumps(sigs, indent=1, ensure_ascii=False) + '\n'
     return files
+
+
+def dex_files(dex, prefix):
+    out = {}
+    for base, dirs, names in os.walk(dex):
+        for n in names:
+            full = os.path.join(base, n)
+            with open(full, 'rb') as f:
+                out[prefix + os.path.relpath(full, dex)] = f.read()
+    return out
 
 
 def _ok(text):

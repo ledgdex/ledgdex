@@ -1,0 +1,27 @@
+[
+    {
+        "title": "Asha ledger",
+        "body": [
+            "<!-- ledgdex -->Asha's ledger: 3 entries, whole",
+            "about",
+            "Owner key: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>",
+            "Device keys: none",
+            "Ledger id: <code>sha256:27dc5b07d9c0ca65e376b233732c7cf2d446935f95fd4a12f2e8e62e61ac6edb</code>",
+            "Head: seq 2, <code>sha256:41b61ee7c8733b2c408ebce9ebf3b3378647d707f30b09428eb06f6e7aa1af12</code>",
+            "Verification: whole",
+            "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+            "Pages: <a href='ashapurchases.html'>Asha purchases</a>",
+            "Entries:",
+            "0. 2026-10-01T09:00:00Z open by <code>ed25519:79b5562e8fe6</code>: opened the ledger <code>sha256:9914c621dd5c</code>",
+            "1. 2026-10-01T09:01:00Z sent by <code>ed25519:79b5562e8fe6</code>: claim to <code>ed25519:03a107bff3ce</code> <code>sha256:e8666b47d932</code>",
+            "2. 2026-10-01T09:02:00Z receipt by <code>ed25519:79b5562e8fe6</code>: entry 5 (claim) of Farm's ledger <code>sha256:41b61ee7c873</code>"
+        ]
+    },
+    {
+        "title": "Asha purchases",
+        "body": [
+            "<!-- ledgdex -->1 claims sent",
+            "2026-10-01T09:01:00Z: 1 of offer <code>sha256:4311ac7f6543</code> from <code>ed25519:03a107bff3ce</code> at 120000 each. Receipt: entry 5 of Farm's ledger, claim id <code>sha256:d30ea0ecba50538b61be3d8ed0b93fc793f13f07077902717d8e97878b6e4280</code>"
+        ]
+    }
+]

@@ -1,0 +1,588 @@
+{
+ "auctions": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 28 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 27, <code>sha256:15a9e0fe4b155a869bd3d77aca9791090ca28fc678ad147dc9800ce8704e6e4e</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='oldmap.html'>Old map</a>, <a href='oldmapee9215e9.html'>Old map ee9215e9</a>, <a href='oldmapd3772d43.html'>Old map d3772d43</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:383819e17308</code>",
+    "2. 2026-10-01T09:02:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:ee9215e9e30b</code>",
+    "3. 2026-10-01T09:03:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:d3772d43e726</code>",
+    "4. 2026-10-01T09:04:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:157d3834c036</code>",
+    "5. 2026-10-01T09:05:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> <code>sha256:93e2360a75a3</code>",
+    "6. 2026-10-01T09:06:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:b536ae93fe65</code>",
+    "7. 2026-10-01T09:07:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:01506b1d7255</code>",
+    "8. 2026-10-01T09:08:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:a0b01dce6320</code>",
+    "9. 2026-10-01T09:09:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> <code>sha256:5a08e42f8aad</code>",
+    "10. 2026-10-01T09:10:00Z bid by <code>ed25519:03a107bff3ce</code>: auction <code>sha256:383819e17308</code> <code>sha256:9bd0fc056ca5</code>",
+    "11. 2026-10-01T09:11:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:000000000000</code> <code>sha256:a6ef898cb8d8</code>",
+    "12. 2026-10-01T09:12:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:272b43fff8a9</code>",
+    "13. 2026-10-01T09:13:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> by x <code>sha256:f1fd2e5ee0a8</code>",
+    "14. 2026-10-01T09:31:00Z bid by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:383819e17308</code> <code>sha256:4d68aab228da</code>",
+    "15. 2026-10-01T09:32:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:09ea10fc9f9f</code>",
+    "16. 2026-10-01T09:33:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> amount 700 <code>sha256:f5830b952899</code>",
+    "17. 2026-10-01T09:34:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:8266e13871aa</code>",
+    "18. 2026-10-01T09:35:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:b349f9b6b710</code>",
+    "19. 2026-10-01T09:36:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:dbe4ad5290c0</code>",
+    "20. 2026-10-01T09:37:00Z reveal by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:ee9215e9e30b</code> amount 1 <code>sha256:c683229ca348</code>",
+    "21. 2026-10-01T09:38:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> amount 50 <code>sha256:2d4c48bf1eb1</code>",
+    "22. 2026-10-01T10:01:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> amount 700 <code>sha256:0122cd210a4f</code>",
+    "23. 2026-10-01T10:02:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> by upi <code>sha256:a89d9656a5a1</code>",
+    "24. 2026-10-01T10:03:00Z received by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:383819e17308</code> amount 500 <code>sha256:7424c425f33e</code>",
+    "25. 2026-10-01T10:04:00Z delivered by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:383819e17308</code> <code>sha256:5462c9f0849b</code>",
+    "26. 2026-10-01T10:05:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> <code>sha256:ab38399b292b</code>",
+    "27. 2026-10-01T10:06:00Z dispute by <code>ed25519:79b5562e8fe6</code>: about <code>sha256:ee9215e9e30b</code>: tie? <code>sha256:15a9e0fe4b15</code>"
+   ]
+  },
+  {
+   "title": "Old map",
+   "body": [
+    "<!-- ledgdex -->closed, 2 sealed bids",
+    "sealed bids",
+    "Status: closed",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 1.00 (100)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Winner: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code> at INR 5.00 (500)",
+    "Auction id: <code>sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>."
+   ]
+  },
+  {
+   "title": "Old map ee9215e9",
+   "body": [
+    "<!-- ledgdex -->disputed, 2 sealed bids",
+    "sealed bids",
+    "Status: disputed",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: lowest, reserve INR 6.00 (600)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Winner: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code> at INR 4.00 (400)",
+    "Auction id: <code>sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036 --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>."
+   ]
+  },
+  {
+   "title": "Old map d3772d43",
+   "body": [
+    "<!-- ledgdex -->no_winner, 1 sealed bids",
+    "sealed bids",
+    "Status: no_winner",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 100.00 (10000)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>."
+   ]
+  }
+ ],
+ "auctions-later": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 28 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 27, <code>sha256:15a9e0fe4b155a869bd3d77aca9791090ca28fc678ad147dc9800ce8704e6e4e</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='oldmap.html'>Old map</a>, <a href='oldmapee9215e9.html'>Old map ee9215e9</a>, <a href='oldmapd3772d43.html'>Old map d3772d43</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:383819e17308</code>",
+    "2. 2026-10-01T09:02:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:ee9215e9e30b</code>",
+    "3. 2026-10-01T09:03:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:d3772d43e726</code>",
+    "4. 2026-10-01T09:04:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:157d3834c036</code>",
+    "5. 2026-10-01T09:05:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> <code>sha256:93e2360a75a3</code>",
+    "6. 2026-10-01T09:06:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:b536ae93fe65</code>",
+    "7. 2026-10-01T09:07:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:01506b1d7255</code>",
+    "8. 2026-10-01T09:08:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:a0b01dce6320</code>",
+    "9. 2026-10-01T09:09:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> <code>sha256:5a08e42f8aad</code>",
+    "10. 2026-10-01T09:10:00Z bid by <code>ed25519:03a107bff3ce</code>: auction <code>sha256:383819e17308</code> <code>sha256:9bd0fc056ca5</code>",
+    "11. 2026-10-01T09:11:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:000000000000</code> <code>sha256:a6ef898cb8d8</code>",
+    "12. 2026-10-01T09:12:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:272b43fff8a9</code>",
+    "13. 2026-10-01T09:13:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> by x <code>sha256:f1fd2e5ee0a8</code>",
+    "14. 2026-10-01T09:31:00Z bid by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:383819e17308</code> <code>sha256:4d68aab228da</code>",
+    "15. 2026-10-01T09:32:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:09ea10fc9f9f</code>",
+    "16. 2026-10-01T09:33:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> amount 700 <code>sha256:f5830b952899</code>",
+    "17. 2026-10-01T09:34:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:8266e13871aa</code>",
+    "18. 2026-10-01T09:35:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:b349f9b6b710</code>",
+    "19. 2026-10-01T09:36:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:dbe4ad5290c0</code>",
+    "20. 2026-10-01T09:37:00Z reveal by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:ee9215e9e30b</code> amount 1 <code>sha256:c683229ca348</code>",
+    "21. 2026-10-01T09:38:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> amount 50 <code>sha256:2d4c48bf1eb1</code>",
+    "22. 2026-10-01T10:01:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> amount 700 <code>sha256:0122cd210a4f</code>",
+    "23. 2026-10-01T10:02:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> by upi <code>sha256:a89d9656a5a1</code>",
+    "24. 2026-10-01T10:03:00Z received by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:383819e17308</code> amount 500 <code>sha256:7424c425f33e</code>",
+    "25. 2026-10-01T10:04:00Z delivered by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:383819e17308</code> <code>sha256:5462c9f0849b</code>",
+    "26. 2026-10-01T10:05:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> <code>sha256:ab38399b292b</code>",
+    "27. 2026-10-01T10:06:00Z dispute by <code>ed25519:79b5562e8fe6</code>: about <code>sha256:ee9215e9e30b</code>: tie? <code>sha256:15a9e0fe4b15</code>"
+   ]
+  },
+  {
+   "title": "Old map",
+   "body": [
+    "<!-- ledgdex -->closed, 2 sealed bids",
+    "sealed bids",
+    "Status: closed",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 1.00 (100)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Winner: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code> at INR 5.00 (500)",
+    "Auction id: <code>sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>."
+   ]
+  },
+  {
+   "title": "Old map ee9215e9",
+   "body": [
+    "<!-- ledgdex -->disputed, 2 sealed bids",
+    "sealed bids",
+    "Status: disputed",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: lowest, reserve INR 6.00 (600)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Winner: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code> at INR 4.00 (400)",
+    "Auction id: <code>sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036 --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>."
+   ]
+  },
+  {
+   "title": "Old map d3772d43",
+   "body": [
+    "<!-- ledgdex -->no_winner, 1 sealed bids",
+    "sealed bids",
+    "Status: no_winner",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 100.00 (10000)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>."
+   ]
+  }
+ ],
+ "auctions-revealing": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 22 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 21, <code>sha256:2d4c48bf1eb15e0c36d320a2970358aef43f17740c1154a82790b57676ea5487</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='oldmap.html'>Old map</a>, <a href='oldmapee9215e9.html'>Old map ee9215e9</a>, <a href='oldmapd3772d43.html'>Old map d3772d43</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:383819e17308</code>",
+    "2. 2026-10-01T09:02:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:ee9215e9e30b</code>",
+    "3. 2026-10-01T09:03:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:d3772d43e726</code>",
+    "4. 2026-10-01T09:04:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:157d3834c036</code>",
+    "5. 2026-10-01T09:05:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> <code>sha256:93e2360a75a3</code>",
+    "6. 2026-10-01T09:06:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> <code>sha256:b536ae93fe65</code>",
+    "7. 2026-10-01T09:07:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:01506b1d7255</code>",
+    "8. 2026-10-01T09:08:00Z bid by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> <code>sha256:a0b01dce6320</code>",
+    "9. 2026-10-01T09:09:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> <code>sha256:5a08e42f8aad</code>",
+    "10. 2026-10-01T09:10:00Z bid by <code>ed25519:03a107bff3ce</code>: auction <code>sha256:383819e17308</code> <code>sha256:9bd0fc056ca5</code>",
+    "11. 2026-10-01T09:11:00Z bid by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:000000000000</code> <code>sha256:a6ef898cb8d8</code>",
+    "12. 2026-10-01T09:12:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:272b43fff8a9</code>",
+    "13. 2026-10-01T09:13:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:383819e17308</code> by x <code>sha256:f1fd2e5ee0a8</code>",
+    "14. 2026-10-01T09:31:00Z bid by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:383819e17308</code> <code>sha256:4d68aab228da</code>",
+    "15. 2026-10-01T09:32:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:383819e17308</code> amount 500 <code>sha256:09ea10fc9f9f</code>",
+    "16. 2026-10-01T09:33:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:383819e17308</code> amount 700 <code>sha256:f5830b952899</code>",
+    "17. 2026-10-01T09:34:00Z reveal by <code>ed25519:43cdc023d22d</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:8266e13871aa</code>",
+    "18. 2026-10-01T09:35:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:b349f9b6b710</code>",
+    "19. 2026-10-01T09:36:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:ee9215e9e30b</code> amount 400 <code>sha256:dbe4ad5290c0</code>",
+    "20. 2026-10-01T09:37:00Z reveal by <code>ed25519:50b29e9fa638</code>: auction <code>sha256:ee9215e9e30b</code> amount 1 <code>sha256:c683229ca348</code>",
+    "21. 2026-10-01T09:38:00Z reveal by <code>ed25519:79b5562e8fe6</code>: auction <code>sha256:d3772d43e726</code> amount 50 <code>sha256:2d4c48bf1eb1</code>"
+   ]
+  },
+  {
+   "title": "Old map",
+   "body": [
+    "<!-- ledgdex -->revealing, 2 sealed bids",
+    "sealed bids",
+    "Status: revealing",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 1.00 (100)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d</code>."
+   ]
+  },
+  {
+   "title": "Old map ee9215e9",
+   "body": [
+    "<!-- ledgdex -->revealing, 2 sealed bids",
+    "sealed bids",
+    "Status: revealing",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: lowest, reserve INR 6.00 (600)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036 --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036</code>."
+   ]
+  },
+  {
+   "title": "Old map d3772d43",
+   "body": [
+    "<!-- ledgdex -->revealing, 1 sealed bids",
+    "sealed bids",
+    "Status: revealing",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 100.00 (10000)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e</code>."
+   ]
+  }
+ ],
+ "buyer": [
+  {
+   "title": "Asha ledger",
+   "body": [
+    "<!-- ledgdex -->Asha's ledger: 3 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:27dc5b07d9c0ca65e376b233732c7cf2d446935f95fd4a12f2e8e62e61ac6edb</code>",
+    "Head: seq 2, <code>sha256:41b61ee7c8733b2c408ebce9ebf3b3378647d707f30b09428eb06f6e7aa1af12</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='ashapurchases.html'>Asha purchases</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:79b5562e8fe6</code>: opened the ledger <code>sha256:9914c621dd5c</code>",
+    "1. 2026-10-01T09:01:00Z sent by <code>ed25519:79b5562e8fe6</code>: claim to <code>ed25519:03a107bff3ce</code> <code>sha256:e8666b47d932</code>",
+    "2. 2026-10-01T09:02:00Z receipt by <code>ed25519:79b5562e8fe6</code>: entry 5 (claim) of Farm's ledger <code>sha256:41b61ee7c873</code>"
+   ]
+  },
+  {
+   "title": "Asha purchases",
+   "body": [
+    "<!-- ledgdex -->1 claims sent",
+    "2026-10-01T09:01:00Z: 1 of offer <code>sha256:4311ac7f6543</code> from <code>ed25519:03a107bff3ce</code> at 120000 each. Receipt: entry 5 of Farm's ledger, claim id <code>sha256:d30ea0ecba50538b61be3d8ed0b93fc793f13f07077902717d8e97878b6e4280</code>"
+   ]
+  }
+ ],
+ "disputes": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 13 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 12, <code>sha256:3ebc040dcff8b2b3c8b7370b11bde2057c9d000fec1418b494b822cfdf42354a</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:4cd5f4b46ab2</code>",
+    "2. 2026-10-01T09:02:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4cd5f4b46ab2</code> <code>sha256:81d4ac4762ed</code>",
+    "3. 2026-10-01T09:03:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4cd5f4b46ab2</code> <code>sha256:09d002590b50</code>",
+    "4. 2026-10-01T09:04:00Z dispute by <code>ed25519:43cdc023d22d</code>: about <code>sha256:81d4ac4762ed</code> <code>sha256:75a1f20eab36</code>",
+    "5. 2026-10-01T09:05:00Z dispute by <code>ed25519:79b5562e8fe6</code>: about <code>sha256:81d4ac4762ed</code>: never arrived <code>sha256:0a6a67d48105</code>",
+    "6. 2026-10-01T09:06:00Z ruling by <code>ed25519:03a107bff3ce</code>: release on dispute <code>sha256:0a6a67d48105</code> <code>sha256:d5bda8cf92c1</code>",
+    "7. 2026-10-01T09:07:00Z ruling by <code>ed25519:43cdc023d22d</code>: refund on dispute <code>sha256:0a6a67d48105</code> <code>sha256:827d45c1f2db</code>",
+    "8. 2026-10-01T09:08:00Z ruling by <code>ed25519:43cdc023d22d</code>: split on dispute <code>sha256:0a6a67d48105</code> <code>sha256:a2429ee0da70</code>",
+    "9. 2026-10-01T09:09:00Z dispute by <code>ed25519:03a107bff3ce</code>: about <code>sha256:09d002590b50</code>: not paid <code>sha256:7c61c0e67dbb</code>",
+    "10. 2026-10-01T09:10:00Z ruling by <code>ed25519:43cdc023d22d</code>: split on dispute <code>sha256:7c61c0e67dbb</code> <code>sha256:95f0eb707928</code>",
+    "11. 2026-10-01T09:11:00Z ruling by <code>ed25519:43cdc023d22d</code>: split on dispute <code>sha256:000000000000</code> <code>sha256:7453e085e6b5</code>",
+    "12. 2026-10-01T09:12:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:09d002590b50</code> by x <code>sha256:3ebc040dcff8</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 0 of 2 left, sold",
+    "ripe",
+    "Status: sold",
+    "Remaining: 0 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:4cd5f4b46ab2472e4f2ebca2b19ebdf4fc8834597dc22e8521c847664e110427</code>",
+    "Offer hash: <code>sha256:ce10e5cbebf4f7edd8d79d363abd1bce4c78b88b92a2b13ca35a9c19c6cf0fb6</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4cd5f4b46ab2472e4f2ebca2b19ebdf4fc8834597dc22e8521c847664e110427 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:81d4ac4762ed</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), refunded",
+    "<code>sha256:09d002590b50</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), split"
+   ]
+  }
+ ],
+ "index": [
+  {
+   "title": "Market ledger",
+   "body": [
+    "<!-- ledgdex -->Market's ledger: 5 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:07075ba15bd6aabc457b63d30d630178e113a573f7bd76071df639bcf5849de5</code>",
+    "Head: seq 4, <code>sha256:edbe32a08455b9d18aa0e34b9a1ded9215456cdb2ff03f1ceb990f8888cdd1bf</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:43cdc023d22d</code>: opened the ledger <code>sha256:d086a1b335ca</code>",
+    "1. 2026-10-01T09:01:00Z list by <code>ed25519:43cdc023d22d</code>: ledger <code>sha256:5059e1acd1d7</code> https://farm.example <code>sha256:6b01e78e6528</code>",
+    "2. 2026-10-01T09:02:00Z list by <code>ed25519:43cdc023d22d</code>: ledger <code>sha256:5059e1acd1d7</code> https://d.example <code>sha256:430e36cc43f4</code>",
+    "3. 2026-10-01T09:03:00Z delist by <code>ed25519:43cdc023d22d</code>: ledger <code>sha256:5059e1acd1d7</code> <code>sha256:785d43baa7db</code>",
+    "4. 2026-10-01T09:04:00Z delist by <code>ed25519:43cdc023d22d</code>: ledger <code>sha256:000000000000</code> <code>sha256:edbe32a08455</code>"
+   ]
+  }
+ ],
+ "keys": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 8 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 7, <code>sha256:ad1cf1bd4360e2fa6ab8a58b43f1dd99aeb69858e17697308012e1e0f21e1d87</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:4311ac7f6543</code>",
+    "2. 2026-10-01T09:02:00Z device by <code>ed25519:03a107bff3ce</code>: <code>ed25519:50b29e9fa638</code> (phone) <code>sha256:9822b48e9821</code>",
+    "3. 2026-10-01T09:03:00Z note by <code>ed25519:50b29e9fa638</code>: about <code>sha256:4311ac7f6543</code>: from the phone <code>sha256:1099156cc9b4</code>",
+    "4. 2026-10-01T09:04:00Z rotate by <code>ed25519:03a107bff3ce</code>: <code>ed25519:60da00e5e1cf</code> <code>sha256:789efce97348</code>",
+    "5. 2026-10-01T09:05:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4311ac7f6543</code> <code>sha256:d30ea0ecba50</code>",
+    "6. 2026-10-01T09:06:00Z device_revoke by <code>ed25519:60da00e5e1cf</code>: <code>ed25519:50b29e9fa638</code> <code>sha256:92182a1a33dc</code>",
+    "7. 2026-10-01T09:07:00Z note by <code>ed25519:60da00e5e1cf</code>: about <code>sha256:4311ac7f6543</code>: new owner key <code>sha256:ad1cf1bd4360</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 2 left, open",
+    "ripe",
+    "Status: open",
+    "Remaining: 1 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:4311ac7f6543de30527ba05da0c77677014d57b1acc3d8259663ca6756262ed4</code>",
+    "Offer hash: <code>sha256:e13a06b2f0b0014145ea8624fb7638960ecd7a8648915782132971ce2a0ae55d</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4311ac7f6543de30527ba05da0c77677014d57b1acc3d8259663ca6756262ed4 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:d30ea0ecba50</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted"
+   ]
+  }
+ ],
+ "market": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 24 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 23, <code>sha256:5c2335d445ce79c1a3e428b2555898591e24643381455dae965358bd95a58f52</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesआम.html'>Mangoes ✓ आम</a>, <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>, <a href='farmadmissions.html'>Farm admissions</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes ✓ आम, 3 dozen at INR 1,200.00 (120000) each <code>sha256:f5f4475d347d</code>",
+    "2. 2026-10-01T09:02:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:000000000000</code> <code>sha256:d7c74743a592</code>",
+    "3. 2026-10-01T09:03:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:89d090eabf48</code>",
+    "4. 2026-10-01T09:04:00Z claim by <code>ed25519:79b5562e8fe6</code>: 0 of offer <code>sha256:f5f4475d347d</code> <code>sha256:f80d31d988c4</code>",
+    "5. 2026-10-01T09:05:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:a409766507ef</code>",
+    "6. 2026-10-01T09:06:00Z claim by <code>ed25519:03a107bff3ce</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:1c33742e603d</code>",
+    "7. 2026-10-01T09:07:00Z claim by <code>ed25519:79b5562e8fe6</code>: 2 of offer <code>sha256:f5f4475d347d</code> <code>sha256:49045cb8856a</code>",
+    "8. 2026-10-01T09:08:00Z claim by <code>ed25519:43cdc023d22d</code>: 2 of offer <code>sha256:f5f4475d347d</code> <code>sha256:b5d1d4b51d84</code>",
+    "9. 2026-10-01T09:09:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> by upi <code>sha256:14ece1fc8140</code>",
+    "10. 2026-10-01T09:10:00Z paid by <code>ed25519:43cdc023d22d</code>: claim <code>sha256:49045cb8856a</code> by x <code>sha256:f43a77094406</code>",
+    "11. 2026-10-01T09:11:00Z received by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:49045cb8856a</code> amount 240000 <code>sha256:e7e136a01c51</code>",
+    "12. 2026-10-01T09:12:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:095d61092718</code>",
+    "13. 2026-10-01T09:13:00Z delivered by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:e7d425bfb11a</code>",
+    "14. 2026-10-01T09:14:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:78127c5cae50</code>",
+    "15. 2026-10-01T09:15:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:4f44392d444d</code>",
+    "16. 2026-10-01T09:16:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:e361742cb962</code>",
+    "17. 2026-10-01T09:17:00Z admit by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:d36d2ccee923</code>",
+    "18. 2026-10-01T09:18:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:9f0ea3e6c2fc</code>",
+    "19. 2026-10-01T09:19:00Z revoke by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:f2a333a08c74</code>",
+    "20. 2026-10-01T09:46:00Z claim by <code>ed25519:43cdc023d22d</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:2138264a38fa</code>",
+    "21. 2026-10-01T09:47:00Z withdraw by <code>ed25519:03a107bff3ce</code>: offer <code>sha256:4f44392d444d</code> <code>sha256:1e26f006d301</code>",
+    "22. 2026-10-01T09:48:00Z withdraw by <code>ed25519:03a107bff3ce</code>: offer <code>sha256:4f44392d444d</code> <code>sha256:d20dda292b60</code>",
+    "23. 2026-10-01T09:49:00Z note by <code>ed25519:03a107bff3ce</code>: about <code>sha256:49045cb8856a</code>: thanks <code>sha256:5c2335d445ce</code>"
+   ]
+  },
+  {
+   "title": "Mangoes ✓ आम",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 3 left, open",
+    "line one<br>line &quot;two&quot;",
+    "Media: <a href='https://example.com/m.jpg'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
+    "Status: open",
+    "Remaining: 1 of 3 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:f5f4475d347d174934d8d20f1c753e97b674b5fef9124598e2e7351405a35437</code>",
+    "Offer hash: <code>sha256:be41e776d10957557adb5236effa9410d074a2d643bf6e19da2c338dd6e6f005</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:f5f4475d347d174934d8d20f1c753e97b674b5fef9124598e2e7351405a35437 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:89d090eabf48</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), rejected (offer_changed)",
+    "<code>sha256:f80d31d988c4</code> by <code>ed25519:79b5562e8fe6</code>: 0 at INR 1,200.00 (120000), rejected (bad_quantity)",
+    "<code>sha256:a409766507ef</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 0.01 (1), rejected (price_mismatch)",
+    "<code>sha256:1c33742e603d</code> by <code>ed25519:03a107bff3ce</code>: 1 at INR 1,200.00 (120000), rejected (self_claim)",
+    "<code>sha256:49045cb8856a</code> by <code>ed25519:79b5562e8fe6</code>: 2 at INR 1,200.00 (120000), closed, paid, received, delivered, confirmed",
+    "<code>sha256:b5d1d4b51d84</code> by <code>ed25519:43cdc023d22d</code>: 2 at INR 1,200.00 (120000), rejected (bad_quantity)"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 2 left, withdrawn",
+    "ripe",
+    "Status: withdrawn",
+    "Remaining: 1 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Expires: 2026-10-01T09:40:00Z",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: keys admitted by this ledger",
+    "Offer id: <code>sha256:4f44392d444d7b6c16dba5df28fa059f1badf9dcf3d07566dc1a1dbe07efc41c</code>",
+    "Offer hash: <code>sha256:1003d867860cfbeb3f7ae882d8ca886918d74c2372e6e86ab1863b535bcc26c7</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4f44392d444d7b6c16dba5df28fa059f1badf9dcf3d07566dc1a1dbe07efc41c --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:e361742cb962</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), rejected (not_allowed)",
+    "<code>sha256:9f0ea3e6c2fc</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted",
+    "<code>sha256:2138264a38fa</code> by <code>ed25519:43cdc023d22d</code>: 1 at INR 1,200.00 (120000), rejected (expired)"
+   ]
+  },
+  {
+   "title": "Farm admissions",
+   "body": [
+    "<!-- ledgdex -->0 keys admitted",
+    "2026-10-01T09:17:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: Asha",
+    "2026-10-01T09:19:00Z revoke <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: "
+   ]
+  }
+ ],
+ "recovered": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 8 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 7, <code>sha256:c14d88c6a1f8f798aaf7c0d3fa40d41ee119b2d4fd291ce02dc1995549e659de</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>, <a href='farmadmissions.html'>Farm admissions</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z note by <code>ed25519:03a107bff3ce</code>: about <code>sha256:c5813457c83f</code>: before the loss <code>sha256:52fda05472d9</code>",
+    "2. 2026-10-01T09:02:00Z recovered by <code>ed25519:60da00e5e1cf</code>: owner key recovered through the root, entry <code>sha256:9d400ab206e2</code> <code>sha256:0a256a107400</code>",
+    "3. 2026-10-01T09:03:00Z offer by <code>ed25519:60da00e5e1cf</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:5e97c4f84a5d</code>",
+    "4. 2026-10-01T09:04:00Z admit by <code>ed25519:60da00e5e1cf</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:cbf07d6900bd</code>",
+    "5. 2026-10-01T09:05:00Z admit by <code>ed25519:60da00e5e1cf</code>: <code>ed25519:43cdc023d22d</code> <code>sha256:72eb43f86abd</code>",
+    "6. 2026-10-01T09:06:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:5e97c4f84a5d</code> <code>sha256:fad38f329335</code>",
+    "7. 2026-10-01T09:07:00Z claim by <code>ed25519:43cdc023d22d</code>: 1 of offer <code>sha256:5e97c4f84a5d</code> <code>sha256:c14d88c6a1f8</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 0 of 2 left, sold",
+    "ripe",
+    "Status: sold",
+    "Remaining: 0 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: keys admitted by this ledger",
+    "Offer id: <code>sha256:5e97c4f84a5d0a4109af9cd5d5e94f3a3c9ab5c6a35279fa58dea56c9e7b65d8</code>",
+    "Offer hash: <code>sha256:3d000fb7a36b87f8e309a39ff039c97d3de85f74829a5666f3e5b15f5a204cc4</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:5e97c4f84a5d0a4109af9cd5d5e94f3a3c9ab5c6a35279fa58dea56c9e7b65d8 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:fad38f329335</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted",
+    "<code>sha256:c14d88c6a1f8</code> by <code>ed25519:43cdc023d22d</code>: 1 at INR 1,200.00 (120000), accepted"
+   ]
+  },
+  {
+   "title": "Farm admissions",
+   "body": [
+    "<!-- ledgdex -->2 keys admitted",
+    "2026-10-01T09:04:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: ",
+    "2026-10-01T09:05:00Z admit <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>: "
+   ]
+  }
+ ],
+ "root": [
+  {
+   "title": "Root ledger",
+   "body": [
+    "<!-- ledgdex -->Root's ledger: 3 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:26181796188d57c2b11ce034884bb1b47d15c744d5abf65642c49e425dc8b344</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:9ac8643e37dbcda00e1432484c7625eef297953e4ce5e46b8d578da05c8d0551</code>",
+    "Head: seq 2, <code>sha256:cbcc2f029ffba01d08cc2e9419db52b3c044446a6c3aa01028c2b94536003649</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='rootadmissions.html'>Root admissions</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:26181796188d</code>: opened the ledger <code>sha256:54a40c6dc62e</code>",
+    "1. 2026-10-01T09:01:00Z recover by <code>ed25519:26181796188d</code>: new key <code>ed25519:60da00e5e1cf</code> for ledger <code>sha256:5059e1acd1d7</code> <code>sha256:9d400ab206e2</code>",
+    "2. 2026-10-01T09:02:00Z admit by <code>ed25519:26181796188d</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:cbcc2f029ffb</code>"
+   ]
+  },
+  {
+   "title": "Root admissions",
+   "body": [
+    "<!-- ledgdex -->1 keys admitted",
+    "2026-10-01T09:02:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: Asha"
+   ]
+  }
+ ]
+}

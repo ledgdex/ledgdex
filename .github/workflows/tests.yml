@@ -24,6 +24,8 @@ jobs:
         run: cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests
       - name: JavaScript against the shared vectors
         run: node js/test.mjs
+      - name: The viewer dex in docs/ is built from viewer/ and js/ (rebuild with "cd viewer && python run.py")
+        run: cd viewer && python run.py && git diff --exit-code ../docs && test -z "$(git status --porcelain ../docs)"
       - name: Differential fuzzing (a new seed every run; rerun one with --seed N)
         run: cd py && python tests/fuzz.py --seed ${{ github.run_number }} --ledgers 200 --texts 3000 --keep fuzz-out
       - uses: actions/upload-artifact@v7

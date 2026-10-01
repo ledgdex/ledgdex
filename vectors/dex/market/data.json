@@ -1,0 +1,96 @@
+[
+    {
+        "title": "Farm ledger",
+        "body": [
+            "<!-- ledgdex -->Farm's ledger: 24 entries, whole",
+            "about",
+            "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+            "Device keys: none",
+            "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+            "Head: seq 23, <code>sha256:5c2335d445ce79c1a3e428b2555898591e24643381455dae965358bd95a58f52</code>",
+            "Verification: whole",
+            "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+            "Pages: <a href='mangoesआम.html'>Mangoes ✓ आम</a>, <a href='mangoes.html'>Mangoes</a>, <a href='farmadmissions.html'>Farm admissions</a>",
+            "Entries:",
+            "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+            "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes ✓ आम, 3 dozen at INR 1,200.00 (120000) each <code>sha256:f5f4475d347d</code>",
+            "2. 2026-10-01T09:02:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:000000000000</code> <code>sha256:d7c74743a592</code>",
+            "3. 2026-10-01T09:03:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:89d090eabf48</code>",
+            "4. 2026-10-01T09:04:00Z claim by <code>ed25519:79b5562e8fe6</code>: 0 of offer <code>sha256:f5f4475d347d</code> <code>sha256:f80d31d988c4</code>",
+            "5. 2026-10-01T09:05:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:a409766507ef</code>",
+            "6. 2026-10-01T09:06:00Z claim by <code>ed25519:03a107bff3ce</code>: 1 of offer <code>sha256:f5f4475d347d</code> <code>sha256:1c33742e603d</code>",
+            "7. 2026-10-01T09:07:00Z claim by <code>ed25519:79b5562e8fe6</code>: 2 of offer <code>sha256:f5f4475d347d</code> <code>sha256:49045cb8856a</code>",
+            "8. 2026-10-01T09:08:00Z claim by <code>ed25519:43cdc023d22d</code>: 2 of offer <code>sha256:f5f4475d347d</code> <code>sha256:b5d1d4b51d84</code>",
+            "9. 2026-10-01T09:09:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> by upi <code>sha256:14ece1fc8140</code>",
+            "10. 2026-10-01T09:10:00Z paid by <code>ed25519:43cdc023d22d</code>: claim <code>sha256:49045cb8856a</code> by x <code>sha256:f43a77094406</code>",
+            "11. 2026-10-01T09:11:00Z received by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:49045cb8856a</code> amount 240000 <code>sha256:e7e136a01c51</code>",
+            "12. 2026-10-01T09:12:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:095d61092718</code>",
+            "13. 2026-10-01T09:13:00Z delivered by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:e7d425bfb11a</code>",
+            "14. 2026-10-01T09:14:00Z confirmed by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:49045cb8856a</code> <code>sha256:78127c5cae50</code>",
+            "15. 2026-10-01T09:15:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:4f44392d444d</code>",
+            "16. 2026-10-01T09:16:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:e361742cb962</code>",
+            "17. 2026-10-01T09:17:00Z admit by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:d36d2ccee923</code>",
+            "18. 2026-10-01T09:18:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:9f0ea3e6c2fc</code>",
+            "19. 2026-10-01T09:19:00Z revoke by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:f2a333a08c74</code>",
+            "20. 2026-10-01T09:46:00Z claim by <code>ed25519:43cdc023d22d</code>: 1 of offer <code>sha256:4f44392d444d</code> <code>sha256:2138264a38fa</code>",
+            "21. 2026-10-01T09:47:00Z withdraw by <code>ed25519:03a107bff3ce</code>: offer <code>sha256:4f44392d444d</code> <code>sha256:1e26f006d301</code>",
+            "22. 2026-10-01T09:48:00Z withdraw by <code>ed25519:03a107bff3ce</code>: offer <code>sha256:4f44392d444d</code> <code>sha256:d20dda292b60</code>",
+            "23. 2026-10-01T09:49:00Z note by <code>ed25519:03a107bff3ce</code>: about <code>sha256:49045cb8856a</code>: thanks <code>sha256:5c2335d445ce</code>"
+        ]
+    },
+    {
+        "title": "Mangoes ✓ आम",
+        "body": [
+            "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 3 left, open",
+            "line one<br>line &quot;two&quot;",
+            "Media: <a href='https://example.com/m.jpg'>https://example.com/m.jpg</a> <code>sha256:1111111111111111111111111111111111111111111111111111111111111111</code>",
+            "Status: open",
+            "Remaining: 1 of 3 dozen",
+            "Price: INR 1,200.00 (120000) per dozen",
+            "Pay by upi: farm@bank",
+            "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+            "Who may buy: anyone",
+            "Offer id: <code>sha256:f5f4475d347d174934d8d20f1c753e97b674b5fef9124598e2e7351405a35437</code>",
+            "Offer hash: <code>sha256:be41e776d10957557adb5236effa9410d074a2d643bf6e19da2c338dd6e6f005</code>",
+            "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:f5f4475d347d174934d8d20f1c753e97b674b5fef9124598e2e7351405a35437 --quantity 1</code>",
+            "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+            "Claims:",
+            "<code>sha256:89d090eabf48</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), rejected (offer_changed)",
+            "<code>sha256:f80d31d988c4</code> by <code>ed25519:79b5562e8fe6</code>: 0 at INR 1,200.00 (120000), rejected (bad_quantity)",
+            "<code>sha256:a409766507ef</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 0.01 (1), rejected (price_mismatch)",
+            "<code>sha256:1c33742e603d</code> by <code>ed25519:03a107bff3ce</code>: 1 at INR 1,200.00 (120000), rejected (self_claim)",
+            "<code>sha256:49045cb8856a</code> by <code>ed25519:79b5562e8fe6</code>: 2 at INR 1,200.00 (120000), closed, paid, received, delivered, confirmed",
+            "<code>sha256:b5d1d4b51d84</code> by <code>ed25519:43cdc023d22d</code>: 2 at INR 1,200.00 (120000), rejected (bad_quantity)"
+        ]
+    },
+    {
+        "title": "Mangoes",
+        "body": [
+            "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 1 of 2 left, withdrawn",
+            "ripe",
+            "Status: withdrawn",
+            "Remaining: 1 of 2 dozen",
+            "Price: INR 1,200.00 (120000) per dozen",
+            "Expires: 2026-10-01T09:40:00Z",
+            "Pay by upi: farm@bank",
+            "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+            "Who may buy: keys admitted by this ledger",
+            "Offer id: <code>sha256:4f44392d444d7b6c16dba5df28fa059f1badf9dcf3d07566dc1a1dbe07efc41c</code>",
+            "Offer hash: <code>sha256:1003d867860cfbeb3f7ae882d8ca886918d74c2372e6e86ab1863b535bcc26c7</code>",
+            "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4f44392d444d7b6c16dba5df28fa059f1badf9dcf3d07566dc1a1dbe07efc41c --quantity 1</code>",
+            "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+            "Claims:",
+            "<code>sha256:e361742cb962</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), rejected (not_allowed)",
+            "<code>sha256:9f0ea3e6c2fc</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted",
+            "<code>sha256:2138264a38fa</code> by <code>ed25519:43cdc023d22d</code>: 1 at INR 1,200.00 (120000), rejected (expired)"
+        ]
+    },
+    {
+        "title": "Farm admissions",
+        "body": [
+            "<!-- ledgdex -->0 keys admitted",
+            "2026-10-01T09:17:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: Asha",
+            "2026-10-01T09:19:00Z revoke <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: "
+        ]
+    }
+]

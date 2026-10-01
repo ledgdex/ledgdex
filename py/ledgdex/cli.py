@@ -2,7 +2,7 @@
 import argparse, json, os, sys, time
 from .canon import canon, hash_, ID_KEY
 from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_key
-from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, record, signer, write
+from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, record, signer
 from .render import render
 from .state import state
 
@@ -102,33 +102,16 @@ def c_keygen(a):
 
 
 def c_init(a):
-    from dexweb import dexgen
-    dex = a.dex
-    if os.path.exists(os.path.join(dex, LEDGER)):
-        raise Invalid(dex + ' already has a ledger')
+    from .render import create_dex
+    if os.path.exists(os.path.join(a.dex, LEDGER)):
+        raise Invalid(a.dex + ' already has a ledger')
     secret, made = key_or_new(a.key)
     if made:
         print('new key ' + a.key + ': ' + public(secret))
-    os.makedirs(dex, exist_ok=True)
     led = new_ledger(secret, a.name, a.about, a.url)
-    write(dex, led.data)
-    cfg_path = os.path.join(dex, 'config.json')
-    if not os.path.exists(cfg_path):
-        g = dexgen.Dexgen.__new__(dexgen.Dexgen)
-        g.dexname = a.dexname or a.name
-        g.save_dexname_in_config(dex, g.dexname)  # dexweb's own default template
-    cfg = read_json(cfg_path)
-    pub = cfg.get('publish') if isinstance(cfg.get('publish'), dict) else {}
-    pub['append_only'] = sorted(set(pub.get('append_only', [])) | {LEDGER})
-    pub.update({k: v for k, v in (('dest', a.dest), ('branch', a.branch), ('site_path', a.site_path)) if v})
-    cfg['publish'] = pub
-    write_json(cfg_path, cfg)
-    for name, text in (('data.json', '[]'), ('run.py', 'from dexweb import dexgen\ndex = dexgen.Dexgen()\n')):
-        if not os.path.exists(os.path.join(dex, name)):
-            with open(os.path.join(dex, name), 'w') as f:
-                f.write(text)
-    render(dex)
-    print('ledgdex created in ' + dex + '. Ledger id: ' + led.id)
+    create_dex(a.dex, led.data, a.dexname or a.name,
+               {k: v for k, v in (('dest', a.dest), ('branch', a.branch), ('site_path', a.site_path)) if v})
+    print('ledgdex created in ' + a.dex + '. Ledger id: ' + led.id)
 
 
 def c_offer(a):

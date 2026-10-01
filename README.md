@@ -105,9 +105,11 @@ ledgdex state shop --root https://root.github.io                "allow": "admitt
 
 ## JavaScript and the viewer
 
-`js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification and the state function. `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte; `python py/tests/make_vectors.py` regenerates them. `js/viewer.html` loads any ledger by address or file, verifies it in the browser, shows its state, and signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser. It also keeps your own ledger: create one or open yours, and every message you sign is kept as `sent`; "Collect receipts" keeps the seller's records of them. Download your ledger and publish it as `ledgdex.jsonl` in your dex, where sellers collect what you sent with `ledgdex record --from`. So a buyer with only a browser gets full triple entry.
+`js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification, the state function, the dex pages (`render.js`) and the dexweb build (`dexweb.js`). `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte: states, pages, and whole dexs that dexweb built. `python py/tests/make_vectors.py` regenerates them.
 
-The viewer is served at https://matrixdex.github.io/ledgdex/ (GitHub Pages, from `main`), for example `https://matrixdex.github.io/ledgdex/?ledger=https://farm.github.io`. Any static host works; modules do not load from `file://`.
+The viewer is a dex. Its source is `viewer/` (`data.json`, `config.json`, `styles.css`, `run.py`), built with dexweb and published with dexweb's folder method to `docs/`, which GitHub Pages serves: https://matrixdex.github.io/ledgdex/ (Settings, Pages: branch `main`, folder `/docs`). After changing `viewer/` or `js/`, run `cd viewer && python run.py`; CI checks `docs/` is current.
+
+The viewer page loads any ledger by address or file, verifies it in the browser, and shows it as the same pages its dex has. It signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser, and keeps your own ledger: every message you sign is kept as `sent`, and "Collect receipts" keeps the seller's records of them. "Download your dex" gives you your ledger as a complete dex (a zip), file for file what `ledgdex init` and dexweb make; publish it like any dex. So a buyer with only a browser has a ledgdex too. Open a ledger directly with `https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.github.io`.
 
 ## Checking for tampering
 

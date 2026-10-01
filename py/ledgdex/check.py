@@ -7,7 +7,7 @@ their hashes. Errors mean tampering or equivocation and come with signed proof w
 something could not be checked (a site is down)."""
 import datetime, hashlib, json, os, re
 from .canon import hash_
-from .core import Invalid, Ledger
+from .core import KEY_TYPES, Invalid, Keys, Ledger
 from .dex import LEDGER, fetch, http_get, inside
 
 STATE = '.ledgdex-check'
@@ -166,8 +166,14 @@ class Checker:
                 if re.match(r'https?://', dex) and dex not in urls:
                     urls.append(dex)  # also check the ledger at its own dex address
                 if other.id != ledger_id:
-                    self.problem('error', 'ledger_changed', u, 'receipts in ' + url + ' are from ledger ' + ledger_id +
-                                 ', this address now serves ' + other.id, ledger_id)
+                    # the address in a receipt is written by the receipt's holder, not by the ledger's owner: it is
+                    # evidence against that address only if the address served this ledger before
+                    if self.store.urls.get(u) == ledger_id:
+                        self.problem('error', 'ledger_changed', u, 'this address served ledger ' + ledger_id +
+                                     ' before and now serves ' + other.id, ledger_id)
+                    else:
+                        self.problem('warning', 'receipt_url_mismatch', url, 'receipts from ledger ' + ledger_id +
+                                     ' name ' + u + ', which serves ' + other.id, ledger_id)
                     continue
                 self.ledger(other, u)
             copies = list(self.copies.get(ledger_id, []))
@@ -184,7 +190,12 @@ class Checker:
                     if s >= len(c.ids):
                         continue
                     found = True
-                    if c.ids[s] != hash_(e):
+                    if c.ids[s] != hash_(e) and not self.signed_then(c, e):
+                        # signed by a key this ledger did not have at that seq (a revoked device, a forged chain):
+                        # not the owner's word, so not proof against the ledger
+                        self.problem('warning', 'receipt_bad_signer', url, 'the receipt for entry ' + str(s) +
+                                     ' of ledger ' + ledger_id + ' is not signed by a key that ledger had then')
+                    elif c.ids[s] != hash_(e):
                         proof = self.store.proof('receipt-' + ledger_id[7:19] + '-' + str(s), {
                             'kind': 'receipt_mismatch', 'ledger': ledger_id, 'url': c_url, 'receipt': r,
                             'now': json.loads(c.lines[s]),
@@ -194,6 +205,15 @@ class Checker:
                 if not found:
                     self.problem('warning', 'receipt_not_visible', url, 'no copy of ledger ' + ledger_id +
                                  ' has entry ' + str(s) + ' yet')
+
+    @staticmethod
+    def signed_then(c, e):
+        """True if entry e is signed by a key ledger copy c had at e's seq (its full key history, not a receipt's)."""
+        keys = Keys(c.header['owner'])
+        for x in c.entries[:e['seq']]:
+            if x['msg']['type'] in KEY_TYPES:
+                keys.apply(x['msg'])
+        return keys.signed_by(e) is not None
 
     def published(self, dex):
         """For a dex folder with "publish" in config.json: the published ledger must be the start of the local one."""

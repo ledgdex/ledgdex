@@ -1,0 +1,9 @@
+{
+ "root": "root",
+ "now": null,
+ "whole": false,
+ "broken_at": 1,
+ "entries": 1,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":1,\"claims\":{},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:9914c621dd5cced81b48cedeb47f36515b7c0cfd9d5bc33a6171e356bd422173\",\"seq\":0},\"ignored\":[],\"ledger\":\"sha256:27dc5b07d9c0ca65e376b233732c7cf2d446935f95fd4a12f2e8e62e61ac6edb\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\",\"recoveries\":{}}",
+ "ledger": "broken-forged-receipt"
+}

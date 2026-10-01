@@ -281,7 +281,8 @@ offer's arbiter decides which one stands.
 
 For a ledger owned by O:
 - **O-authored** types: `msg.by` MUST be O's owner key or one of O's active device keys, except the owner-only types
-  (`open`, `rotate`, `device`, `device_revoke`), which MUST be authored by the owner key itself.
+  (`open`, `rotate`, `device`, `device_revoke`, and `recover` in the root, which hands a ledger to a new key), which
+  MUST be authored by the owner key itself.
 - **Counterparty** types (`claim`, `paid`, `confirmed`, `dispute`, `ruling`, `bid`, `reveal`): `msg.by` is any key;
   O records them, and the state function (6.2) decides whether they count.
 - **Arbiter** types: `msg.by` MUST be the arbiter named by the offer concerned.
@@ -308,7 +309,7 @@ same ledger unless stated otherwise.
 | `revoke` | `{"key": key, "reason": str}` | undoes an earlier `admit` from this point on |
 | `note` | `{"ref": id, "text": str}` | a correction or remark about an earlier entry. Never changes state |
 | `sent` | `{"to": key, "msg": message}` | O keeps a copy of a message O sent elsewhere (proof it existed by now) |
-| `receipt` | `{"ledger": ledger_id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}` | O keeps a copy of another ledger's entry about O's message. `header` is that ledger's header line, so `ledger` MUST equal `hash(header)` and the receipt verifies on its own. The embedded `entry` MUST verify against the header's owner key, or against the key the entries in `keys` lead to: that ledger's `rotate`, `device`, `device_revoke` and `recovered` entries before `entry`, in order, each signed by a key current at that point (a `recovered` entry by its own author, checked against the root only in full verification). `keys` is omitted when the header key signed |
+| `receipt` | `{"ledger": ledger_id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}` | O keeps a copy of another ledger's entry about O's message. `header` is that ledger's header line, so `ledger` MUST equal `hash(header)` and the receipt verifies on its own. The embedded `entry` MUST verify against the header's owner key, or against the key the entries in `keys` lead to: that ledger's `rotate`, `device`, `device_revoke` and `recovered` entries before `entry`, in order, each signed by a key current at that point (a `recovered` entry by its own author and checked against the root, with the same rules as in the ledger, 5.7: a receipt holding a `recovered` key entry needs the root to verify, and is refused without it). `keys` is omitted when the header key signed |
 
 ### 5.2 Selling (offers)
 
@@ -423,10 +424,13 @@ ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the s
 current state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>"}`.
 
 Key recovery (lost key): the root records `{"type": "recover", "body": {"ledger": ledger_id, "key": new_key}}`
-(root-authored). The owner then appends an entry signed by `new_key` whose message is
+(authored by the root's owner key, never a device). The owner then appends an entry signed by `new_key` whose message is
 `{"type": "recovered", "body": {"root": root_ledger_id, "entry": root_entry_id}}`, authored by `new_key`. A verifier
 accepts the switch only if it can verify that root entry: given the root, the entry must be a `recover` naming this
-ledger and `new_key`. Without the root, the ledger reads as broken at the `recovered` entry. A recovery replaces
+ledger and `new_key`. Without the root, the ledger reads as broken at the `recovered` entry. A `recover` entry is
+spent by the first `recovered` that cites it (`recovered: that recover entry was already used`), and is void once
+the ledger has a `rotate` or `recovered` entry timed after the root's `recover` entry (`recovered: the ledger changed
+its keys after the root named this key`): so a key the root once named cannot take the ledger back later. A recovery replaces
 every key: from the next entry on, `new_key` is the owner and there are no device keys (the lost key may have
 authorised them).
 
@@ -760,6 +764,11 @@ An implementation is correct only if all of these hold, and the test suite check
 16. Two appends to one ledger at once cannot both take the same `seq` (a lock), and an append is on disk (fsync)
     before the command reports it.
 17. No signature by a small-order public key verifies (1.3), so no one can sign for a key no one holds.
+18. A receipt's `recovered` key entry is checked against the root (5.1, 5.7); a root `recover` is owner-only, spent
+    once, and void after a later key change; so no one but the root's owner can hand a ledger to a new key.
+19. `check` blames a ledger only with that ledger's own signatures: a receipt entry signed by a key the ledger did
+    not have at that seq (a revoked device, a made-up key chain) is a warning (`receipt_bad_signer`), and a receipt
+    address that never served the ledger is a warning (`receipt_url_mismatch`), not `ledger_changed`.
 
 ### 9.1 Checks over time
 
@@ -961,6 +970,12 @@ one signature verifies for every message, so anyone could write a whole valid-lo
 (1.3, invariant 17). A shared vector now holds every free text a ledger can carry as markup, and a test checks that
 every page of every vector carries only text, `<code>`, `<br>` and safe links. The viewer reads only http(s)
 addresses, at most 64 MiB, without credentials.
+
+**v1.0.2** fixes what a third audit found in receipts and recovery: a receipt could carry a `recovered` key entry
+signed by anyone, so a buyer could forge a receipt and `check` would report the honest seller as tampering
+(invariant 18; vector `broken-forged-receipt`); a root device key could hand any ledger to a new key; and a root
+`recover` entry could be used again later by a key it once named (vector `broken-recovery-replay`). `check` now
+blames a ledger only with signatures valid in that ledger's own history (invariant 19).
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

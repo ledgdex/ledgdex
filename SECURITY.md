@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.1. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.2. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -16,7 +16,12 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **Rewrites are caught.** An owner can re-sign a whole history, so `ledgdex check` keeps the copies it has seen and
   the receipts other selves hold, and reports any rewrite with two signed entries at one position as proof. Run it.
 - **Only a key's holder can sign for it.** Verification is strict Ed25519 and refuses the eight small-order public
-  keys, for which one signature would verify for every message. (1.0.0 accepted them; upgrade to 1.0.1.)
+  keys, for which one signature would verify for every message. (1.0.0 accepted them.)
+- **Only the root's owner can hand a ledger to a new key.** A `recover` must be signed by the root's owner key (not
+  a device), is used once, and is void after the ledger changes its keys. A receipt that carries a recovery is
+  checked against the root too. (1.0.1 and earlier let a buyer forge a receipt this way; upgrade to 1.0.2.)
+- **`check` accuses only with the accused's own signatures.** A receipt signed by a revoked device, or naming an
+  address that never served the ledger, is a warning, not an error.
 - **A signed message counts once.** Recording the same message twice is ignored (`duplicate_message`), so a claim
   cannot be counted twice and a revoked device cannot be brought back by replaying its old `device` message.
 - **Hostile ledgers are only data.** A ledger cannot crash a verifier (nesting is limited to 32 levels), cannot put

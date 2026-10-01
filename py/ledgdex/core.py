@@ -159,7 +159,7 @@ BODIES = {
 # types someone other than the owner authors and the owner records (spec 4, 5.4-5.6)
 COUNTERPARTY = {'claim', 'paid', 'confirmed', 'dispute', 'ruling', 'bid', 'reveal'}
 # O-authored types only the owner key itself may author (spec 4)
-OWNER_ONLY = {'open', 'rotate', 'device', 'device_revoke'}
+OWNER_ONLY = {'open', 'rotate', 'device', 'device_revoke', 'recover'}  # recover: in the root, hands a ledger over
 KEY_TYPES = {'rotate', 'device', 'device_revoke', 'recovered'}
 
 
@@ -197,7 +197,7 @@ class Keys:
             self.owner, self.devices = m['by'], set()
 
 
-def check_body(type_, body):
+def check_body(type_, body, root=None):
     if not isinstance(type_, str):
         raise Invalid('the type must be a string')
     if type_ not in BODIES:
@@ -214,12 +214,12 @@ def check_body(type_, body):
         if k in req and k not in body:
             raise Invalid(type_ + ': missing ' + k)
     if type_ == 'sent':
-        check_message(body['msg'])
+        check_message(body['msg'], root)
     if type_ == 'receipt':
-        check_receipt(body)
+        check_receipt(body, root)
 
 
-def check_message(m):
+def check_message(m, root=None):
     """Raise Invalid unless m is a valid message (spec 2)."""
     if not isinstance(m, dict) or set(m) != {'v', 'type', 'by', 'at', 'body', 'sig'}:
         raise Invalid('a message has exactly the keys v, type, by, at, body, sig')
@@ -233,16 +233,41 @@ def check_message(m):
         raise Invalid('bad author key')
     if not is_time(m['at']):
         raise Invalid('bad time')
-    check_body(m['type'], m['body'])
+    check_body(m['type'], m['body'], root)
     if m['type'] == 'auction' and not _auction(m['body']):
         raise Invalid('auction: close must be before reveal_until')
     if not verify(m['by'], unsigned(m), m['sig']):
         raise Invalid('message signature does not verify')
 
 
-def check_receipt(body):
+def root_recovers(root, ledger_id, e, prior=()):
+    """Spec 5.7: a "recovered" entry e of ledger ledger_id is signed by the new key, which a "recover" entry in the
+    root names. A recover entry is spent by its first "recovered", and is void once the ledger changes its keys after
+    the root made it (prior: the ledger's earlier key entries), so an old key it named cannot take the ledger back.
+    Raises Invalid otherwise."""
+    m, b = e['msg'], e['msg']['body']
+    if not verify(m['by'], unsigned(e), e['sig']):
+        raise Invalid('recovered: the entry is not signed by the recovered key')
+    if root is None:
+        raise Invalid('a "recovered" entry can only be verified with the root ledger')
+    if root.id != b['root']:
+        raise Invalid('recovered: names root ' + b['root'] + ', not the root given (' + str(root.id) + ')')
+    i = root.find(b['entry'])
+    r = root.entries[i]['msg'] if i is not None else None
+    if r is None or r['type'] != 'recover' or r['body']['ledger'] != ledger_id or r['body']['key'] != m['by']:
+        raise Invalid('recovered: the root has no recover entry for this ledger and key')
+    for p in prior:
+        if p['msg']['type'] == 'recovered' and p['msg']['body']['entry'] == b['entry']:
+            raise Invalid('recovered: that recover entry was already used')
+        if p['msg']['type'] in ('rotate', 'recovered') and p['time'] > root.entries[i]['time']:
+            raise Invalid('recovered: the ledger changed its keys after the root named this key')
+
+
+def check_receipt(body, root=None):
     """A receipt verifies on its own (spec 5.1, invariant 10): the entry is signed by the other ledger's header key,
-    or by a key that the key entries in "keys" (rotate, device, device_revoke, recovered, in order) lead to."""
+    or by a key that the key entries in "keys" (rotate, device, device_revoke, recovered, in order) lead to. A
+    "recovered" key entry is checked against the root, as in the ledger itself: without it anyone could hand the
+    other ledger to a key of their own and sign a false receipt."""
     if hash_(body['header']) != body['ledger']:
         raise Invalid('receipt: header does not match ledger id')
     e = body['entry']
@@ -250,12 +275,13 @@ def check_receipt(body):
     for k in body.get('keys', []):
         if not last < k['seq'] < e['seq']:
             raise Invalid('receipt: key entries must be in order and before the entry')
-        check_message(k['msg'])
+        check_message(k['msg'], root)
         m = k['msg']
         if m['type'] not in KEY_TYPES:
             raise Invalid('receipt: keys may hold only rotate, device, device_revoke and recovered entries')
         if m['type'] == 'recovered':
-            ok = verify(m['by'], unsigned(k), k['sig'])  # the recovery itself is checked against the root in full
+            root_recovers(root, body['ledger'], k, [x for x in body['keys'] if x['seq'] < k['seq']])
+            ok = True
         else:
             ok = keys.signed_by(k) is not None and keys.can_author(m['type'], m['by'])
         if not ok:
@@ -264,17 +290,17 @@ def check_receipt(body):
         last = k['seq']
     if keys.signed_by(e) is None:
         raise Invalid('receipt: entry signature does not verify')
-    check_message(e['msg'])
+    check_message(e['msg'], root)
 
 
 def unsigned(obj):
     return {k: v for k, v in obj.items() if k != 'sig'}
 
 
-def message(secret, type_, body, at=None):
+def message(secret, type_, body, at=None, root=None):
     m = {'v': 1, 'type': type_, 'by': public(secret), 'at': at or now(), 'body': body}
     m['sig'] = sign(secret, m)
-    check_message(m)
+    check_message(m, root)
     return m
 
 
@@ -439,7 +465,7 @@ class Ledger:
             raise Invalid('bad time')
         if self.entries and e['time'] < self.entries[-1]['time']:
             raise Invalid('time goes backwards')
-        check_message(e['msg'])
+        check_message(e['msg'], self.root)
         m = e['msg']
         if m['type'] == 'recovered':
             self.check_recovery(e)
@@ -454,19 +480,7 @@ class Ledger:
                           ('' if m['type'] in OWNER_ONLY else ' or an active device key'))
 
     def check_recovery(self, e):
-        """Spec 5.7: a "recovered" entry is signed by the new key, which a "recover" entry in the root names."""
-        m, b = e['msg'], e['msg']['body']
-        if not verify(m['by'], unsigned(e), e['sig']):
-            raise Invalid('recovered: the entry is not signed by the recovered key')
-        root = self.root
-        if root is None:
-            raise Invalid('a "recovered" entry can only be verified with the root ledger')
-        if root.id != b['root']:
-            raise Invalid('recovered: names root ' + b['root'] + ', not the root given (' + str(root.id) + ')')
-        i = root.find(b['entry'])
-        r = root.entries[i]['msg'] if i is not None else None
-        if r is None or r['type'] != 'recover' or r['body']['ledger'] != self.id or r['body']['key'] != m['by']:
-            raise Invalid('recovered: the root has no recover entry for this ledger and key')
+        root_recovers(self.root, self.id, e, [x for x in self.entries if x['msg']['type'] in KEY_TYPES])
 
     def next_entry(self, secret, msg, at=None):
         """A new signed entry recording msg on top of this ledger. Raises Invalid if it would not be valid."""

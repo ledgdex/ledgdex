@@ -65,9 +65,9 @@ def with_defaults(dex, body, defaults):
     return body
 
 
-def other(src, what='the seller ledger'):
+def other(src, what='the seller ledger', root=None):
     """Another ledger, which must be whole, and the address to cite it by."""
-    led, _ = fetch(src)
+    led, _ = fetch(src, root=root)
     if not led.whole:
         raise Invalid(what + ' is broken: ' + str(led.error))
     return led, (src if src.startswith(('http://', 'https://')) else led.dex or src)
@@ -211,7 +211,7 @@ def c_confirm(a):
 def c_receipt(a):
     """Buyer side: keep the seller's entries that record this self's messages (the third entry)."""
     led = load(a.dex)
-    seller, url = other(a.seller)
+    seller, url = other(a.seller, root=led.root)
     held = {hash_(e['msg']['body']['entry']) for e in led.entries if e['msg']['type'] == 'receipt'}
     mine = {hash_(e['msg']['body']['msg']) for e in led.entries if e['msg']['type'] == 'sent'}
     chain = [e for e in seller.entries if e['msg']['type'] in KEY_TYPES]
@@ -232,7 +232,7 @@ def c_receipt(a):
         keys = [k for k in chain if k['seq'] < e['seq']]
         return dict(b, keys=keys) if keys else b
     secret = signer(led)
-    record(a.dex, [message(secret, 'receipt', body(e)) for e in picked])
+    record(a.dex, [message(secret, 'receipt', body(e), root=led.root) for e in picked])
     render(a.dex)
     for e in picked:
         print('receipt kept for your ' + e['msg']['type'] + ': seller entry ' + str(e['seq']) +

@@ -100,6 +100,39 @@ def scenarios():
     r.claim(o, oh)
     r.claim(o, oh, secret=OTHER)
     out['recovered'] = (r, 'root', None)
+    # receipts from a recovered ledger: the "recovered" key entry must be checked against the root (1.0.2)
+    rl = Ledger(root.led.data, cache=False)
+    rchain = [x for x in r.led.entries if x['msg']['type'] in ('rotate', 'device', 'device_revoke', 'recovered')]
+    rc = r.led.entries[-2]                                           # BUYER's claim, recorded after the recovery
+    rb = Book(BUYER, 'Asha')
+    rb.led.root = rl
+    rbody = {'ledger': r.led.id, 'url': 'https://farm.example', 'header': r.led.header, 'entry': rc,
+             'keys': [x for x in rchain if x['seq'] < rc['seq']]}
+    rm = message(BUYER, 'receipt', rbody, at=rb.tick(), root=rl)
+    rb.led.append(rb.led.next_entry(BUYER, rm, at=t(rb.minute)))
+    out['receipt-recovered'] = (rb, 'root', None)
+    # the same root recover entry used a second time: before 1.0.2 a stolen old key could take the ledger back
+    rr = message(NEWKEY, 'recovered', {'root': rl.id, 'entry': rid}, at=t(r.minute + 5))
+    re_ = {'seq': len(r.led.entries), 'prev': r.led.ids[-1], 'time': t(r.minute + 5), 'msg': rr}
+    re_['sig'] = sign(NEWKEY, re_)
+    out['broken-recovery-replay'] = (r.led.data + canon(re_) + b'\n', 'root', None)
+    # a forged receipt: a "recovered" entry signed by the buyer hands the seller's ledger to the buyer's key, then a
+    # made-up entry. Before 1.0.2 it verified and "check" blamed the honest seller with receipt_mismatch.
+    fk = {'v': 1, 'type': 'recovered', 'by': public(BUYER), 'at': t(1), 'body': {'root': rl.id, 'entry': rl.ids[1]}}
+    fk['sig'] = sign(BUYER, fk)
+    fk = {'seq': 1, 'prev': r.led.ids[0], 'time': t(1), 'msg': fk}
+    fk['sig'] = sign(BUYER, fk)
+    ff = {'v': 1, 'type': 'confirmed', 'by': public(BUYER), 'at': t(2), 'body': {'claim': ZERO}}
+    ff['sig'] = sign(BUYER, ff)
+    ff = {'seq': 2, 'prev': ZERO, 'time': t(2), 'msg': ff}
+    ff['sig'] = sign(BUYER, ff)
+    fb = Book(BUYER, 'Asha')
+    fm = {'v': 1, 'type': 'receipt', 'by': public(BUYER), 'at': t(3), 'body': {
+        'ledger': r.led.id, 'url': 'https://farm.example', 'header': r.led.header, 'entry': ff, 'keys': [fk]}}
+    fm['sig'] = sign(BUYER, fm)
+    fe = {'seq': 1, 'prev': fb.led.ids[-1], 'time': t(3), 'msg': fm}
+    fe['sig'] = sign(BUYER, fe)
+    out['broken-forged-receipt'] = (fb.led.data + canon(fe) + b'\n', 'root', None)
 
     # disputes
     d = Book()

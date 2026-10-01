@@ -115,7 +115,8 @@ ledgdex publish root
 ```
 
 Keep the owner key (`~/.ledgdex/matrix-root.key`) backed up offline. For daily work, give the laptop a device key,
-which may admit, revoke and recover but not change keys:
+which may admit and revoke but not change keys. Recovery hands a ledger to a new key, so `ledgdex recover` needs the
+owner key itself:
 
 ```
 ledgdex keygen root-laptop                                   prints ed25519:...
@@ -127,7 +128,7 @@ Then, with `ledgdex publish root` after each change:
 ```
 ledgdex admit root ed25519:THEIR_KEY --name "Shop 12" --note "ground floor"      admit a self
 ledgdex revoke root ed25519:THEIR_KEY --reason "left the mall"                   take it back
-ledgdex recover root https://THEIR_DEX ed25519:THEIR_NEW_KEY                     after checking who they are, off-ledger
+ledgdex recover root https://THEIR_DEX ed25519:THEIR_NEW_KEY                     with the owner key, after checking who they are
 ledgdex list root https://THEIR_DEX --note "Shop 12"                             optional: the root as an index too
 ```
 

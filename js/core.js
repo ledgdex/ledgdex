@@ -87,7 +87,7 @@ export const BODIES = {
   confirmed: [{ claim: isId }, {}],
 };
 export const COUNTERPARTY = new Set(['claim', 'paid', 'confirmed', 'dispute', 'ruling', 'bid', 'reveal']);
-export const OWNER_ONLY = new Set(['open', 'rotate', 'device', 'device_revoke']);
+export const OWNER_ONLY = new Set(['open', 'rotate', 'device', 'device_revoke', 'recover']);  // recover: in the root, hands a ledger over
 export const KEY_TYPES = new Set(['rotate', 'device', 'device_revoke', 'recovered']);
 
 export class Keys {
@@ -110,7 +110,7 @@ export class Keys {
   }
 }
 
-export function checkBody(type, body) {
+export function checkBody(type, body, root = null) {
   if (typeof type !== 'string') throw new Invalid('the type must be a string');
   if (!has(BODIES, type)) throw new Invalid('unknown type: ' + type);
   const [req, opt] = BODIES[type];
@@ -120,11 +120,11 @@ export function checkBody(type, body) {
     if (has(body, k) && !ok(body[k])) throw new Invalid(type + ': bad ' + k);
     if (has(req, k) && !has(body, k)) throw new Invalid(type + ': missing ' + k);
   }
-  if (type === 'sent') checkMessage(body.msg);
-  if (type === 'receipt') checkReceipt(body);
+  if (type === 'sent') checkMessage(body.msg, root);
+  if (type === 'receipt') checkReceipt(body, root);
 }
 
-export function checkMessage(m) {
+export function checkMessage(m, root = null) {
   if (!exact(m, ['v', 'type', 'by', 'at', 'body', 'sig'])) {
     throw new Invalid('a message has exactly the keys v, type, by, at, body, sig');
   }
@@ -132,32 +132,54 @@ export function checkMessage(m) {
   if (m.v !== 1) throw new Invalid('message version must be 1');
   if (!isKey(m.by)) throw new Invalid('bad author key');
   if (!isTime(m.at)) throw new Invalid('bad time');
-  checkBody(m.type, m.body);
+  checkBody(m.type, m.body, root);
   if (m.type === 'auction' && !(m.body.close < m.body.reveal_until)) {
     throw new Invalid('auction: close must be before reveal_until');
   }
   if (!verify(m.by, unsigned(m), m.sig)) throw new Invalid('message signature does not verify');
 }
 
-export function checkReceipt(body) {
+/** Spec 5.7: a "recovered" entry e of ledger ledgerId is signed by the new key, which a "recover" entry in the root
+ * names. A recover entry is spent by its first "recovered", and is void once the ledger changes its keys after the
+ * root made it (prior: the ledger's earlier key entries). Throws otherwise. */
+export function rootRecovers(root, ledgerId, e, prior = []) {
+  const m = e.msg, b = m.body;
+  if (!verify(m.by, unsigned(e), e.sig)) throw new Invalid('recovered: the entry is not signed by the recovered key');
+  if (!root) throw new Invalid('a "recovered" entry can only be verified with the root ledger');
+  if (root.id !== b.root) throw new Invalid('recovered: names root ' + b.root + ', not the root given (' + root.id + ')');
+  const i = root.find(b.entry);
+  const r = i === null ? null : root.entries[i].msg;
+  if (!r || r.type !== 'recover' || r.body.ledger !== ledgerId || r.body.key !== m.by) {
+    throw new Invalid('recovered: the root has no recover entry for this ledger and key');
+  }
+  for (const p of prior) {
+    if (p.msg.type === 'recovered' && p.msg.body.entry === b.entry) throw new Invalid('recovered: that recover entry was already used');
+    if ((p.msg.type === 'rotate' || p.msg.type === 'recovered') && p.time > root.entries[i].time) {
+      throw new Invalid('recovered: the ledger changed its keys after the root named this key');
+    }
+  }
+}
+
+// a "recovered" key entry is checked against the root, as in the ledger: else anyone could sign a false receipt
+export function checkReceipt(body, root = null) {
   if (hash(body.header) !== body.ledger) throw new Invalid('receipt: header does not match ledger id');
   const e = body.entry, keys = new Keys(body.header.owner);
   let last = -1;
   for (const k of body.keys || []) {
     if (!(last < k.seq && k.seq < e.seq)) throw new Invalid('receipt: key entries must be in order and before the entry');
-    checkMessage(k.msg);
+    checkMessage(k.msg, root);
     const m = k.msg;
     if (!KEY_TYPES.has(m.type)) {
       throw new Invalid('receipt: keys may hold only rotate, device, device_revoke and recovered entries');
     }
-    const ok = m.type === 'recovered' ? verify(m.by, unsigned(k), k.sig)
-      : keys.signedBy(k) !== null && keys.canAuthor(m.type, m.by);
+    if (m.type === 'recovered') rootRecovers(root, body.ledger, k, body.keys.filter((x) => x.seq < k.seq));
+    const ok = m.type === 'recovered' || (keys.signedBy(k) !== null && keys.canAuthor(m.type, m.by));
     if (!ok) throw new Invalid('receipt: key entry ' + k.seq + ' does not verify');
     keys.apply(m);
     last = k.seq;
   }
   if (keys.signedBy(e) === null) throw new Invalid('receipt: entry signature does not verify');
-  checkMessage(e.msg);
+  checkMessage(e.msg, root);
 }
 
 export function unsigned(obj) {
@@ -166,19 +188,19 @@ export function unsigned(obj) {
   return o;
 }
 
-export function message(secret, type, body, at) {
+export function message(secret, type, body, at, root = null) {
   const m = { v: 1, type, by: publicKey(secret), at: at || now(), body };
   m.sig = sign(secret, m);
-  checkMessage(m);
+  checkMessage(m, root);
   return m;
 }
 
 // The same with a signer (sig.js), whose sign() is asynchronous: Web Crypto in the browser.
 export const signA = async (signer, obj) => hex(await signer.sign(canon(obj)));
-export async function messageA(signer, type, body, at) {
+export async function messageA(signer, type, body, at, root = null) {
   const m = { v: 1, type, by: signer.public, at: at || now(), body };
   m.sig = await signA(signer, m);
-  checkMessage(m);
+  checkMessage(m, root);
   return m;
 }
 
@@ -262,7 +284,7 @@ export class Ledger {
     if (this.entries.length && e.time < this.entries[this.entries.length - 1].time) {
       throw new Invalid('time goes backwards');
     }
-    checkMessage(e.msg);
+    checkMessage(e.msg, this.root);
     const m = e.msg;
     if (m.type === 'recovered') this.checkRecovery(e);
     else if (this.keys.signedBy(e) === null) throw new Invalid('entry signature does not verify with a current signing key');
@@ -276,18 +298,8 @@ export class Ledger {
     }
   }
 
-  checkRecovery(e) {
-    const m = e.msg, b = m.body;
-    if (!verify(m.by, unsigned(e), e.sig)) throw new Invalid('recovered: the entry is not signed by the recovered key');
-    const root = this.root;
-    if (!root) throw new Invalid('a "recovered" entry can only be verified with the root ledger');
-    if (root.id !== b.root) throw new Invalid('recovered: names root ' + b.root + ', not the root given (' + root.id + ')');
-    const i = root.find(b.entry);
-    const r = i === null ? null : root.entries[i].msg;
-    if (!r || r.type !== 'recover' || r.body.ledger !== this.id || r.body.key !== m.by) {
-      throw new Invalid('recovered: the root has no recover entry for this ledger and key');
-    }
-  }
+  checkRecovery(e) { rootRecovers(this.root, this.id, e, this.entries.filter((x) => KEY_TYPES.has(x.msg.type))); }
+
 
   /** A new signed entry recording msg on top of this ledger (verified when appended). */
   nextEntry(secret, msg, at) {

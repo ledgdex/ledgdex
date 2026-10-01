@@ -121,6 +121,29 @@ class Recovery(unittest.TestCase):
         self.assertRaises(Invalid, self.b.led.append, self.recovered(rid))
 
 
+    def test_a_recovery_is_spent_once(self):
+        rid = self.root.own('recover', {'ledger': self.b.led.id, 'key': public(NEWKEY)})
+        self.b.led.root = Ledger(self.root.led.data)
+        self.b.led.append(self.recovered(rid))
+        with self.assertRaisesRegex(Invalid, 'already used'):
+            self.b.led.append(self.recovered(rid))
+
+    def test_an_old_recovery_cannot_take_the_ledger_back(self):
+        # the root names NEWKEY; the owner finds the old key and rotates instead; NEWKEY is stolen later
+        rid = self.root.own('recover', {'ledger': self.b.led.id, 'key': public(NEWKEY)})
+        self.b.led.root = Ledger(self.root.led.data)
+        self.b.own('rotate', {'key': public(OTHER)})
+        self.b.secret = OTHER
+        with self.assertRaisesRegex(Invalid, 'changed its keys after'):
+            self.b.led.append(self.recovered(rid))
+
+    def test_only_the_root_owner_recovers(self):
+        self.root.own('device', {'key': public(PHONE), 'name': 'laptop'})
+        m = message(PHONE, 'recover', {'ledger': self.b.led.id, 'key': public(NEWKEY)}, at=self.root.tick())
+        with self.assertRaisesRegex(Invalid, 'owner'):
+            self.root.led.append(self.root.led.next_entry(PHONE, m, at=t(self.root.minute)))
+
+
 class Disputes(unittest.TestCase):
     def setUp(self):
         self.b = Book()

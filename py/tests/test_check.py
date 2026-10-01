@@ -104,6 +104,37 @@ class Check(unittest.TestCase):
         self.put('seller.jsonl', Book(BUYER, 'Impostor').led.data)
         self.assertIn(('error', 'ledger_changed'), self.codes(self.run_check(sp)))
 
+    def test_a_receipt_cannot_blame_an_unrelated_address(self):
+        seller, buyer = Book(), Book(BUYER, 'Asha')
+        oid, oh = seller.offer()
+        seller.claim(oid, oh)
+        other = self.put('other.jsonl', Book(BUYER, 'Bystander').led.data)   # never served the seller's ledger
+        buyer.own('receipt', {'ledger': seller.led.id, 'url': other, 'header': seller.led.header,
+                              'entry': json.loads(seller.led.lines[1])})
+        r = self.run_check(self.put('buyer.jsonl', buyer.led.data))
+        self.assertTrue(r['ok'], r['problems'])
+        self.assertIn(('warning', 'receipt_url_mismatch'), self.codes(r))
+
+    def test_a_revoked_device_cannot_frame_the_seller(self):
+        from ledgdex.core import message, public, sign
+        from helpers import t
+        PHONE = bytes(range(10, 42))
+        seller, buyer = Book(), Book(BUYER, 'Asha')
+        oid, oh = seller.offer()
+        seller.own('device', {'key': public(PHONE), 'name': 'phone'})
+        seller.own('device_revoke', {'key': public(PHONE), 'reason': 'stolen'})
+        seller.claim(oid, oh)
+        sp = self.put('seller.jsonl', seller.led.data)
+        dev = seller.led.entries[2]                     # the device entry, without its revoke
+        fake = {'seq': 4, 'prev': seller.led.ids[3], 'time': t(30),
+                'msg': message(BUYER, 'confirmed', {'claim': seller.led.ids[4]}, at=t(30))}
+        fake['sig'] = sign(PHONE, fake)                 # signed by the thief with the revoked device key
+        buyer.own('receipt', {'ledger': seller.led.id, 'url': sp, 'header': seller.led.header, 'entry': fake,
+                              'keys': [dev]})
+        r = self.run_check(self.put('buyer.jsonl', buyer.led.data), sp)
+        self.assertTrue(r['ok'], r['problems'])
+        self.assertIn(('warning', 'receipt_bad_signer'), self.codes(r))
+
     def test_unreachable_counterparty_is_a_warning(self):
         _, _, sp, bp = self.trade()
         os.remove(sp)
@@ -175,6 +206,34 @@ class Check(unittest.TestCase):
                 dex.fetch(os.path.join(self.tmp, 'big.jsonl'))
         finally:
             dex.MAX_BYTES = old
+
+    def test_a_forged_receipt_does_not_frame_the_seller(self):
+        from ledgdex.core import public, sign
+        from helpers import t
+        seller, buyer = Book(), Book(BUYER, 'Asha')
+        oid, oh = seller.offer()
+        seller.claim(oid, oh)
+        sp = self.put('seller.jsonl', seller.led.data)
+        # a "recovered" key entry signed by the buyer, handing the seller's ledger to the buyer's key
+        k = {'v': 1, 'type': 'recovered', 'by': public(BUYER), 'at': t(5),
+             'body': {'root': 'sha256:' + '0' * 64, 'entry': 'sha256:' + '0' * 64}}
+        k['sig'] = sign(BUYER, k)
+        k = {'seq': 1, 'prev': seller.led.ids[0], 'time': t(5), 'msg': k}
+        k['sig'] = sign(BUYER, k)
+        f = {'v': 1, 'type': 'confirmed', 'by': public(BUYER), 'at': t(6), 'body': {'claim': 'sha256:' + '1' * 64}}
+        f['sig'] = sign(BUYER, f)
+        f = {'seq': 2, 'prev': 'sha256:' + '2' * 64, 'time': t(6), 'msg': f}
+        f['sig'] = sign(BUYER, f)
+        m = {'v': 1, 'type': 'receipt', 'by': public(BUYER), 'at': t(7), 'body': {
+            'ledger': seller.led.id, 'url': sp, 'header': seller.led.header, 'entry': f, 'keys': [k]}}
+        m['sig'] = sign(BUYER, m)
+        e = {'seq': 1, 'prev': buyer.led.ids[-1], 'time': t(7), 'msg': m}
+        e['sig'] = sign(BUYER, e)
+        from ledgdex.canon import canon
+        bp = self.put('buyer.jsonl', buyer.led.data + canon(e) + b'\n')
+        r = self.run_check(bp, sp)
+        self.assertEqual([('error', 'broken')], self.codes(r))
+        self.assertEqual(bp, r['problems'][0]['url'])
 
     def test_workflow_cannot_be_injected(self):
         from ledgdex.core import Invalid

@@ -166,7 +166,7 @@ async function collectReceipts() {
       if (!mine.has(hash(e.msg)) || held.has(led.ids[i])) continue;
       const body = { ledger: led.id, url: led.dex || loadedFrom, header: led.header, entry: e };
       const keys = chain.filter((k) => k.seq < e.seq);
-      await append(await messageA(sgn, 'receipt', keys.length ? { ...body, keys } : body));
+      await append(await messageA(sgn, 'receipt', keys.length ? { ...body, keys } : body, undefined, own.root || led.root));
       n++;
     }
     say('err', n + ' new receipts kept.');

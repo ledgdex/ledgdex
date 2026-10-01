@@ -68,7 +68,7 @@ class Structure(unittest.TestCase):
     def test_recorded_too_early(self):
         b = Book()
         m = message(SELLER, 'note', {'ref': b.led.ids[0], 'text': 'x'}, at=t(30))
-        self.assertRaises(Invalid, b.led.next_entry, SELLER, m, t(1))
+        self.assertRaises(Invalid, lambda: b.led.append(b.led.next_entry(SELLER, m, t(1))))
         led = self.resign(trade(), 1, lambda e: e.update(msg=m))
         self.assertEqual(led.broken_at, 1)
         self.assertIn('before it was signed', led.error)
@@ -76,12 +76,12 @@ class Structure(unittest.TestCase):
     def test_owner_types_need_the_owner(self):
         b = Book()
         m = message(BUYER, 'offer', offer_body(), at=t(1))
-        self.assertRaises(Invalid, b.led.next_entry, SELLER, m, t(1))
+        self.assertRaises(Invalid, lambda: b.led.append(b.led.next_entry(SELLER, m, t(1))))
 
     def test_open_only_first(self):
         b = Book()
         m = message(SELLER, 'open', {'about': '', 'dex': ''}, at=t(1))
-        self.assertRaises(Invalid, b.led.next_entry, SELLER, m, t(1))
+        self.assertRaises(Invalid, lambda: b.led.append(b.led.next_entry(SELLER, m, t(1))))
 
     def test_only_the_owner_appends(self):
         b = Book()
@@ -104,7 +104,7 @@ class Structure(unittest.TestCase):
         m = message(BUYER, 'confirmed', {'claim': 'sha256:' + '1' * 64})
         m['body']['claim'] = 'sha256:' + '2' * 64
         b = Book()
-        self.assertRaises(Invalid, b.led.next_entry, SELLER, m)
+        self.assertRaises(Invalid, lambda: b.led.append(b.led.next_entry(SELLER, m)))
 
 
 class Receipts(unittest.TestCase):

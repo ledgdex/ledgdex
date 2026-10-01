@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 28,
+ "state": "{\"admitted\":[],\"auctions\":{\"sha256:383819e173083aa585e1d0356f7341bc61622003c39dc775a7ffb6a0a02daa4d\":{\"amount\":500,\"bids\":2,\"confirmed\":true,\"delivered\":true,\"paid\":{\"method\":\"upi\",\"ref\":\"r\"},\"received\":500,\"status\":\"closed\",\"winner\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\"},\"sha256:d3772d43e726338726a0093ca0f2a93f1f8a675778f300f4a7bc25e3a81a890e\":{\"bids\":1,\"status\":\"no_winner\"},\"sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036\":{\"amount\":400,\"bids\":2,\"status\":\"disputed\",\"winner\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\"}},\"broken_at\":null,\"claims\":{},\"devices\":[],\"disputes\":{\"sha256:15a9e0fe4b155a869bd3d77aca9791090ca28fc678ad147dc9800ce8704e6e4e\":{\"claim\":\"sha256:ee9215e9e30b90acf9f94658249ab157e6ef7b37865e1f61f4e074221b350036\"}},\"head\":{\"id\":\"sha256:15a9e0fe4b155a869bd3d77aca9791090ca28fc678ad147dc9800ce8704e6e4e\",\"seq\":27},\"ignored\":[{\"reason\":\"duplicate_bid\",\"seq\":6},{\"reason\":\"self_bid\",\"seq\":10},{\"reason\":\"unknown_auction\",\"seq\":11},{\"reason\":\"early_reveal\",\"seq\":12},{\"reason\":\"not_awarded\",\"seq\":13},{\"reason\":\"late_bid\",\"seq\":14},{\"reason\":\"bad_reveal\",\"seq\":16},{\"reason\":\"duplicate_reveal\",\"seq\":19},{\"reason\":\"no_bid\",\"seq\":20},{\"reason\":\"late_reveal\",\"seq\":22}],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "auctions"
+}

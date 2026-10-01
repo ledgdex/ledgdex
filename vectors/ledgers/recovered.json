@@ -1,0 +1,9 @@
+{
+ "root": "root",
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 8,
+ "state": "{\"admitted\":[\"ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3\",\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\"],\"auctions\":{},\"broken_at\":null,\"claims\":{\"sha256:c14d88c6a1f8f798aaf7c0d3fa40d41ee119b2d4fd291ce02dc1995549e659de\":{\"buyer\":\"ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3\",\"offer\":\"sha256:5e97c4f84a5d0a4109af9cd5d5e94f3a3c9ab5c6a35279fa58dea56c9e7b65d8\",\"price\":120000,\"quantity\":1,\"reason\":\"not_allowed\",\"status\":\"rejected\"},\"sha256:fad38f329335e3d7a197dd40dcbbf2d8602e4733ddcde191ac95d62c1f2f4ac1\":{\"buyer\":\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\",\"offer\":\"sha256:5e97c4f84a5d0a4109af9cd5d5e94f3a3c9ab5c6a35279fa58dea56c9e7b65d8\",\"price\":120000,\"quantity\":1,\"status\":\"accepted\"}},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:c14d88c6a1f8f798aaf7c0d3fa40d41ee119b2d4fd291ce02dc1995549e659de\",\"seq\":7},\"ignored\":[],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{},\"offers\":{\"sha256:5e97c4f84a5d0a4109af9cd5d5e94f3a3c9ab5c6a35279fa58dea56c9e7b65d8\":{\"remaining\":1,\"status\":\"open\",\"title\":\"Mangoes\"}},\"owner\":\"ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead\",\"recoveries\":{}}",
+ "ledger": "recovered"
+}

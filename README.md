@@ -2,7 +2,7 @@
 
 A simple market on a dex. Every seller and buyer keeps a signed, append-only ledger (`ledgdex.jsonl`) in their own dex, a freely shared website built with [dexweb](https://github.com/matrixdex/dexweb). A trade exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record. No server, no blockchain: SHA-256, Ed25519 and plain files.
 
-The specification is [architecture/SPEC.md](architecture/SPEC.md). This is the v0.1 build: the market (offers, claims, payment, delivery, receipts), dex pages and publishing. Auctions, disputes, device keys, indexes, the root and the browser viewer come later.
+The specification is [architecture/SPEC.md](architecture/SPEC.md). Everything in it is built: the market (offers, claims, payment, delivery, receipts), disputes, sealed-bid auctions, device keys, key rotation and recovery, indexes, the root, dex pages, publishing and tamper checks, in Python, plus a JavaScript version and a browser viewer.
 
 ## Install
 
@@ -62,6 +62,51 @@ ledgdex verify https://farm.github.io
 ledgdex state https://farm.github.io
 ```
 
+## Disputes
+
+```
+ledgdex dispute me CLAIM_ID --seller https://farm.github.io --text "never arrived"   buyer
+ledgdex record shop --from https://asha.github.io
+ledgdex ruling judge https://farm.github.io DISPUTE_ID --outcome refund            the offer's arbiter
+ledgdex record shop --from https://judge.github.io
+```
+
+## Sealed-bid auctions
+
+```
+ledgdex auction shop auction.json        {"item": {"title": "Old map"}, "currency": "INR", "close": "...", "reveal_until": "...", "reserve": 10000}
+ledgdex bid me https://farm.github.io AUCTION_ID --amount 25000      only a commitment is sent; the amount stays in ~/.ledgdex/bids
+ledgdex reveal me https://farm.github.io AUCTION_ID                 after the close, before reveal_until
+```
+
+The seller records bids and reveals with `ledgdex record`. The best revealed bid that meets the reserve wins; payment and delivery then use the auction id in place of a claim id.
+
+## Keys
+
+```
+ledgdex keygen phone                                  on the phone: prints its public key
+ledgdex device add shop ed25519:... --name phone      with the owner key: the phone may now sign
+ledgdex device revoke shop ed25519:... --reason lost
+ledgdex rotate shop --key farm2                       replace the owner key
+ledgdex recover root shop ed25519:NEW                 the root names a new key for a lost one
+ledgdex recovered shop --root ROOT --key farm-new     the owner takes the ledger back
+```
+
+On a machine with a device key, everyday commands sign with it. Messages to other ledgers (claims, payments, bids) are signed with the owner key, which is a self's identity in other ledgers.
+
+## Indexes and the root
+
+```
+ledgdex list market https://farm.github.io --note "mangoes"     an index lists ledgers
+ledgdex discover https://market.github.io --offers              what the listed ledgers sell
+ledgdex admit root ed25519:...                                  the root admits selves to The Matrix
+ledgdex state shop --root https://root.github.io                "allow": "admitted" then needs the root too
+```
+
+## JavaScript and the viewer
+
+`js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification and the state function. `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte; `python py/tests/make_vectors.py` regenerates them. `js/viewer.html` loads any ledger by address or file, verifies it in the browser, shows its state, and signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser. Serve the `js/` folder from any static host (modules do not load from `file://`) and open `viewer.html?ledger=https://farm.github.io`.
+
 ## Checking for tampering
 
 `ledgdex verify` checks one ledger once. `ledgdex check` checks ledgers over time:
@@ -83,4 +128,5 @@ Each command rewrites the ledgdex pages in `data.json` (pages whose first paragr
 
 ```
 cd py && python -m unittest discover -s tests
+node js/test.mjs
 ```

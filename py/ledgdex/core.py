@@ -107,6 +107,18 @@ def _entry(v):
             and v['seq'] >= 0 and is_id(v['prev']) and is_time(v['time']) and isinstance(v['sig'], str))
 
 
+def _nonce(v):
+    return isinstance(v, str) and bool(re.match(r'[0-9a-f]{32,}\Z', v))
+
+
+def _entries(v):
+    return isinstance(v, list) and all(_entry(x) for x in v)
+
+
+def _auction(b):
+    return b['close'] < b['reveal_until']
+
+
 # type: (required fields, optional fields), field checks
 BODIES = {
     'open': ({'about': _str, 'dex': _str}, {}),
@@ -114,7 +126,21 @@ BODIES = {
     'revoke': ({'key': is_key, 'reason': _str}, {}),
     'note': ({'ref': is_id, 'text': _str}, {}),
     'sent': ({'to': is_key, 'msg': lambda v: isinstance(v, dict)}, {}),
-    'receipt': ({'ledger': is_id, 'url': _str, 'header': _header, 'entry': _entry}, {}),
+    'receipt': ({'ledger': is_id, 'url': _str, 'header': _header, 'entry': _entry}, {'keys': _entries}),
+    'rotate': ({'key': is_key}, {}),
+    'device': ({'key': is_key, 'name': _str}, {}),
+    'device_revoke': ({'key': is_key, 'reason': _str}, {}),
+    'dispute': ({'claim': is_id, 'text': _str, 'evidence': lambda v: isinstance(v, list) and all(map(_str, v))}, {}),
+    'ruling': ({'dispute': is_id, 'outcome': lambda v: v in ('release', 'refund', 'split'), 'text': _str}, {}),
+    'auction': ({'item': _item, 'currency': _str, 'close': is_time, 'reveal_until': is_time,
+                 'best': lambda v: v in ('highest', 'lowest'), 'reserve': lambda v: _int(v) and v >= 0,
+                 'allow': _allow, 'arbiter': _arbiter, 'terms': _str}, {}),
+    'bid': ({'auction': is_id, 'commit': is_id}, {}),
+    'reveal': ({'auction': is_id, 'amount': lambda v: _int(v) and v >= 0, 'nonce': _nonce}, {}),
+    'list': ({'ledger': is_id, 'url': _str, 'owner': is_key, 'note': _str}, {}),
+    'delist': ({'ledger': is_id, 'reason': _str}, {}),
+    'recover': ({'ledger': is_id, 'key': is_key}, {}),
+    'recovered': ({'root': is_id, 'entry': is_id}, {}),
     'offer': ({'item': _item, 'quantity': lambda v: _int(v) and v >= 1, 'unit': _str, 'currency': _str,
                'price': lambda v: _int(v) and v >= 0, 'allow': _allow, 'pay': _pay, 'arbiter': _arbiter,
                'terms': _str}, {'expires': is_time}),
@@ -125,8 +151,45 @@ BODIES = {
     'delivered': ({'claim': is_id, 'note': _str}, {}),
     'confirmed': ({'claim': is_id}, {}),
 }
-# types someone other than the owner authors and the owner records (spec 4, 5.4)
-COUNTERPARTY = {'claim', 'paid', 'confirmed'}
+# types someone other than the owner authors and the owner records (spec 4, 5.4-5.6)
+COUNTERPARTY = {'claim', 'paid', 'confirmed', 'dispute', 'ruling', 'bid', 'reveal'}
+# O-authored types only the owner key itself may author (spec 4)
+OWNER_ONLY = {'open', 'rotate', 'device', 'device_revoke'}
+KEY_TYPES = {'rotate', 'device', 'device_revoke', 'recovered'}
+
+
+class Keys:
+    """A ledger's signing keys as its entries change them (spec 5.1, 5.7, 6.1)."""
+
+    def __init__(self, owner):
+        self.owner = owner
+        self.devices = set()
+
+    def signing(self):
+        return [self.owner] + sorted(self.devices)
+
+    def can_author(self, type_, key):
+        if type_ in OWNER_ONLY:
+            return key == self.owner
+        return key == self.owner or key in self.devices
+
+    def signed_by(self, e):
+        """The current signing key that signed entry e, or None."""
+        for k in self.signing():
+            if verify(k, unsigned(e), e['sig']):
+                return k
+        return None
+
+    def apply(self, m):
+        t, b = m['type'], m['body']
+        if t == 'rotate':
+            self.owner = b['key']
+        elif t == 'device':
+            self.devices.add(b['key'])
+        elif t == 'device_revoke':
+            self.devices.discard(b['key'])
+        elif t == 'recovered':  # a recovery replaces every key: the lost one and the devices it authorised
+            self.owner, self.devices = m['by'], set()
 
 
 def check_body(type_, body):
@@ -164,16 +227,35 @@ def check_message(m):
     if not is_time(m['at']):
         raise Invalid('bad time')
     check_body(m['type'], m['body'])
+    if m['type'] == 'auction' and not _auction(m['body']):
+        raise Invalid('auction: close must be before reveal_until')
     if not verify(m['by'], unsigned(m), m['sig']):
         raise Invalid('message signature does not verify')
 
 
 def check_receipt(body):
-    # v1 has no device keys or rotation: the entry is signed by the owner key in the other ledger's header
+    """A receipt verifies on its own (spec 5.1, invariant 10): the entry is signed by the other ledger's header key,
+    or by a key that the key entries in "keys" (rotate, device, device_revoke, recovered, in order) lead to."""
     if hash_(body['header']) != body['ledger']:
         raise Invalid('receipt: header does not match ledger id')
     e = body['entry']
-    if not verify(body['header']['owner'], unsigned(e), e['sig']):
+    keys, last = Keys(body['header']['owner']), -1
+    for k in body.get('keys', []):
+        if not last < k['seq'] < e['seq']:
+            raise Invalid('receipt: key entries must be in order and before the entry')
+        check_message(k['msg'])
+        m = k['msg']
+        if m['type'] not in KEY_TYPES:
+            raise Invalid('receipt: keys may hold only rotate, device, device_revoke and recovered entries')
+        if m['type'] == 'recovered':
+            ok = verify(m['by'], unsigned(k), k['sig'])  # the recovery itself is checked against the root in full
+        else:
+            ok = keys.signed_by(k) is not None and keys.can_author(m['type'], m['by'])
+        if not ok:
+            raise Invalid('receipt: key entry ' + str(k['seq']) + ' does not verify')
+        keys.apply(m)
+        last = k['seq']
+    if keys.signed_by(e) is None:
         raise Invalid('receipt: entry signature does not verify')
     check_message(e['msg'])
 
@@ -203,8 +285,11 @@ class Ledger:
     ledger that only grew is verified only from where it was verified before. Any changed byte misses the cache and
     is verified in full. cache=False, or LEDGDEX_NO_CACHE=1, always verifies everything."""
 
-    def __init__(self, data, cache=True):
+    def __init__(self, data, cache=True, root=None):
         self.use_cache = cache and not os.environ.get('LEDGDEX_NO_CACHE')
+        self.root = root    # the root Ledger, needed to verify "recovered" entries (spec 5.7)
+        self.keys = None    # current signing keys
+        self.key_history = set()
         self.cached = 0     # entries taken from the cache instead of verified again
         if isinstance(data, str):
             data = data.encode('utf-8')
@@ -234,12 +319,12 @@ class Ledger:
             self.error = 'header: must be {"ledger":1,"name":str,"owner":key}'
             return
         self.header, self.header_line, self.id = h, lines[0], sha256(lines[0])
+        self.keys = Keys(h['owner'])
+        self.key_history = {h['owner']}
         hit = self._cache_get(len(lines) - 1)
         for n, line in enumerate(lines[1:]):
             if n < hit:  # these exact bytes were verified before
-                self.entries.append(json.loads(line))
-                self.ids.append(sha256(line))
-                self.lines.append(line)
+                self._add(json.loads(line), line)
                 continue
             try:
                 e = parse(line)
@@ -247,9 +332,7 @@ class Ledger:
             except (CanonError, Invalid) as err:
                 self.broken_at, self.error = n, 'seq ' + str(n) + ': ' + str(err)
                 return
-            self.entries.append(e)
-            self.ids.append(sha256(line))
-            self.lines.append(line)
+            self._add(e, line)
         if partial:
             n = len(self.entries)
             self.broken_at, self.error = n, 'seq ' + str(n) + ': the line does not end with a newline'
@@ -289,9 +372,22 @@ class Ledger:
         except OSError:
             pass  # the cache is only a shortcut
 
+    def _add(self, e, line):
+        self.entries.append(e)
+        self.ids.append(sha256(line))
+        self.lines.append(line)
+        if e['msg']['type'] in KEY_TYPES:
+            self.keys.apply(e['msg'])
+            self.key_history |= {self.keys.owner} | self.keys.devices
+
     @property
     def owner(self):
-        return self.header['owner'] if self.header else None
+        """The current owner key (the header's, until a rotate or a recovery)."""
+        return self.keys.owner if self.keys else None
+
+    @property
+    def devices(self):
+        return sorted(self.keys.devices) if self.keys else []
 
     @property
     def whole(self):
@@ -315,22 +411,41 @@ class Ledger:
         if self.entries and e['time'] < self.entries[-1]['time']:
             raise Invalid('time goes backwards')
         check_message(e['msg'])
-        if not verify(self.owner, unsigned(e), e['sig']):
-            raise Invalid('entry signature does not verify with the owner key')
         m = e['msg']
+        if m['type'] == 'recovered':
+            self.check_recovery(e)
+        elif self.keys.signed_by(e) is None:
+            raise Invalid('entry signature does not verify with a current signing key')
         if seconds(e['time']) < seconds(m['at']) - SKEW:
             raise Invalid('message recorded more than ' + str(SKEW) + ' seconds before it was signed')
         if (n == 0) != (m['type'] == 'open'):
             raise Invalid('"open" is the first entry, and only the first')
-        if m['type'] not in COUNTERPARTY and m['by'] != self.owner:
-            raise Invalid(m['type'] + ' must be authored by the ledger owner')
+        if m['type'] not in COUNTERPARTY and m['type'] != 'recovered' and not self.keys.can_author(m['type'], m['by']):
+            raise Invalid(m['type'] + ' must be authored by the ledger owner' +
+                          ('' if m['type'] in OWNER_ONLY else ' or an active device key'))
+
+    def check_recovery(self, e):
+        """Spec 5.7: a "recovered" entry is signed by the new key, which a "recover" entry in the root names."""
+        m, b = e['msg'], e['msg']['body']
+        if not verify(m['by'], unsigned(e), e['sig']):
+            raise Invalid('recovered: the entry is not signed by the recovered key')
+        root = self.root
+        if root is None:
+            raise Invalid('a "recovered" entry can only be verified with the root ledger')
+        if root.id != b['root']:
+            raise Invalid('recovered: names root ' + b['root'] + ', not the root given (' + str(root.id) + ')')
+        i = root.find(b['entry'])
+        r = root.entries[i]['msg'] if i is not None else None
+        if r is None or r['type'] != 'recover' or r['body']['ledger'] != self.id or r['body']['key'] != m['by']:
+            raise Invalid('recovered: the root has no recover entry for this ledger and key')
 
     def next_entry(self, secret, msg, at=None):
         """A new signed entry recording msg on top of this ledger. Raises Invalid if it would not be valid."""
         if not self.whole:
             raise Invalid('the ledger is broken: ' + str(self.error))
-        if public(secret) != self.owner:
-            raise Invalid('this key is not the ledger owner key')
+        signer = public(secret)
+        if signer not in self.keys.signing() and not (msg['type'] == 'recovered' and msg['by'] == signer):
+            raise Invalid('this key is not a signing key of this ledger')
         t = at or now()
         if self.entries and t < self.entries[-1]['time']:
             t = self.entries[-1]['time']
@@ -338,15 +453,13 @@ class Ledger:
             raise Invalid('the message is signed more than ' + str(SKEW) + ' seconds in the future')
         e = {'seq': len(self.entries), 'prev': self.ids[-1] if self.ids else self.id, 'time': t, 'msg': msg}
         e['sig'] = sign(secret, e)
-        self.check_entry(len(self.entries), e)
         return e
 
     def append(self, entry):
+        """Verify entry on top of this ledger and add it. Raises Invalid if it is not valid."""
         line = canon(entry)
         self.check_entry(len(self.entries), entry)
-        self.entries.append(entry)
-        self.ids.append(sha256(line))
-        self.lines.append(line)
+        self._add(entry, line)
         self.data += line + b'\n'
         return self.ids[-1]
 

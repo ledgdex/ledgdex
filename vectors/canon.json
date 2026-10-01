@@ -1,0 +1,114 @@
+[
+ {
+  "input": "{\"a\":1}",
+  "ok": true
+ },
+ {
+  "input": "{ \"a\":1}",
+  "ok": false
+ },
+ {
+  "input": "{\"b\":1,\"a\":2}",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":1,\"a\":1}",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":1.0}",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":1e3}",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":-0}",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":9007199254740991}",
+  "ok": true
+ },
+ {
+  "input": "{\"a\":9007199254740992}",
+  "ok": false
+ },
+ {
+  "input": "{\"A\":1}",
+  "ok": false
+ },
+ {
+  "input": "{\"a-b\":1}",
+  "ok": false
+ },
+ {
+  "input": "{\"é\":1}",
+  "ok": false
+ },
+ {
+  "input": "\"\\u00e9\"",
+  "ok": false
+ },
+ {
+  "input": "\"é\"",
+  "ok": true
+ },
+ {
+  "input": "\"\\ud800\"",
+  "ok": false
+ },
+ {
+  "input": "\"\\b\\f\\n\\r\\t\\u0000\\u001f\"",
+  "ok": true
+ },
+ {
+  "input": "\"\\u001F\"",
+  "ok": false
+ },
+ {
+  "input": "\"\\/\"",
+  "ok": false
+ },
+ {
+  "input": "[true,false,null]",
+  "ok": true
+ },
+ {
+  "input": "[1,2]",
+  "ok": true
+ },
+ {
+  "input": "[1, 2]",
+  "ok": false
+ },
+ {
+  "input": "NaN",
+  "ok": false
+ },
+ {
+  "input": "{\"a\":\"🥭\"}",
+  "ok": true
+ },
+ {
+  "input": "{\"a\":\"\\ud83e\\udd6d\"}",
+  "ok": false
+ },
+ {
+  "input": "[]",
+  "ok": true
+ },
+ {
+  "input": "{}",
+  "ok": true
+ },
+ {
+  "input": "\"\"",
+  "ok": true
+ },
+ {
+  "input": "{\"z\":{\"b\":[],\"a\":{}}}",
+  "ok": false
+ }
+]

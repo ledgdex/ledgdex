@@ -55,7 +55,8 @@ class Store:
 
 
 class Checker:
-    def __init__(self, state_dir=STATE, media=False, log=print):
+    def __init__(self, state_dir=STATE, media=False, log=print, root=None):
+        self.root = fetch(root)[0] if root else None   # needed for ledgers with a "recovered" entry
         self.store = Store(state_dir)
         self.media = media
         self.log = log
@@ -74,7 +75,7 @@ class Checker:
 
     def load(self, src, level='error'):
         try:
-            led, _ = fetch(src)
+            led, _ = fetch(src, root=self.root)
             return led
         except Exception as e:  # unreachable, missing, not a ledger
             self.problem(level, 'unreachable', src, str(e))
@@ -241,8 +242,8 @@ class Checker:
                 'checked': self.checked, 'problems': self.problems}
 
 
-def check(sources, state_dir=STATE, media=False, published=False, log=print):
-    return Checker(state_dir, media, log).run(sources, published)
+def check(sources, state_dir=STATE, media=False, published=False, log=print, root=None):
+    return Checker(state_dir, media, log, root).run(sources, published)
 
 
 WORKFLOW = '''# ledgdex check: made by "ledgdex workflow". Runs on every push, daily, and by hand.

@@ -64,6 +64,22 @@ def summary(led, n):
         return 'about ' + code(short(b['ref'])) + ': ' + esc(b['text'])
     if t == 'sent':
         return esc(b['msg']['type']) + ' to ' + code(short(b['to']))
+    if t in ('rotate', 'device', 'device_revoke'):
+        return code(short(b['key'])) + (' (' + esc(b['name']) + ')' if b.get('name') else '')
+    if t == 'recovered':
+        return 'owner key recovered through the root, entry ' + code(short(b['entry']))
+    if t == 'recover':
+        return 'new key ' + code(short(b['key'])) + ' for ledger ' + code(short(b['ledger']))
+    if t == 'dispute':
+        return 'about ' + code(short(b['claim'])) + (': ' + esc(b['text']) if b['text'] else '')
+    if t == 'ruling':
+        return b['outcome'] + ' on dispute ' + code(short(b['dispute']))
+    if t == 'auction':
+        return esc(b['item']['title']) + ', bids until ' + b['close']
+    if t in ('bid', 'reveal'):
+        return 'auction ' + code(short(b['auction'])) + (' amount ' + str(b['amount']) if t == 'reveal' else '')
+    if t in ('list', 'delist'):
+        return 'ledger ' + code(short(b['ledger'])) + (' ' + esc(b['url']) if t == 'list' else '')
     if t == 'receipt':
         return 'entry ' + str(b['entry']['seq']) + ' (' + esc(b['entry']['msg']['type']) + ') of ' + \
             esc(b['header']['name']) + "'s ledger"
@@ -91,6 +107,9 @@ def pages(led, author_titles):
     ledger_title = title_for(name + ' ledger')
     offers = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'offer']
     offer_titles = {id_: title_for(m['body']['item']['title'], id_) for id_, m in offers}
+    auctions = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'auction']
+    auction_titles = {id_: title_for(m['body']['item']['title'], id_) for id_, m in auctions}
+    listings_title = title_for(name + ' listings') if st['listings'] else None
     sent_claims = [e for e in led.entries if e['msg']['type'] == 'sent' and e['msg']['body']['msg']['type'] == 'claim']
     purchases_title = title_for(name + ' purchases') if sent_claims else None
     admits = [e for e in led.entries if e['msg']['type'] in ('admit', 'revoke')]
@@ -103,14 +122,15 @@ def pages(led, author_titles):
     body = [MARKER + esc(name) + "'s ledger: " + str(len(led.entries)) + ' entries, ' +
             ('whole' if led.whole else 'broken at seq ' + str(led.broken_at)),
             'Owner key: ' + code(led.owner),
+            'Device keys: ' + (', '.join(code(k) for k in st['devices']) if st['devices'] else 'none'),
             'Ledger id: ' + code(led.id),
             'Head: ' + ('seq ' + str(head['seq']) + ', ' + code(head['id']) if head else 'none'),
             'Verification: ' + ('whole' if led.whole else 'broken at seq ' + str(led.broken_at)),
             "Download the ledger: <a href='" + LEDGER + "'>" + LEDGER + '</a>']
     if about['about']:
         body.insert(1, esc(about['about']))
-    links = [link(offer_titles[i]) for i, _ in offers]
-    links += [link(t) for t in (purchases_title, admissions_title) if t]
+    links = [link(offer_titles[i]) for i, _ in offers] + [link(auction_titles[i]) for i, _ in auctions]
+    links += [link(t) for t in (purchases_title, admissions_title, listings_title) if t]
     if links:
         body.append('Pages: ' + ', '.join(links))
     body.append('Entries:')
@@ -157,6 +177,27 @@ def pages(led, author_titles):
                             (' (' + c['reason'] + ')' if 'reason' in c else '') + flags(c))
         out.append({'title': offer_titles[id_], 'body': body})
 
+    # 2b. one page per auction
+    for id_, m in auctions:
+        b, a = m['body'], st['auctions'][id_]
+        body = [MARKER + a['status'] + ', ' + str(a['bids']) + ' sealed bids']
+        if b['item']['text']:
+            body.append(esc(b['item']['text']))
+        for md in b['item']['media']:
+            body.append("Media: <a href='" + esc(md['url']) + "'>" + esc(md['url']) + '</a> ' + code(md['hash']))
+        body += ['Status: ' + a['status'], 'Bids close: ' + b['close'], 'Reveals until: ' + b['reveal_until'],
+                 'Best bid: ' + b['best'] + ', reserve ' + amount(b['currency'], b['reserve']),
+                 'Arbiter: ' + code(b['arbiter']['key'])]
+        if b['terms']:
+            body.append('Terms: ' + esc(b['terms']))
+        if 'winner' in a:
+            body.append('Winner: ' + code(a['winner']) + ' at ' + amount(b['currency'], a['amount']))
+        body += ['Auction id: ' + code(id_),
+                 'To bid, with your own ledgdex: ' + code('ledgdex bid YOUR_DEX ' + (about['dex'] or 'THIS_DEX') + ' ' +
+                                                          id_ + ' --amount N') + '. After the close, reveal it with ' +
+                 code('ledgdex reveal YOUR_DEX ' + (about['dex'] or 'THIS_DEX') + ' ' + id_) + '.']
+        out.append({'title': auction_titles[id_], 'body': body})
+
     # 3. purchases: claims this self sent, and the receipts it holds for them
     if purchases_title:
         receipts = {}
@@ -179,6 +220,14 @@ def pages(led, author_titles):
                 line += 'No receipt yet.'
             body.append(line)
         out.append({'title': purchases_title, 'body': body})
+
+    # 3b. listings (an index)
+    if listings_title:
+        body = [MARKER + str(len(st['listings'])) + ' ledgers listed']
+        for lid, l in st['listings'].items():
+            body.append("<a href='" + esc(l['url']) + "'>" + esc(l['url']) + '</a> ledger ' + code(lid) + ', owner ' +
+                        code(l['owner']) + (': ' + esc(l['note']) if l['note'] else ''))
+        out.append({'title': listings_title, 'body': body})
 
     # 4. admissions
     if admissions_title:

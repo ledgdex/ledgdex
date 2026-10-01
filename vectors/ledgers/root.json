@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 3,
+ "state": "{\"admitted\":[\"ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664\"],\"auctions\":{},\"broken_at\":null,\"claims\":{},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:cbcc2f029ffba01d08cc2e9419db52b3c044446a6c3aa01028c2b94536003649\",\"seq\":2},\"ignored\":[],\"ledger\":\"sha256:9ac8643e37dbcda00e1432484c7625eef297953e4ce5e46b8d578da05c8d0551\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:26181796188d57c2b11ce034884bb1b47d15c744d5abf65642c49e425dc8b344\",\"recoveries\":{\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\":{\"entry\":\"sha256:9d400ab206e23cdaee15a1d6f7b433346739acf9c26bcd77b1a777617cc9f735\",\"key\":\"ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead\"}}}",
+ "ledger": "root"
+}

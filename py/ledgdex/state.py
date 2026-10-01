@@ -1,32 +1,80 @@
-"""The state function (spec 6), for the v1 market types."""
+"""The state function (spec 6): replay a ledger into one JSON object."""
 from .canon import hash_
+from .core import Keys
+
+OUTCOME = {'release': 'released', 'refund': 'refunded', 'split': 'split'}
 
 
-def state(led):
-    """Replay a parsed Ledger and return the state object (spec 6.3)."""
-    owner = led.owner
+def state(led, root=None, now=None):
+    """Replay a parsed Ledger. root: the root Ledger, for "allow": "admitted" (spec 5.7). now: the time auction
+    statuses are judged at (default: the time of the last entry)."""
+    keys = Keys(led.header['owner']) if led.header else None
     admitted = set()
-    offers, claims, ignored = {}, {}, []
-    offer_msgs = {}
+    root_admitted = set(state(root)['admitted']) if root is not None and root.header else None
+    offers, claims, auctions, disputes, listings, recoveries, ignored = {}, {}, {}, {}, {}, {}, []
+    sellers = {}    # deal id -> the offer or auction body (for its arbiter)
+    hidden = {}     # auction id -> bids, reveals, body (not in the output)
 
     def ignore(n, reason):
         ignored.append({'seq': n, 'reason': reason})
 
-    def claim_of(n, b, need='accepted'):
-        c = claims.get(b['claim'])
-        if c is None:
-            ignore(n, 'unknown_claim')
-        elif need and c['status'] not in ('accepted', 'closed'):
-            ignore(n, 'claim_not_accepted')
+    def mine(key):
+        return key == keys.owner or key in keys.devices
+
+    def may(allow, key):
+        if allow == 'any':
+            return True
+        if allow == 'admitted':
+            return key in admitted and (root_admitted is None or key in root_admitted)
+        return key in allow
+
+    def award(aid, t):
+        """The deal for an auction once its reveals are over (spec 5.6), or None."""
+        a, h = auctions[aid], hidden[aid]
+        if t < h['body']['reveal_until']:
+            return None
+        if 'decided' not in h:
+            h['decided'] = True
+            b, best = h['body'], None
+            for key, bid in sorted(h['bids'].items(), key=lambda kv: kv[1]['seq']):
+                amt = h['reveals'].get(key)
+                if amt is None:
+                    continue
+                if (b['best'] == 'highest' and amt < b['reserve']) or (b['best'] == 'lowest' and amt > b['reserve']):
+                    continue
+                if best is None or (amt > best[1] if b['best'] == 'highest' else amt < best[1]):
+                    best = (key, amt)
+            if best:
+                a['winner'], a['amount'] = best
+                a['buyer'] = best[0]
+                a['status'] = 'accepted'
+        return a if 'winner' in a else None
+
+    def deal(n, ref, t, need=True):
+        if ref in claims:
+            d = claims[ref]
+        elif ref in auctions:
+            d = award(ref, t)
+            if d is None:
+                ignore(n, 'not_awarded')
+                return None
         else:
-            return c
-        return None
+            ignore(n, 'unknown_claim')
+            return None
+        if need and d['status'] not in ('accepted', 'closed'):
+            ignore(n, 'claim_not_accepted')
+            return None
+        return d
+
+    def maybe_close(d):
+        if d['status'] == 'accepted' and 'received' in d and d.get('delivered') and d.get('confirmed'):
+            d['status'] = 'closed'
 
     for n, (e, id_) in enumerate(zip(led.entries, led.ids)):
-        m, b, t = e['msg'], e['msg']['body'], e['msg']['type']
+        m, b, t, at = e['msg'], e['msg']['body'], e['msg']['type'], e['time']
         if t == 'offer':
             offers[id_] = {'title': b['item']['title'], 'remaining': b['quantity'], 'status': 'open'}
-            offer_msgs[id_] = m
+            sellers[id_] = b
         elif t == 'withdraw':
             o = offers.get(b['offer'])
             if o is None or o['status'] != 'open':
@@ -40,19 +88,18 @@ def state(led):
         elif t == 'claim':
             c = {'offer': b['offer'], 'buyer': m['by'], 'quantity': b['quantity'], 'price': b['price']}
             claims[id_] = c
-            o, om = offers.get(b['offer']), offer_msgs.get(b['offer'])
-            ob = om['body'] if om else None
+            o, ob = offers.get(b['offer']), sellers.get(b['offer'])
             if o is None:
                 reason = 'unknown_offer'
-            elif b['offer_hash'] != hash_(om):
+            elif b['offer_hash'] != hash_(led.entries[led.find(b['offer'])]['msg']):
                 reason = 'offer_changed'
             elif o['status'] == 'withdrawn':
                 reason = 'withdrawn'  # a sold offer falls through to bad_quantity
-            elif 'expires' in ob and e['time'] >= ob['expires']:
+            elif 'expires' in ob and at >= ob['expires']:
                 reason = 'expired'
-            elif m['by'] == owner:
+            elif mine(m['by']):
                 reason = 'self_claim'  # a self never buys from its own ledger
-            elif not allowed(ob['allow'], m['by'], admitted):
+            elif not may(ob['allow'], m['by']):
                 reason = 'not_allowed'
             elif b['quantity'] < 1 or b['quantity'] > o['remaining']:
                 reason = 'bad_quantity'
@@ -64,63 +111,130 @@ def state(led):
                 c['status'], c['reason'] = 'rejected', reason
             else:
                 c['status'] = 'accepted'
+                sellers[id_] = ob
                 o['remaining'] -= b['quantity']
                 if o['remaining'] == 0:
                     o['status'] = 'sold'
-        elif t == 'paid':
-            c = claim_of(n, b)
-            if c is not None:
-                if m['by'] != c['buyer']:
+        elif t in ('paid', 'confirmed'):
+            d = deal(n, b['claim'], at)
+            if d is not None:
+                if m['by'] != d['buyer']:
                     ignore(n, 'not_buyer')
-                else:
-                    c['paid'] = {'method': b['method'], 'ref': b['ref']}
-        elif t == 'received':
-            c = claim_of(n, b)
-            if c is not None:
-                c['received'] = b['amount']
-        elif t == 'delivered':
-            c = claim_of(n, b)
-            if c is not None:
-                c['delivered'] = True
-        elif t == 'confirmed':
-            c = claim_of(n, b)
-            if c is not None:
-                if m['by'] != c['buyer']:
-                    ignore(n, 'not_buyer')
-                elif not c.get('delivered'):
+                elif t == 'paid':
+                    d['paid'] = {'method': b['method'], 'ref': b['ref']}
+                elif not d.get('delivered'):
                     ignore(n, 'not_delivered')
                 else:
-                    c['confirmed'] = True
+                    d['confirmed'] = True
+                    maybe_close(d)
+        elif t in ('received', 'delivered'):
+            d = deal(n, b['claim'], at)
+            if d is not None:
+                if t == 'received':
+                    d['received'] = b['amount']
+                else:
+                    d['delivered'] = True
+                maybe_close(d)
+        elif t == 'dispute':
+            d = deal(n, b['claim'], at)
+            if d is not None:
+                if m['by'] != d['buyer'] and not mine(m['by']):
+                    ignore(n, 'not_party')
+                else:
+                    d['status'] = 'disputed'
+                    disputes[id_] = {'claim': b['claim']}
+        elif t == 'ruling':
+            dp = disputes.get(b['dispute'])
+            if dp is None:
+                ignore(n, 'unknown_dispute')
+            elif 'ruling' in dp:
+                ignore(n, 'already_ruled')
+            else:
+                ref = dp['claim']
+                src = sellers.get(ref) if ref in claims else hidden[ref]['body']
+                if m['by'] != src['arbiter']['key']:
+                    ignore(n, 'not_arbiter')
+                else:
+                    dp['ruling'] = id_
+                    (claims.get(ref) or auctions[ref])['status'] = OUTCOME[b['outcome']]
+        elif t == 'auction':
+            auctions[id_] = {'status': 'open', 'bids': 0}
+            hidden[id_] = {'body': b, 'bids': {}, 'reveals': {}}
+        elif t == 'bid':
+            h = hidden.get(b['auction'])
+            if h is None:
+                ignore(n, 'unknown_auction')
+            elif at >= h['body']['close']:
+                ignore(n, 'late_bid')
+            elif mine(m['by']):
+                ignore(n, 'self_bid')
+            elif not may(h['body']['allow'], m['by']):
+                ignore(n, 'not_allowed')
+            elif m['by'] in h['bids']:
+                ignore(n, 'duplicate_bid')
+            else:
+                h['bids'][m['by']] = {'commit': b['commit'], 'seq': n}
+                auctions[b['auction']]['bids'] += 1
+        elif t == 'reveal':
+            h = hidden.get(b['auction'])
+            bid = h['bids'].get(m['by']) if h else None
+            if h is None:
+                ignore(n, 'unknown_auction')
+            elif at < h['body']['close']:
+                ignore(n, 'early_reveal')
+            elif at >= h['body']['reveal_until']:
+                ignore(n, 'late_reveal')
+            elif bid is None:
+                ignore(n, 'no_bid')
+            elif m['by'] in h['reveals']:
+                ignore(n, 'duplicate_reveal')
+            elif hash_({'amount': b['amount'], 'nonce': b['nonce']}) != bid['commit']:
+                ignore(n, 'bad_reveal')
+            else:
+                h['reveals'][m['by']] = b['amount']
+        elif t == 'list':
+            listings[b['ledger']] = {'url': b['url'], 'owner': b['owner'], 'note': b['note']}
+        elif t == 'delist':
+            if listings.pop(b['ledger'], None) is None:
+                ignore(n, 'not_listed')
+        elif t == 'recover':
+            recoveries[b['ledger']] = {'key': b['key'], 'entry': id_}
         elif t == 'sent':
-            if b['msg']['by'] != owner:
+            if not mine(b['msg']['by']):
                 ignore(n, 'not_my_message')
         elif t == 'receipt':
-            if b['entry']['msg']['by'] != owner:
+            if not mine(b['entry']['msg']['by']):
                 ignore(n, 'not_my_message')
-        if t in ('received', 'delivered', 'confirmed') and b['claim'] in claims:
-            c = claims[b['claim']]
-            if c['status'] == 'accepted' and 'received' in c and c.get('delivered') and c.get('confirmed'):
-                c['status'] = 'closed'
+        if t in ('rotate', 'device', 'device_revoke', 'recovered'):
+            keys.apply(m)
+
+    when = now or (led.entries[-1]['time'] if led.entries else None)
+    for aid, a in auctions.items():
+        b = hidden[aid]['body']
+        if when is None or when < b['close']:
+            a['status'] = 'open'
+        elif when < b['reveal_until']:
+            a['status'] = 'revealing'
+        else:
+            if award(aid, when) is None:
+                a['status'] = 'no_winner'
+            elif a['status'] == 'accepted':
+                a['status'] = 'awarded'
+        a.pop('buyer', None)
 
     head = led.head()
     return {
         'ledger': led.id,
-        'owner': owner,
-        'devices': [],
+        'owner': keys.owner if keys else None,
+        'devices': sorted(keys.devices) if keys else [],
         'head': head if head else {'seq': -1, 'id': led.id},
         'broken_at': led.broken_at,
         'admitted': sorted(admitted),
         'offers': offers,
         'claims': claims,
-        'auctions': {},
-        'disputes': {},
+        'auctions': auctions,
+        'disputes': disputes,
+        'listings': listings,
+        'recoveries': recoveries,
         'ignored': ignored,
     }
-
-
-def allowed(allow, key, admitted):
-    if allow == 'any':
-        return True
-    if allow == 'admitted':
-        return key in admitted
-    return key in allow

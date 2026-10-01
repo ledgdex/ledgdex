@@ -97,7 +97,7 @@ class Lifecycle(unittest.TestCase):
         b = Book()
         st = state(b.led)
         self.assertEqual(set(st), {'ledger', 'owner', 'devices', 'head', 'broken_at', 'admitted', 'offers', 'claims',
-                                   'auctions', 'disputes', 'ignored'})
+                                   'auctions', 'disputes', 'listings', 'recoveries', 'ignored'})
         self.assertIsNone(st['broken_at'])
         self.assertEqual(st['owner'], public(SELLER))
 

@@ -1,8 +1,8 @@
 """Publishing a ledgdex with dexweb (spec 7.4): catch up, re-sequence unpublished entries, publish, retry."""
 import contextlib, json, os
 from .canon import hash_
-from .core import Ledger, Invalid
-from .dex import LEDGER, load, find_key, write
+from .core import Ledger, Invalid, OWNER_ONLY
+from .dex import LEDGER, load, find_key, signer, write
 from .render import render
 
 TRIES = 3
@@ -33,7 +33,7 @@ def catch_up(dex, old, at=None):
     local = load(dex)
     if local.data.startswith(old):
         return 0
-    pub = Ledger(old)
+    pub = Ledger(old, root=local.root)
     if not pub.whole:
         raise Invalid('the published ' + LEDGER + ' is broken: ' + str(pub.error))
     if pub.id != local.id:
@@ -42,13 +42,13 @@ def catch_up(dex, old, at=None):
     while shared < min(len(pub.lines), len(local.lines)) and pub.lines[shared] == local.lines[shared]:
         shared += 1
     published_msgs = {hash_(e['msg']) for e in pub.entries}
-    secret = None
     moved = 0
     for e in local.entries[shared:]:
         if hash_(e['msg']) in published_msgs:
             continue
-        secret = secret or find_key(pub.owner)
-        pub.append(pub.next_entry(secret, e['msg'], at=max(at or e['time'], e['time'])))
+        m = e['msg']
+        secret = find_key(m['by']) if m['type'] == 'recovered' else signer(pub, owner_only=m['type'] in OWNER_ONLY)
+        pub.append(pub.next_entry(secret, m, at=max(at or e['time'], e['time'])))
         moved += 1
     write(dex, pub.data)
     return moved

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgdex Viewer</title>
+<style>
+  :root { --bg: #ffffff; --fg: #111111; --dim: #666666; --line: #dddddd; --ok: #11713a; --bad: #b3261e; --code: #f4f4f4; --link: #0645ad; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #111111; --fg: #eeeeee; --dim: #9a9a9a; --line: #333333; --ok: #5bd18a; --bad: #ff8a80; --code: #1d1d1d; --link: #8ab4f8; }
+  }
+  :root[data-theme="dark"] { --bg: #111111; --fg: #eeeeee; --dim: #9a9a9a; --line: #333333; --ok: #5bd18a; --bad: #ff8a80; --code: #1d1d1d; --link: #8ab4f8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  p.dim, .dim { color: var(--dim); }
+  a { color: var(--link); }
+  code, textarea, input, select, pre { font-family: ui-monospace, monospace; font-size: 0.85rem; }
+  code { background: var(--code); padding: 1px 4px; border-radius: 3px; overflow-wrap: anywhere; }
+  input, select, textarea, button { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; max-width: 100%; }
+  button { cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+  .row > input[type=text], .row > input:not([type]) { flex: 1 1 280px; }
+  label { display: block; margin: 8px 0 2px; color: var(--dim); font-size: 0.85rem; }
+  .status { font-weight: 600; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 4px 6px; vertical-align: top; }
+  .scroll { overflow-x: auto; }
+  pre { background: var(--code); padding: 8px; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  textarea { width: 100%; min-height: 120px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ledgdex viewer</h1>
+  <p class="dim">Load a ledger, check every signature and hash in your browser, and sign messages to it. Nothing is uploaded: keys stay in this browser, and messages are files you download and send.</p>
+
+  <h2>Ledger</h2>
+  <div class="row">
+    <input id="url" type="text" placeholder="dex address or ledgdex.jsonl URL" aria-label="Ledger address">
+    <button id="load" class="primary">Load</button>
+    <input id="file" type="file" accept=".jsonl,application/json,text/plain" aria-label="Ledger file">
+  </div>
+  <details>
+    <summary class="dim">Root ledger (for recovered keys and "admitted" offers)</summary>
+    <div class="row"><input id="rooturl" type="text" placeholder="root dex address or ledgdex.jsonl URL" aria-label="Root ledger address"></div>
+  </details>
+  <div id="result"></div>
+
+  <h2>Your key</h2>
+  <p class="dim">Your key signs messages from this browser. It is kept in this browser's storage and never sent anywhere. Messages to other ledgers are signed with a self's owner key, so use the key your own ledger names as its owner.</p>
+  <div class="row">
+    <button id="gen">New key</button>
+    <input id="secret" type="password" placeholder="or paste a secret key (64 hex characters)" aria-label="Secret key">
+    <button id="import">Use this key</button>
+    <button id="forget">Forget key</button>
+  </div>
+  <p>Public key: <code id="pub">none</code></p>
+
+  <h2>Sign a message to this ledger</h2>
+  <div class="row">
+    <select id="type" aria-label="Message type">
+      <option value="claim">claim: buy from an offer</option>
+      <option value="paid">paid: tell the seller you paid</option>
+      <option value="confirmed">confirmed: you received the goods</option>
+      <option value="dispute">dispute: about a claim</option>
+      <option value="bid">bid: sealed bid in an auction</option>
+      <option value="reveal">reveal: open your bid after the close</option>
+    </select>
+  </div>
+  <div id="form"></div>
+  <div class="row"><button id="signit" class="primary">Sign</button></div>
+  <div id="out" class="hidden">
+    <p class="status ok">Signed. Send this file to the ledger owner, or keep it in your own ledger as "sent" with the ledgdex tool.</p>
+    <pre id="msg"></pre>
+    <div class="row"><button id="download">Download</button><button id="copy">Copy</button></div>
+  </div>
+  <p id="err" class="status bad"></p>
+</main>
+<script type="module">
+import { Ledger, message, publicKey, Invalid, newSecret } from './core.js';
+import { state } from './state.js';
+import { canonString, hash } from './canon.js';
+import { hex, unhex } from './sha.js';
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const short = (s) => esc(s.split(':')[0] + ':' + s.split(':')[1].slice(0, 12));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: the key lasts for this page */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing stored */ } },
+};
+let led = null, st = null, secret = null, lastMsg = null;
+
+function ledgerURL(u) {
+  u = u.trim();
+  return u.endsWith('.jsonl') ? u : u.replace(/\/+$/, '') + '/ledgdex.jsonl';
+}
+async function fetchBytes(u) {
+  const r = await fetch(ledgerURL(u), { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + ledgerURL(u));
+  return new Uint8Array(await r.arrayBuffer());
+}
+async function rootLedger() {
+  const u = $('rooturl').value.trim();
+  return u ? new Ledger(await fetchBytes(u)) : null;
+}
+function money(cur, n) {
+  const d = { INR: 2, USD: 2, EUR: 2, GBP: 2, JPY: 0, BTC: 8 }[cur];
+  if (d === undefined) return esc(cur) + ' ' + n.toLocaleString('en');
+  const sign = n < 0 ? '-' : '', a = Math.abs(n), major = Math.floor(a / 10 ** d), minor = a % 10 ** d;
+  return esc(cur) + ' ' + sign + major.toLocaleString('en') + (d ? '.' + String(minor).padStart(d, '0') : '');
+}
+
+function show(data, root) {
+  const t0 = performance.now();
+  led = new Ledger(data, root);
+  st = led.header ? state(led, root) : null;
+  const ms = Math.round(performance.now() - t0);
+  const r = $('result');
+  if (!led.header) { r.innerHTML = '<p class="status bad">Not a ledger: ' + esc(led.error) + '</p>'; buildForm(); return; }
+  const verdict = led.whole ? '<span class="status ok">Whole</span>: every hash and signature checks out'
+    : '<span class="status bad">Broken at seq ' + led.broken_at + '</span>: ' + esc(led.error);
+  const open = led.entries[0] ? led.entries[0].msg.body : { about: '', dex: '' };
+  let h = '<p>' + verdict + ' <span class="dim">(' + led.entries.length + ' entries checked in ' + ms + ' ms)</span></p>' +
+    '<p><b>' + esc(led.header.name) + '</b>' + (open.about ? ': ' + esc(open.about) : '') +
+    (open.dex ? ' · <a href="' + esc(open.dex) + '">dex</a>' : '') + '</p>' +
+    '<p class="dim">Ledger id <code>' + esc(led.id) + '</code><br>Owner key <code>' + esc(st.owner) + '</code>' +
+    (st.devices.length ? '<br>Device keys ' + st.devices.map((k) => '<code>' + esc(k) + '</code>').join(' ') : '') + '</p>';
+  const offers = led.entries.map((e, n) => [led.ids[n], e]).filter(([, e]) => e.msg.type === 'offer');
+  if (offers.length) {
+    h += '<h2>Offers</h2><div class="scroll"><table><tr><th>Item</th><th>Price</th><th>Left</th><th>Status</th><th>Offer id</th></tr>';
+    for (const [id, e] of offers) {
+      const b = e.msg.body, o = st.offers[id];
+      h += '<tr><td>' + esc(b.item.title) + '</td><td>' + money(b.currency, b.price) + ' / ' + esc(b.unit) +
+        '</td><td>' + o.remaining + ' of ' + b.quantity + '</td><td>' + o.status + '</td><td><code>' + short(id) + '</code></td></tr>';
+    }
+    h += '</table></div>';
+  }
+  const claims = Object.entries(st.claims);
+  if (claims.length) {
+    h += '<h2>Claims</h2><div class="scroll"><table><tr><th>Claim id</th><th>Buyer</th><th>Qty</th><th>Status</th></tr>';
+    for (const [id, c] of claims) {
+      const flags = ['paid', 'received', 'delivered', 'confirmed'].filter((k) => k in c).join(', ');
+      h += '<tr><td><code>' + short(id) + '</code></td><td><code>' + short(c.buyer) + '</code></td><td>' + c.quantity +
+        '</td><td>' + c.status + (c.reason ? ' (' + c.reason + ')' : '') + (flags ? '<br><span class="dim">' + flags + '</span>' : '') + '</td></tr>';
+    }
+    h += '</table></div>';
+  }
+  const auctions = Object.entries(st.auctions);
+  if (auctions.length) {
+    h += '<h2>Auctions</h2><div class="scroll"><table><tr><th>Item</th><th>Status</th><th>Bids</th><th>Close</th><th>Winner</th></tr>';
+    for (const [id, a] of auctions) {
+      const b = led.entries[led.find(id)].msg.body;
+      h += '<tr><td>' + esc(b.item.title) + '<br><code>' + short(id) + '</code></td><td>' + a.status + '</td><td>' + a.bids +
+        '</td><td>' + esc(b.close) + '<br><span class="dim">reveal by ' + esc(b.reveal_until) + '</span></td><td>' +
+        (a.winner ? '<code>' + short(a.winner) + '</code> ' + money(b.currency, a.amount) : '') + '</td></tr>';
+    }
+    h += '</table></div>';
+  }
+  const listings = Object.entries(st.listings);
+  if (listings.length) {
+    h += '<h2>Listed ledgers</h2><ul>' + listings.map(([id, l]) => '<li><a href="#" data-load="' + esc(l.url) + '">' +
+      esc(l.url) + '</a> <code>' + short(id) + '</code>' + (l.note ? ' ' + esc(l.note) : '') + '</li>').join('') + '</ul>';
+  }
+  if (st.ignored.length) {
+    h += '<h2>Ignored entries</h2><p class="dim">' + st.ignored.map((i) => 'seq ' + i.seq + ': ' + i.reason).join(' · ') + '</p>';
+  }
+  h += '<h2>Entries</h2><div class="scroll"><table><tr><th>Seq</th><th>Time</th><th>Type</th><th>By</th><th>Entry id</th></tr>' +
+    led.entries.map((e, n) => '<tr><td>' + n + '</td><td>' + esc(e.time) + '</td><td>' + esc(e.msg.type) + '</td><td><code>' +
+      short(e.msg.by) + '</code></td><td><code>' + short(led.ids[n]) + '</code></td></tr>').join('') + '</table></div>';
+  r.innerHTML = h;
+  r.querySelectorAll('[data-load]').forEach((a) => a.addEventListener('click', (ev) => {
+    ev.preventDefault(); $('url').value = a.dataset.load; load();
+  }));
+  buildForm();
+}
+
+async function load() {
+  $('err').textContent = '';
+  try {
+    show(await fetchBytes($('url').value), await rootLedger());
+  } catch (e) {
+    $('result').innerHTML = '<p class="status bad">' + esc(e.message) +
+      '</p><p class="dim">The site must allow cross-origin reads (GitHub Pages does), or download the file and open it here.</p>';
+  }
+}
+
+// ---------- key ----------
+function setKey(s) {
+  secret = s;
+  $('pub').textContent = s ? publicKey(s) : 'none';
+  if (s) store.set('ledgdex-secret', hex(s)); else store.del('ledgdex-secret');
+}
+$('gen').onclick = () => setKey(newSecret());
+$('import').onclick = () => {
+  const v = $('secret').value.trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(v)) { $('err').textContent = 'A secret key is 64 hex characters.'; return; }
+  $('secret').value = ''; setKey(unhex(v)); $('err').textContent = '';
+};
+$('forget').onclick = () => setKey(null);
+const saved = store.get('ledgdex-secret');
+if (saved && /^[0-9a-f]{64}$/.test(saved)) setKey(unhex(saved));
+
+// ---------- compose ----------
+function pick(id, options, label) {
+  return '<label for="' + id + '">' + label + '</label><select id="' + id + '">' +
+    (options.length ? options.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + '</option>').join('')
+      : '<option value="">(none in this ledger)</option>') + '</select>';
+}
+const field = (id, label, value = '', type = 'text') =>
+  '<label for="' + id + '">' + label + '</label><input id="' + id + '" type="' + type + '" value="' + esc(value) + '">';
+
+function buildForm() {
+  const t = $('type').value, f = $('form');
+  const offers = st ? Object.entries(st.offers).filter(([, o]) => o.status === 'open').map(([id, o]) => [id, o.title + ' (' + o.remaining + ' left)']) : [];
+  const claims = st ? Object.entries(st.claims).filter(([, c]) => c.status !== 'rejected').map(([id, c]) => [id, short(id) + ' ' + c.status])
+    .concat(Object.entries(st.auctions).filter(([, a]) => a.winner).map(([id, a]) => [id, 'auction ' + short(id) + ' ' + a.status])) : [];
+  const auctions = st ? Object.entries(st.auctions).map(([id, a]) => [id, led.entries[led.find(id)].msg.body.item.title + ' (' + a.status + ')']) : [];
+  if (t === 'claim') f.innerHTML = pick('f-offer', offers, 'Offer') + field('f-qty', 'Quantity', '1', 'number');
+  else if (t === 'paid') f.innerHTML = pick('f-claim', claims, 'Claim') + field('f-method', 'Method', 'upi') + field('f-ref', 'Reference');
+  else if (t === 'confirmed') f.innerHTML = pick('f-claim', claims, 'Claim');
+  else if (t === 'dispute') f.innerHTML = pick('f-claim', claims, 'Claim') + field('f-text', 'What went wrong');
+  else if (t === 'bid') f.innerHTML = pick('f-auction', auctions, 'Auction') + field('f-amount', 'Amount (smallest unit, kept secret until you reveal)', '', 'number');
+  else f.innerHTML = pick('f-auction', auctions, 'Auction') + '<p class="dim">Uses the amount and nonce this browser saved when you bid.</p>';
+}
+$('type').onchange = buildForm;
+
+function body() {
+  const t = $('type').value, v = (id) => $(id) ? $(id).value : '';
+  if (!led || !led.whole) throw new Invalid('load a whole ledger first');
+  if (t === 'claim') {
+    const id = v('f-offer');
+    if (!id) throw new Invalid('choose an offer');
+    const m = led.entries[led.find(id)].msg;
+    return { offer: id, offer_hash: hash(m), quantity: parseInt(v('f-qty'), 10), price: m.body.price };
+  }
+  if (t === 'paid') return { claim: v('f-claim'), method: v('f-method'), ref: v('f-ref') };
+  if (t === 'confirmed') return { claim: v('f-claim') };
+  if (t === 'dispute') return { claim: v('f-claim'), text: v('f-text'), evidence: [] };
+  const auction = v('f-auction'), slot = 'ledgdex-bid-' + publicKey(secret) + '-' + auction;
+  if (t === 'bid') {
+    const amount = parseInt(v('f-amount'), 10);
+    if (!(amount >= 0)) throw new Invalid('enter the amount');
+    if (store.get(slot)) throw new Invalid('this key already bid in this auction (one bid per key)');
+    const nonce = hex(crypto.getRandomValues(new Uint8Array(32)));
+    store.set(slot, JSON.stringify({ amount, nonce }));
+    return { auction, commit: hash({ amount, nonce }) };
+  }
+  const saved = JSON.parse(store.get(slot) || 'null');
+  if (!saved) throw new Invalid('this browser has no bid of this key for that auction');
+  return { auction, amount: saved.amount, nonce: saved.nonce };
+}
+
+$('signit').onclick = () => {
+  $('err').textContent = '';
+  try {
+    if (!secret) throw new Invalid('make or paste a key first');
+    lastMsg = message(secret, $('type').value, body());
+    $('msg').textContent = canonString(lastMsg);
+    $('out').classList.remove('hidden');
+  } catch (e) {
+    $('err').textContent = e.message;
+    $('out').classList.add('hidden');
+  }
+};
+$('download').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([canonString(lastMsg) + '\n'], { type: 'application/json' }));
+  a.download = lastMsg.type + '-' + hash(lastMsg).slice(7, 19) + '.json';
+  a.click();
+};
+$('copy').onclick = () => navigator.clipboard.writeText(canonString(lastMsg));
+$('load').onclick = load;
+$('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') load(); });
+$('file').onchange = async () => {
+  const f = $('file').files[0];
+  if (f) show(new Uint8Array(await f.arrayBuffer()), await rootLedger().catch(() => null));
+};
+const q = new URLSearchParams(location.search);
+if (q.get('ledger')) { $('url').value = q.get('ledger'); if (q.get('root')) $('rooturl').value = q.get('root'); load(); }
+buildForm();
+</script>
+</body>
+</html>

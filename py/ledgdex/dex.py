@@ -53,29 +53,45 @@ def find_key(pub):
     raise Invalid('the key for ' + pub + ' is not in ' + d)
 
 
+def signer(led, owner_only=False):
+    """The local secret key to append to led with: an active device key when this machine has one, else the owner
+    key. owner_only: the owner key itself (owner-only types, and messages sent to other ledgers, which carry the
+    self's identity)."""
+    if not owner_only:
+        for k in led.devices:
+            try:
+                return find_key(k)
+            except Invalid:
+                pass
+    return find_key(led.owner)
+
+
 # ---------- this dex's ledger ----------
 
 def ledger_path(dex):
     return os.path.join(dex, LEDGER)
 
 
-def load(dex):
+def load(dex, root=None):
     path = ledger_path(dex)
     if not os.path.exists(path):
         raise Invalid('no ' + LEDGER + ' in ' + dex + '. Run "ledgdex init" first')
     with open(path, 'rb') as f:
-        led = Ledger(f.read())
+        led = Ledger(f.read(), root=root or load_root(dex))
     if not led.whole:
         raise Invalid(LEDGER + ' is broken: ' + str(led.error))
     return led
 
 
-def record(dex, msgs, at=None):
-    """Record messages in this dex's ledger, signed with the owner key. Only appends. Returns the entry ids."""
-    led = load(dex)
-    secret = find_key(led.owner)
+def record(dex, msgs, at=None, secret=None, root=None):
+    """Record messages in this dex's ledger. Only appends. Returns the entry ids. Signed with secret, or with the
+    key signer() picks."""
+    led = load(dex, root=root)
     start = len(led.lines)
-    ids = [led.append(led.next_entry(secret, m, at=at)) for m in msgs]
+    ids = []
+    for m in msgs:
+        key = secret or signer(led)
+        ids.append(led.append(led.next_entry(key, m, at=at)))
     with open(ledger_path(dex), 'ab') as f:
         f.write(b''.join(line + b'\n' for line in led.lines[start:]))
     return ids
@@ -91,13 +107,25 @@ def write(dex, data):
 
 # ---------- other ledgers ----------
 
-def fetch(src, cache=True):
+def load_root(dex):
+    """The root ledger named in config.json ("ledgdex": {"root": SOURCE}), or None."""
+    import json
+    p = os.path.join(dex, 'config.json')
+    try:
+        with open(p) as f:
+            src = json.load(f).get('ledgdex', {}).get('root')
+    except (OSError, ValueError, AttributeError):
+        return None
+    return fetch(src)[0] if src else None
+
+
+def fetch(src, cache=True, root=None):
     """Read a ledger from a dex folder, a file, or a dex URL. Returns (Ledger, url)."""
     if re.match(r'https?://', src):
         url = src if src.endswith('.jsonl') else src.rstrip('/') + '/' + LEDGER
         req = urllib.request.Request(url, headers={'User-Agent': 'ledgdex'})
         with urllib.request.urlopen(req, timeout=30) as r:
-            return Ledger(r.read(), cache), url
+            return Ledger(r.read(), cache, root), url
     path = os.path.join(src, LEDGER) if os.path.isdir(src) else src
     with open(path, 'rb') as f:
-        return Ledger(f.read(), cache), os.path.abspath(path)
+        return Ledger(f.read(), cache, root), os.path.abspath(path)

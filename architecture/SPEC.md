@@ -250,8 +250,14 @@ offer's arbiter decides which one stands.
 For a ledger owned by O:
 - **O-authored** types: `msg.by` MUST be O's owner key or one of O's active device keys, except the owner-only types
   (`open`, `rotate`, `device`, `device_revoke`), which MUST be authored by the owner key itself.
-- **Counterparty** types: `msg.by` is someone else's key; O records them.
+- **Counterparty** types (`claim`, `paid`, `confirmed`, `dispute`, `ruling`, `bid`, `reveal`): `msg.by` is any key;
+  O records them, and the state function (6.2) decides whether they count.
 - **Arbiter** types: `msg.by` MUST be the arbiter named by the offer concerned.
+- `recovered` is authored and signed by the new owner key a root `recover` entry names (5.7).
+
+A self's identity in other ledgers is its owner key: messages a self sends to other ledgers (claims, payments, bids,
+reveals, disputes, rulings) are signed with the owner key, so the seller sees one buyer however many devices it has.
+Device keys sign the self's own entries and the O-authored messages in them.
 
 ## 5. Message types (v1)
 
@@ -270,7 +276,7 @@ same ledger unless stated otherwise.
 | `revoke` | `{"key": key, "reason": str}` | undoes an earlier `admit` from this point on |
 | `note` | `{"ref": id, "text": str}` | a correction or remark about an earlier entry. Never changes state |
 | `sent` | `{"to": key, "msg": message}` | O keeps a copy of a message O sent elsewhere (proof it existed by now) |
-| `receipt` | `{"ledger": ledger_id, "url": str, "header": header, "entry": entry, "device": entry}` | O keeps a copy of another ledger's entry about O's message. `header` is that ledger's header line, so `ledger` MUST equal `hash(header)` and the receipt verifies on its own. The embedded `entry` MUST verify against that ledger's owner key, or against a device key; in that case `device` holds that ledger's `device` entry authorising the key (omitted when the owner key signed) |
+| `receipt` | `{"ledger": ledger_id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}` | O keeps a copy of another ledger's entry about O's message. `header` is that ledger's header line, so `ledger` MUST equal `hash(header)` and the receipt verifies on its own. The embedded `entry` MUST verify against the header's owner key, or against the key the entries in `keys` lead to: that ledger's `rotate`, `device`, `device_revoke` and `recovered` entries before `entry`, in order, each signed by a key current at that point (a `recovered` entry by its own author, checked against the root only in full verification). `keys` is omitted when the header key signed |
 
 ### 5.2 Selling (offers)
 
@@ -335,6 +341,10 @@ Falling prices were considered and left out on purpose; see Appendix A.
 | `dispute` | buyer or seller of the claim | seller (and MAY also be recorded by the buyer as `sent`) | `{"claim": id, "text": str, "evidence": [id or url]}` |
 | `ruling` | the offer's arbiter | seller | `{"dispute": id, "outcome": "release" or "refund" or "split", "text": str}` |
 
+- A dispute is about an accepted (or closed) claim, or an awarded auction; it comes from the buyer (or winning bidder)
+  or from one of the seller's keys. While it is open, the claim takes no payment or delivery entries. A dispute takes
+  one ruling; later rulings are ignored.
+
 - `release`: the seller keeps the payment; the claim closes.
 - `refund`: the seller is to return the payment (off-ledger); the claim closes as refunded.
 - `split`: as described in `text`; the claim closes.
@@ -349,13 +359,21 @@ Falling prices were considered and left out on purpose; see Appendix A.
 | `bid` | bidder | O | `{"auction": id, "commit": id}` |
 | `reveal` | bidder | O | `{"auction": id, "amount": int, "nonce": str}` |
 
-- `commit = hash({"amount": amount, "nonce": nonce})`. `nonce` MUST be at least 32 random hex chars.
-- A `bid` counts only if its entry `time < close`. One bid per key; later bids from the same key are rejected.
-- A `reveal` counts only if `close <= entry time < reveal_until` and it matches that key's commit.
+- `close` MUST be before `reveal_until`; `reserve >= 0`.
+- `commit = hash({"amount": amount, "nonce": nonce})`. `nonce` MUST be at least 32 random lowercase hex chars. The
+  bidder keeps `amount` and `nonce` private until the reveal.
+- A `bid` counts only if its entry `time < close`, it is not from one of O's keys, the bidder is allowed by `allow`,
+  and it is that key's first bid. Otherwise it is ignored (`late_bid`, `self_bid`, `not_allowed`, `duplicate_bid`).
+- A `reveal` counts only if `close <= entry time < reveal_until`, that key bid, it is that key's first reveal, and it
+  matches the commit (otherwise `early_reveal`, `late_reveal`, `no_bid`, `duplicate_reveal`, `bad_reveal`).
 - The winner is the best revealed amount (`highest` for sales, `lowest` for procurement) that meets `reserve`
   (`>= reserve` for highest, `<= reserve` for lowest). Ties go to the earlier bid entry. Unrevealed bids are ignored.
 - The award is computed by the state function. After `reveal_until`, O SHOULD record a `note` naming the winner.
-  Payment and delivery then follow 5.4 using the auction id in place of the claim id.
+  Payment and delivery then follow 5.4 using the auction id in place of the claim id (with the winner as buyer and
+  quantity 1); before the award such entries are ignored (`not_awarded`). Disputes follow 5.5 the same way.
+- Auction status: `open` before `close`, `revealing` until `reveal_until`, then `awarded` or `no_winner`, and after
+  payment and delivery the claim statuses (`closed`, `disputed`, `released`, `refunded`, `split`). Statuses are judged
+  at `now` (6), by default the time of the ledger's last entry.
 
 ### 5.7 Indexes and the root
 
@@ -366,13 +384,19 @@ An index is a ledger whose owner lists other ledgers:
 | `list` | O | `{"ledger": ledger_id, "url": str, "owner": key, "note": str}` |
 | `delist` | O | `{"ledger": ledger_id, "reason": str}` |
 
+Delisting a ledger that is not listed is ignored (`not_listed`). The state lists what is listed now (6.3).
+
 The root is a ledger whose `admit` and `revoke` entries define who is in The Matrix. A verifier MAY be given a root
-ledger; then `"allow": "admitted"` means admitted in the seller's ledger AND in the root.
+ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root's
+current state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>"}`.
 
 Key recovery (lost key): the root records `{"type": "recover", "body": {"ledger": ledger_id, "key": new_key}}`
 (root-authored). The owner then appends an entry signed by `new_key` whose message is
 `{"type": "recovered", "body": {"root": root_ledger_id, "entry": root_entry_id}}`, authored by `new_key`. A verifier
-accepts the switch only if it can verify that root entry.
+accepts the switch only if it can verify that root entry: given the root, the entry must be a `recover` naming this
+ledger and `new_key`. Without the root, the ledger reads as broken at the `recovered` entry. A recovery replaces
+every key: from the next entry on, `new_key` is the owner and there are no device keys (the lost key may have
+authorised them).
 
 ## 6. State function
 
@@ -395,6 +419,7 @@ for n, entry in enumerate(entries):
     if m.type == "rotate": owner_key = m.body.key
     if m.type == "device": devices.add(m.body.key)
     if m.type == "device_revoke": devices.discard(m.body.key)
+    if m.type == "recovered": owner_key = m.by; devices = set()
 return state
 ```
 
@@ -416,6 +441,10 @@ return state
   Otherwise `status = "accepted"`, `remaining -= quantity`, and if `remaining == 0` the offer's status becomes
   `"sold"`.
 - `paid`: valid only if `msg.by` is the claim's buyer and the claim is accepted; record `paid = {method, ref}`.
+- In `paid`, `received`, `delivered`, `confirmed` and `dispute`, an unknown claim id is ignored as `unknown_claim`, and
+  a claim that is not accepted (or closed) as `claim_not_accepted`. Wrong authors: `not_buyer`, `not_party`,
+  `not_arbiter`; a confirmation before delivery: `not_delivered`; a ruling on an unknown or ruled dispute:
+  `unknown_dispute`, `already_ruled`; a withdraw of an offer that is not open: `offer_not_open`.
 - `received`: valid only on an accepted claim; record `received = amount`.
 - `delivered`: valid only on an accepted claim; record `delivered = true`.
 - `confirmed`: valid only if `msg.by` is the claim's buyer and the claim is delivered; record `confirmed = true`.
@@ -425,6 +454,9 @@ return state
 - `ruling`: valid only if `msg.by` is the offer's arbiter key and the dispute exists; the claim's status becomes
   `"released"`, `"refunded"` or `"split"`.
 - `bid` / `reveal`: as in 5.6.
+- `list` / `delist`: add / remove `listings[ledger] = {url, owner, note}`.
+- `recover`: `recoveries[ledger] = {key, entry}` (in the root).
+- `sent` / `receipt`: ignored as `not_my_message` unless the message inside was authored by one of O's keys.
 - Messages that are structurally valid but fail a rule here (wrong author, wrong state) are kept and listed in
   `state.ignored` with a reason. They never break the ledger.
 
@@ -441,8 +473,11 @@ return state
   "offers": {"<id>": {"title": str, "remaining": int, "status": str}},
   "claims": {"<id>": {"offer": id, "buyer": key, "quantity": int, "price": int, "status": str,
                        "reason": str, "paid": {...}, "received": int, "delivered": bool, "confirmed": bool}},
-  "auctions": {"<id>": {"status": str, "bids": int, "winner": key, "amount": int}},
+  "auctions": {"<id>": {"status": str, "bids": int, "winner": key, "amount": int,
+                         "paid": {...}, "received": int, "delivered": bool, "confirmed": bool}},
   "disputes": {"<id>": {"claim": id, "ruling": id}},
+  "listings": {"<ledger id>": {"url": str, "owner": key, "note": str}},
+  "recoveries": {"<ledger id>": {"key": key, "entry": id}},
   "ignored": [{"seq": int, "reason": str}]
 }
 ```
@@ -494,7 +529,7 @@ touched. Generated pages follow the plain-HTML rules of the dex: no classes, no 
 
 Pages, in this order:
 
-1. **Ledger** (title: the header's `name` + ` ledger`). The `open` text; the owner key; the ledger id; the head
+1. **Ledger** (title: the header's `name` + ` ledger`). The `open` text; the owner key and device keys; the ledger id; the head
    (`seq` and id); the verification result (`whole` or `broken at seq n`); a link to download `ledgdex.jsonl`; links to
    every offer and auction page; then every entry in order, one line each: `seq`, `time`, `type`, author key, a short
    summary, and the entry id.
@@ -503,10 +538,11 @@ Pages, in this order:
    arbiter; terms; who may buy; and how to buy: the offer id and `offer_hash` a claim must carry, and where to send it.
    Below that, the claims on this offer: claim id, buyer key, quantity, price, status.
 3. **One page per auction** (title: `item.title`). Item, close and reveal times, the rule (`highest` / `lowest`),
-   reserve, number of bids; after `reveal_until`, the revealed bids and the winner.
+   reserve, number of bids, status; after `reveal_until`, the winner and amount; how to bid and reveal.
 4. **Purchases** (title: the header's `name` + ` purchases`), only if the ledger has `sent` claims. Every claim this
    self sent, and the receipt held for it, with the seller's claim id.
-5. **Listings**, only in index ledgers. Every listed ledger with its owner key and a link to its dex.
+5. **Listings** (title: the header's `name` + ` listings`), only in index ledgers. Every listed ledger with its
+   owner key and a link to its dex.
 6. **Admissions** (title: the header's `name` + ` admissions`), only if the ledger has `admit` entries. Admitted
    keys, with names and the entries that admitted or revoked them.
 
@@ -653,10 +689,14 @@ ledgdex/
     ledgdex/check.py      tamper checks over time and the GitHub workflow template (9.1)
     ledgdex/cli.py        command-line tool
     tests/                unittest suite
+    tests/make_vectors.py writes the shared vectors; test_vectors.py checks they are current
   js/
-    canon.js  ed25519.js  core.js  state.js
+    sha.js                SHA-256 and SHA-512, synchronous
+    canon.js  ed25519.js  core.js  state.js     the same functions as the Python modules
     viewer.html           static page: load a ledger, verify, show state, compose and sign messages
-  vectors/                shared test vectors (JSON) used by both test suites; ed25519.json so far
+    test.mjs              node js/test.mjs: JavaScript against the shared vectors
+  vectors/                shared test vectors used by both test suites: ed25519.json, canon.json, signatures.json,
+                          and ledgers/ (test ledgers with their expected verification and canon(state))
 ```
 
 ## Command-line tool
@@ -681,34 +721,56 @@ ledgdex claim DEX SELLER OFFER_ID [--quantity Q] sign a claim at the offer's pri
 ledgdex pay DEX SELLER CLAIM_ID --method M [--ref R]
 ledgdex confirm DEX SELLER CLAIM_ID
 ledgdex receipt DEX SELLER [--entry ID]          keep the seller's entries that record this self's messages
+disputes
+ledgdex dispute DEX CLAIM_ID [--seller SELLER] [--text T] [--evidence E]...
+                                                 buyer: with --seller, in the seller's ledger; seller: in its own
+ledgdex ruling DEX SELLER DISPUTE_ID --outcome release|refund|split [--text T]      arbiter
+auctions
+ledgdex auction DEX auction.json                 start a sealed-bid auction (allow, terms, best, reserve, arbiter
+                                                 get defaults)
+ledgdex bid DEX SELLER AUCTION_ID --amount N     the amount and nonce stay in ~/.ledgdex/bids until the reveal
+ledgdex reveal DEX SELLER AUCTION_ID
+keys
+ledgdex device add DEX KEY [--name N]            record a "device" entry (needs the owner key); KEY is a public key
+ledgdex device revoke DEX KEY [--reason R]       or the name of a key in ~/.ledgdex
+ledgdex rotate DEX --key NAME                    replace the owner key (made if missing)
+ledgdex recover ROOT_DEX LEDGER KEY              root: name a new key for a ledger whose owner lost theirs
+ledgdex recovered DEX --root ROOT --key NAME     owner: take the ledger back; saves the root in config.json
+indexes
+ledgdex list DEX LEDGER [--url U] [--note N]
+ledgdex delist DEX LEDGER_ID [--reason R]
+ledgdex discover INDEX [--offers] [--json]       the ledgers an index lists, and what they sell
 anyone
 ledgdex sign TYPE body.json --key NAME           print a signed message
-ledgdex verify DEX_OR_URL [--full]               structural check; exit code 0 only if whole
-ledgdex state DEX_OR_URL                         print canon(state)
-ledgdex check [SOURCE...] [--every S] [--media] [--published] [--json F] [--state D]
+ledgdex verify DEX_OR_URL [--full] [--root R]    structural check; exit code 0 only if whole
+ledgdex state DEX_OR_URL [--root R]              print canon(state)
+ledgdex check [SOURCE...] [--every S] [--media] [--published] [--json F] [--state D] [--root R]
                                                  tamper checks over time (9.1); exit code 1 on errors
 ledgdex workflow SOURCE... [--cron C] [--media]  print a GitHub Actions workflow that runs check
 ledgdex render DEX                               rewrite the generated pages and rebuild the site (7.3)
 ledgdex publish DEX                              catch up, re-sequence and publish with dexweb (7.4)
-later
-ledgdex device add DEX KEY --name N              record a "device" entry (needs the owner key)
-ledgdex device revoke DEX KEY                    record a "device_revoke" entry (needs the owner key)
-ledgdex state DEX_OR_URL --root URL              state with a root ledger
 ```
 
 SELLER is the seller's dex URL, dex folder or ledger file. Sending is publishing: a buyer's messages are kept in the
 buyer's ledger as `sent`, so a seller can collect them from the buyer's published dex with `record --from`.
 
-The viewer page does the same in the browser: it never needs a server, and it signs with a key the user imports or
-generates (stored in the browser, never uploaded).
+With a device key on a machine, everyday commands there sign with it; owner-only types and messages to other ledgers
+use the owner key (4).
+
+The viewer page (`js/viewer.html`) does the reading and signing in the browser: it loads a ledger from an address or a
+file, verifies it, shows its state, and signs `claim`, `paid`, `confirmed`, `dispute`, `bid` and `reveal` messages
+as downloadable files. It never needs a server of its own, and its key is generated or imported in the browser,
+stored there, and never uploaded. A bid's amount and nonce are stored in the browser until the reveal.
 
 ## Build status
 
-v0.1 is the simple market, in Python: milestones 1 to 6 below (without the JavaScript halves) and the `admit` and
-`revoke` part of 9. Ed25519 vectors come from djb's `sign.input` (as shipped in `cryptography_vectors`), whose first
-three rows are RFC 8032 section 7.1 TEST 1 to 3. Still to build: milestones 7 (disputes), 8 (auctions), 9 (keys:
-`rotate`, devices, recovery, equivocation reports), 10 (viewer), indexes (5.7), the root, and the JavaScript twin.
-Until then, v0.1 treats the types of those milestones as unknown, so a ledger that uses them reads as broken there.
+All ten milestones are built, plus indexes (5.7), the root, checks over time (9.1), the fast Ed25519 backend and the
+verification cache. Python has everything; JavaScript has the core (canonical JSON, SHA-256/512, Ed25519, messages,
+verification, state) and the viewer, and reproduces every shared vector byte for byte. Ed25519 vectors come from
+djb's `sign.input` (as shipped in `cryptography_vectors`), whose first three rows are RFC 8032 section 7.1 TEST 1 to 3.
+
+Not done: the JavaScript Ed25519 is the vendored code only. Web Crypto's Ed25519 is asynchronous, so it is not used
+yet, and the "Web Crypto and vendored JS agree" half of milestone 2 is open.
 
 ## Milestones and acceptance tests
 

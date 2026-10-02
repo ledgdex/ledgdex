@@ -172,7 +172,12 @@ class Checker:
                     g['urls'].append(b['url'])
                 g['receipts'].append(b)
         for ledger_id, g in groups.items():
-            urls = list(g['urls'])
+            # one address per place: a local folder or file named relatively in a receipt is the same as its full path
+            urls = []
+            for u in g['urls']:
+                u = u if re.match(r'https?://', u) or ':' in u.split('/')[0] else os.path.abspath(u)
+                if u not in urls:
+                    urls.append(u)
             for u in urls:
                 if any(u == c_url for c_url, _ in self.copies.get(ledger_id, [])):
                     continue

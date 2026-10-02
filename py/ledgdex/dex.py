@@ -59,6 +59,10 @@ def _read_key(path):
         return bytes.fromhex(f.read().strip())
 
 
+class KeyMissing(Invalid):
+    """No key file for a public key on this machine (as opposed to a key file that is refused)."""
+
+
 def find_key(pub):
     """The secret key in ~/.ledgdex whose public key is pub."""
     d = key_dir()
@@ -73,7 +77,7 @@ def find_key(pub):
                     continue
                 if len(secret) == 32 and public(secret) == pub:
                     return secret
-    raise Invalid('the key for ' + pub + ' is not in ' + d)
+    raise KeyMissing('the key for ' + pub + ' is not in ' + d)
 
 
 def signer(led, owner_only=False):
@@ -84,9 +88,14 @@ def signer(led, owner_only=False):
         for k in led.devices:
             try:
                 return find_key(k)
-            except Invalid:
+            except KeyMissing:
                 pass
-    return find_key(led.owner)
+    try:
+        return find_key(led.owner)
+    except KeyMissing:
+        raise Invalid('this machine has no ' + ('owner key' if owner_only else 'signing key') + ' of this ledger in ' +
+                      key_dir() + ' (owner ' + led.owner + (', active devices ' + ', '.join(led.devices)
+                                                           if led.devices and not owner_only else '') + ')')
 
 
 # ---------- this dex's ledger ----------

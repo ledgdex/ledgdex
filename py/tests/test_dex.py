@@ -213,6 +213,19 @@ class Dex(unittest.TestCase):
         self.assertIn('skipped nowhere', err.getvalue())
         self.assertEqual(1, len([c for c in self.state('shop')['claims'].values() if c['status'] == 'accepted']))
 
+    def test_two_claims_in_one_second_are_two_claims(self):
+        # a message recorded twice counts once, so the tool signs each new message of a key at a later "at"
+        self.shop()
+        oid = list(self.state('shop')['offers'])[0]
+        run('init', 'me', '--name', 'Asha', '--key', 'asha')
+        with contextlib.redirect_stdout(io.StringIO()):
+            for n in range(3):
+                run('claim', 'me', 'shop', oid, '-o', 'c%d.json' % n)
+            run('record', 'shop', '--from', 'me')
+        claims = self.state('shop')['claims']
+        self.assertEqual(3, len(claims))
+        self.assertEqual(['accepted'] * 3, [c['status'] for c in claims.values()])
+
     def test_keys_readable_by_others_are_refused(self):
         self.shop()
         key = os.path.join(os.environ['LEDGDEX_HOME'], 'farm.key')

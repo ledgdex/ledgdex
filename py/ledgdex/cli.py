@@ -1,7 +1,7 @@
 """ledgdex command-line tool (spec Part III). Run "ledgdex -h"."""
 import argparse, json, os, sys, time
 from .canon import canon, hash_, ID_KEY
-from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_id, is_key
+from .core import Invalid, KEY_TYPES, OWNER_ONLY, message, new_ledger, now, public, is_id, is_key, seconds, utc
 from .dex import LEDGER, fetch, keygen, key_dir, load, load_key, load_root, record, signer
 from .render import render
 from .state import state
@@ -40,11 +40,25 @@ def key_arg(k):
     return k if is_key(k) else public(load_key(k))
 
 
+def next_at(led, secret):
+    """The time to sign a new message with: now, or one second after this key's last message in the ledger (kept or
+    sent) if that is later. A message recorded twice counts once (spec 6.2), so two messages with the same body
+    must differ in "at": two claims for the same offer within one second are two claims, not one."""
+    me, last = public(secret), None
+    for e in led.entries:
+        for m in (e['msg'], e['msg']['body'].get('msg') if e['msg']['type'] == 'sent' else None):
+            if m and m['by'] == me and (last is None or m['at'] > last):
+                last = m['at']
+    t = now()
+    return t if last is None or t > last else utc(seconds(last) + 1)
+
+
 def add(dex, type_, body):
     """Sign a message for this dex's own ledger (with a device key when this machine has one, the owner key for
     owner-only types), record it, render."""
-    secret = signer(load(dex), owner_only=type_ in OWNER_ONLY)
-    i = record(dex, [message(secret, type_, body)])[0]
+    led = load(dex)
+    secret = signer(led, owner_only=type_ in OWNER_ONLY)
+    i = record(dex, [message(secret, type_, body, at=next_at(led, secret))])[0]
     render(dex)
     print(type_ + ' recorded: ' + i)
     return i
@@ -87,8 +101,9 @@ def send(dex, to, type_, body, path):
     """Sign a message for another ledger, keep a "sent" copy, write the message file. Messages to other ledgers
     are signed with the owner key: it is this self's identity there."""
     led = load(dex)
-    m = message(signer(led, owner_only=True), type_, body)
-    record(dex, [message(signer(led), 'sent', {'to': to, 'msg': m})])
+    secret = signer(led, owner_only=True)
+    m = message(secret, type_, body, at=next_at(led, secret))
+    record(dex, [message(signer(led), 'sent', {'to': to, 'msg': m}, at=m['at'])])
     render(dex)
     path = path or m['type'] + '-' + hash_(m)[7:19] + '.json'
     with open(path, 'wb') as f:
@@ -121,6 +136,12 @@ def c_init(a):
     led = new_ledger(secret, a.name, a.about, a.url)
     create_dex(a.dex, led.data, a.dexname or a.name,
                {k: v for k, v in (('dest', a.dest), ('branch', a.branch), ('site_path', a.site_path)) if v})
+    if a.root:   # the root this dex trades under (spec 5.7): pinned by its ledger id on this first read
+        cfg_path = os.path.join(a.dex, 'config.json')
+        cfg = read_json(cfg_path)
+        cfg.setdefault('ledgdex', {})['root'] = a.root
+        write_json(cfg_path, cfg)
+        print('root ' + load_root(a.dex).id + ' (' + a.root + ')')
     print('ledgdex created in ' + a.dex + '. Ledger id: ' + led.id)
 
 
@@ -141,10 +162,12 @@ SIMPLE = {
     'delivered': ('record delivery', [(['claim'], {'type': id_arg}), (['--note'], {'default': ''})],
                   lambda a: ('delivered', {'claim': a.claim, 'note': a.note})),
     'admit': ('admit a key (for offers with "allow": "admitted")',
-              [(['key'], {}), (['--name'], {'default': ''}), (['--note'], {'default': ''})],
-              lambda a: ('admit', {'key': a.key, 'name': a.name, 'note': a.note})),
-    'revoke': ('revoke an admitted key', [(['key'], {}), (['--reason'], {'default': ''})],
-               lambda a: ('revoke', {'key': a.key, 'reason': a.reason})),
+              [(['key'], {'help': 'public key, or the name of a key in ~/.ledgdex'}), (['--name'], {'default': ''}),
+               (['--note'], {'default': ''})],
+              lambda a: ('admit', {'key': key_arg(a.key), 'name': a.name, 'note': a.note})),
+    'revoke': ('revoke an admitted key', [(['key'], {'help': 'public key, or the name of a key in ~/.ledgdex'}),
+                                          (['--reason'], {'default': ''})],
+               lambda a: ('revoke', {'key': key_arg(a.key), 'reason': a.reason})),
     'note': ('add a remark about an earlier entry', [(['ref'], {'type': id_arg}), (['text'], {})],
              lambda a: ('note', {'ref': a.ref, 'text': a.text})),
     'delist': ('index: delist a ledger', [(['ledger'], {'type': id_arg, 'help': 'ledger id'}), (['--reason'], {'default': ''})],
@@ -406,8 +429,12 @@ def c_discover(a):
                 if led.id != lid:
                     raise Invalid('that address serves another ledger')
                 st = state(led)
-                for kind in ('offers', 'auctions'):
-                    item[kind] = [dict(x, id=i) for i, x in st[kind].items() if x['status'] == 'open']
+                terms = {'offers': ('price', 'currency', 'unit', 'quantity', 'allow', 'expires'),
+                         'auctions': ('currency', 'close', 'reveal_until', 'best', 'reserve', 'allow')}
+                for kind in ('offers', 'auctions'):   # with the signed terms a buyer chooses by
+                    item[kind] = [dict(x, id=i, **{k: v for k, v in led.entries[led.find(i)]['msg']['body'].items()
+                                                   if k in terms[kind]})
+                                  for i, x in st[kind].items() if x['status'] == 'open']
             except Exception as e:
                 item['error'] = str(e)
         found.append(item)
@@ -449,7 +476,9 @@ def parser():
         (['--dexname'], {'help': 'dex name (default: --name)'}),
         (['--dest'], {'help': 'repository address to publish to'}),
         (['--branch'], {'help': 'branch to publish to'}),
-        (['--site-path'], {'dest': 'site_path', 'help': 'folder in the repository to publish to (default: its root)'}))
+        (['--site-path'], {'dest': 'site_path', 'help': 'folder in the repository to publish to (default: its root)'}),
+        (['--root'], {'help': 'the root ledger this dex trades under (dex, file or URL): admission, recovery and the '
+                              'default arbiter; pinned by its ledger id'}))
     cmd('offer', c_offer, 'sell something: sign and record an offer from a JSON file', D, (['file'], {}))
     for name, (help_, args, make) in SIMPLE.items():
         if name == 'device':   # "ledgdex device add DEX KEY": the action comes before the dex

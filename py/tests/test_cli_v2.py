@@ -118,6 +118,30 @@ class Commands(unittest.TestCase):
             f.write(b'{"broken":1}\n')                                          # a broken root is refused too
         self.assertTrue(fails('note', 'shop', 'sha256:' + '0' * 64, 'x'))
 
+    def test_the_root_kept_copy(self):
+        run('init', 'root', '--name', 'Root', '--key', 'rootkey')
+        self.offer()
+        with open('shop/config.json') as f:
+            cfg = json.load(f)
+        cfg['ledgdex'] = {'root': 'root'}
+        with open('shop/config.json', 'w') as f:
+            json.dump(cfg, f)
+        run('admit', 'root', 'ed25519:' + '1' * 64, '--name', 'a')
+        run('revoke', 'root', 'ed25519:' + '1' * 64, '--reason', 'gone')
+        run('note', 'shop', 'sha256:' + '0' * 64, 'reads the root, and keeps it')
+        with open('root/ledgdex.jsonl', 'rb') as f:
+            full = f.read()
+        older = b''.join(line + b'\n' for line in full.split(b'\n')[:-2])          # without the revoke
+        with open('root/ledgdex.jsonl', 'wb') as f:
+            f.write(older)
+        run('note', 'shop', 'sha256:' + '0' * 64, 'an older root is not taken')
+        with open('shop/.ledgdex-root.jsonl', 'rb') as f:
+            self.assertEqual(f.read(), full)
+        shutil.rmtree('root')                                                        # the root is down
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            run('note', 'shop', 'sha256:' + '0' * 64, 'works on with the kept copy')
+        self.assertIn('using the copy kept', err.getvalue())
+
     def test_dispute_and_ruling(self):
         run('init', 'judge', '--name', 'Judge', '--key', 'judge')
         judge = load('judge').owner

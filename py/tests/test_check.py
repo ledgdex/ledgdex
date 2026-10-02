@@ -1,5 +1,5 @@
 import json, os, shutil, tempfile, unittest
-from helpers import Book, BUYER, SELLER, offer_body
+from helpers import Book, BUYER, OTHER, SELLER, offer_body
 from ledgdex.check import check, workflow
 from ledgdex.core import Ledger, message, unsigned, verify
 
@@ -135,6 +135,11 @@ class Check(unittest.TestCase):
         self.assertTrue(r['ok'], r['problems'])
         self.assertIn(('warning', 'receipt_bad_signer'), self.codes(r))
 
+    def test_an_unreachable_root_is_not_tampering(self):
+        r = self.run_check(self.put('s.jsonl', Book().led.data), root=os.path.join(self.tmp, 'no-root.jsonl'))
+        self.assertTrue(r['ok'])
+        self.assertIn(('warning', 'unreachable'), self.codes(r))
+
     def test_unreachable_counterparty_is_a_warning(self):
         _, _, sp, bp = self.trade()
         os.remove(sp)
@@ -231,7 +236,11 @@ class Check(unittest.TestCase):
         e['sig'] = sign(BUYER, e)
         from ledgdex.canon import canon
         bp = self.put('buyer.jsonl', buyer.led.data + canon(e) + b'\n')
-        r = self.run_check(bp, sp)
+        r = self.run_check(bp, sp)                         # no root given: it cannot be judged, and blames no one
+        self.assertEqual([('warning', 'needs_root')], self.codes(r))
+        self.assertEqual(bp, r['problems'][0]['url'])
+        root = self.put('root.jsonl', Book(OTHER, 'Root').led.data)
+        r = self.run_check(bp, sp, root=root)              # with the root: the forged recovery breaks the buyer's ledger
         self.assertEqual([('error', 'broken')], self.codes(r))
         self.assertEqual(bp, r['problems'][0]['url'])
 

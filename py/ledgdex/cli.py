@@ -279,8 +279,16 @@ def c_render(a):
 def c_check(a):
     from .check import check
     while True:
-        report = check(a.sources or ['.'], a.state, media=a.media, published=a.published, root=a.root,
-                       log=(lambda line: None) if a.quiet else print)
+        try:
+            report = check(a.sources or ['.'], a.state, media=a.media, published=a.published, root=a.root,
+                           log=(lambda line: None) if a.quiet else print)
+        except Exception as e:
+            if not a.every:
+                raise
+            print('ledgdex check: this round failed (' + type(e).__name__ + ': ' + str(e) + '); trying again',
+                  file=sys.stderr, flush=True)   # a worker keeps going
+            time.sleep(a.every)
+            continue
         if a.json:
             with open(a.json, 'w') as f:
                 f.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')

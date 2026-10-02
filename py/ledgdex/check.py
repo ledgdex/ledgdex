@@ -56,11 +56,17 @@ class Store:
 
 class Checker:
     def __init__(self, state_dir=STATE, media=False, log=print, root=None):
-        self.root = fetch(root, cache=False)[0] if root else None   # needed for ledgers with a "recovered" entry
         self.store = Store(state_dir)
         self.media = media
         self.log = log
         self.problems = []
+        self.root, self.root_error = None, None   # the root: needed for ledgers with a "recovered" entry
+        if root:
+            try:
+                self.root = fetch(root, cache=False)[0]
+            except Exception as e:  # the root is down: say so, and do not call ledgers that need it broken
+                self.root_error = str(e)
+                self.problem('warning', 'unreachable', root, 'the root: ' + str(e))
         self.checked = []
         self.copies = {}  # ledger id -> [(address, Ledger)] checked in this run
 
@@ -88,6 +94,12 @@ class Checker:
             self.problem('error', 'broken', url, str(led.error))
             return False
         ok = True
+        if not led.whole and (self.root is None) and 'can only be verified with the root' in str(led.error):
+            # not tampering: this ledger was recovered through the root, and the root could not be read (or none was
+            # given); check it again with the root
+            self.problem('warning', 'needs_root', url, 'entry ' + str(led.broken_at) + ' needs the root to verify' +
+                         (' (the root could not be read)' if self.root_error else ': run with --root'), led.id)
+            return True
         if not led.whole:
             self.problem('error', 'broken', url, 'broken at seq ' + str(led.broken_at) + ': ' + str(led.error), led.id)
             ok = False

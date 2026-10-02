@@ -158,12 +158,17 @@ def write(dex, data):
 
 # ---------- other ledgers ----------
 
+ROOT_COPY = '.ledgdex-root.jsonl'   # the last root read, in the dex folder (dexweb publishes only gen/)
+
+
 def load_root(dex):
     """The root ledger named in config.json ("ledgdex": {"root": SOURCE, "root_id": ID}), or None.
 
     An address can start serving another ledger (its hosting or DNS changes hands), so the root is pinned by ledger
     id: the first time it is read, its id is written to "root_id" (trust on first use), and from then on a root of
-    another id, or a broken one, is refused. A root that rotates or recovers its key keeps its id."""
+    another id, or a broken one, is refused. A root that rotates or recovers its key keeps its id. The last root read
+    is kept in the dex folder: when the address cannot be read, work goes on with it, and an address serving an
+    older copy (which could hide a revoke or a recovery) is ignored for it."""
     import json
     p = os.path.join(dex, 'config.json')
     try:
@@ -175,24 +180,45 @@ def load_root(dex):
         return None
     if not src:
         return None
+    pinned = lc.get('root_id')
+    kept_path = os.path.join(dex, ROOT_COPY)
+    kept = None
+    if os.path.exists(kept_path):
+        with open(kept_path, 'rb') as f:
+            kept = Ledger(f.read())
+        if not kept.whole or (pinned is not None and kept.id != pinned):
+            kept = None
     try:
         root = fetch(src)[0]
-    except Invalid:
-        raise
-    except Exception as e:  # unreachable, missing
-        raise Invalid('cannot read the root at ' + src + ': ' + str(e))
+    except Exception as e:  # unreachable, missing: work on with the copy kept last time
+        if kept is None:
+            raise Invalid('cannot read the root at ' + src + ': ' + str(e))
+        import sys
+        print('ledgdex: cannot read the root at ' + src + ' (' + str(e) + '); using the copy kept in ' + ROOT_COPY,
+              file=sys.stderr)
+        root = kept
     if not root.whole:
         raise Invalid('the root at ' + src + ' is broken: ' + str(root.error))
-    pinned = lc.get('root_id')
+    if pinned is not None and pinned != root.id:
+        raise Invalid('the root at ' + src + ' is ledger ' + root.id + ', not the root this dex trusts (' + str(pinned) +
+                      ' in config.json "root_id"): that address may now serve another ledger')
+    if kept is not None and kept.id == root.id and root is not kept:
+        if kept.data.startswith(root.data):
+            root = kept           # the address serves an older copy: never go back (a hidden revoke or recovery)
+        elif not root.data.startswith(kept.data):
+            raise Invalid('the root at ' + src + ' differs from the copy kept before (' + ROOT_COPY + '): two '
+                          'histories of the root, signed by its owner (spec 3.4)')
+    if root is not kept:
+        tmp = kept_path + '.tmp'
+        with open(tmp, 'wb') as f:
+            f.write(root.data)
+        os.replace(tmp, kept_path)
     if pinned is None:
         lc['root_id'] = root.id
         tmp = p + '.tmp'
         with open(tmp, 'w') as f:
             f.write(json.dumps(cfg, indent=4))
         os.replace(tmp, p)
-    elif pinned != root.id:
-        raise Invalid('the root at ' + src + ' is ledger ' + root.id + ', not the root this dex trusts (' + str(pinned) +
-                      ' in config.json "root_id"): that address may now serve another ledger')
     return root
 
 

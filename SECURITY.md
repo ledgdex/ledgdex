@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.9. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.10. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem

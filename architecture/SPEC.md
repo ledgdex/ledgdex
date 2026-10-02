@@ -1021,6 +1021,14 @@ batch, so a single counterparty's message signed in the future (validly signed, 
 single unreachable source, stopped the seller from recording anyone's. Each source and each message is now taken on
 its own: what cannot be read or recorded yet is reported and skipped, the rest is recorded.
 
+**v1.0.10** (fourteenth audit, availability): the root was a single point of failure. Every command reads it, so
+when its address was down every ledgdex naming it stopped; an address serving an older root could hide a recent
+`revoke` or `recover`; and `check --every` with an unreachable `--root` died, or called recovered ledgers broken.
+A dex now keeps the last root it read (`.ledgdex-root.jsonl` in the dex folder, never published) and works on with
+it when the address is down, never goes back to an older copy, and refuses one that disagrees (two histories of
+the root). `check` reports an unreachable root and a ledger that needs it as warnings (`needs_root`), and a worker
+survives a failed round.
+
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.

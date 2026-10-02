@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.7. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.8. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -35,7 +35,8 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **A signed message counts once.** Recording the same message twice is ignored (`duplicate_message`), so a claim
   cannot be counted twice and a revoked device cannot be brought back by replaying its old `device` message.
 - **Hostile ledgers are only data.** A ledger cannot crash a verifier (nesting is limited to 32 levels), cannot put
-  a script or `javascript:` link on a page (only http(s) addresses become links), and cannot make `check` read local
+  a script or `javascript:` link on a page (only http(s) addresses become links, and the dex name is stripped of
+  markup characters), and cannot make `check` read local
   files (addresses inside ledgers are read only over http(s), or as dex folders and `.jsonl` files). Every read is
   capped (`LEDGDEX_MAX_BYTES`, 64 MiB by default).
 

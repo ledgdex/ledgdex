@@ -1,7 +1,7 @@
 // A complete dex in the browser (spec 7.1), the same files "ledgdex init" makes with dexweb: py/ledgdex/render.py
 // create_dex() and dexweb's dexgen. Checked file for file against dexs dexweb built (vectors/dex/).
 import { Ledger } from './core.js';
-import { pages, htmlTitle, LEDGER } from './render.js';
+import { pages, htmlTitle, LEDGER, dexName } from './render.js';
 
 const enc = new TextEncoder();
 export const RUN_PY = 'from dexweb import dexgen\ndex = dexgen.Dexgen()\n';
@@ -78,7 +78,7 @@ export function buildGen(data, config) {
 export function makeDex(data, dexname, template, publish = {}) {
   const led = new Ledger(data);
   if (!led.whole) throw new Error('the ledger is broken: ' + led.error);
-  const config = { ...template.config, dexname, publish: { append_only: [LEDGER], ...publish } };
+  const config = { ...template.config, dexname: dexName(dexname), publish: { append_only: [LEDGER], ...publish } };
   const dataJson = pyJson(pages(led), 4, false);
   const files = {
     [LEDGER]: data, 'config.json': pyJson(config, 4), 'data.json': dataJson, 'run.py': RUN_PY,

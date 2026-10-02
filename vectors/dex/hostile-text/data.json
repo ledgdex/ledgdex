@@ -1,0 +1,57 @@
+[
+    {
+        "title": "&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; ledger",
+        "body": [
+            "<!-- ledgdex -->&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;'s ledger: 11 entries, whole",
+            "about",
+            "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+            "Device keys: none",
+            "Ledger id: <code>sha256:649e7e5a3c96317a5ca37eb45e07cea6e0a928365d80bbeadf1a2db1f9c0396f</code>",
+            "Head: seq 10, <code>sha256:ead11f5872b8d2ea46acf46ffb0623dd363fbe5cc0b7c4759f14437304142baf</code>",
+            "Verification: whole",
+            "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+            "Pages: <a href='ltscriptgtxltscriptgtltimgsrcxonerrorygtx27quotampampltahrefquotjavascriptzquotgt.html'>&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;</a>, <a href='ltscriptgtxltscriptgtltimgsrcxonerrorygtx27quotampampltahrefquotjavascriptzquotgtadmissions.html'>&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; admissions</a>",
+            "Entries:",
+            "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:e07338b7189d</code>",
+            "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;, 2 &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; at &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; 120,000 each <code>sha256:4ba2c43ee1ce</code>",
+            "2. 2026-10-01T09:03:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4ba2c43ee1ce</code> <code>sha256:0266075578e2</code>",
+            "3. 2026-10-01T09:04:00Z paid by <code>ed25519:79b5562e8fe6</code>: claim <code>sha256:0266075578e2</code> by &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; <code>sha256:ebca20c3e0a5</code>",
+            "4. 2026-10-01T09:05:00Z delivered by <code>ed25519:03a107bff3ce</code>: claim <code>sha256:0266075578e2</code> <code>sha256:6311452e284f</code>",
+            "5. 2026-10-01T09:06:00Z dispute by <code>ed25519:79b5562e8fe6</code>: about <code>sha256:0266075578e2</code>: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; <code>sha256:8f78db9904f1</code>",
+            "6. 2026-10-01T09:07:00Z note by <code>ed25519:03a107bff3ce</code>: about <code>sha256:0266075578e2</code>: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; <code>sha256:c245e8c1a579</code>",
+            "7. 2026-10-01T09:08:00Z admit by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:88a43b03e1da</code>",
+            "8. 2026-10-01T09:09:00Z revoke by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:67c426262ba2</code>",
+            "9. 2026-10-01T09:10:00Z list by <code>ed25519:03a107bff3ce</code>: ledger <code>sha256:000000000000</code> &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; <code>sha256:4a715d941147</code>",
+            "10. 2026-10-01T09:11:00Z delist by <code>ed25519:03a107bff3ce</code>: ledger <code>sha256:000000000000</code> <code>sha256:ead11f5872b8</code>"
+        ]
+    },
+    {
+        "title": "&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+        "body": [
+            "<!-- ledgdex -->&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; 120,000 per &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;, 1 of 2 left, open",
+            "&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Media: <code>&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;</code> <code>sha256:3333333333333333333333333333333333333333333333333333333333333333</code>",
+            "Status: open",
+            "Remaining: 1 of 2 &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Price: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; 120,000 per &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Pay by &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code> &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Terms: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "Who may buy: anyone",
+            "Offer id: <code>sha256:4ba2c43ee1cef70236f8f3925c15cd3b4c72a2e1c6af727656fda18cdac19597</code>",
+            "Offer hash: <code>sha256:6c766e402b447970d0205d0d4451eea5bf2e984da10531baf5be91a85e497aed</code>",
+            "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4ba2c43ee1cef70236f8f3925c15cd3b4c72a2e1c6af727656fda18cdac19597 --quantity 1</code>",
+            "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+            "Claims:",
+            "<code>sha256:0266075578e2</code> by <code>ed25519:79b5562e8fe6</code>: 1 at &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; 120,000, disputed, paid, delivered"
+        ]
+    },
+    {
+        "title": "&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; admissions",
+        "body": [
+            "<!-- ledgdex -->0 keys admitted",
+            "2026-10-01T09:08:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;",
+            "2026-10-01T09:09:00Z revoke <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: &lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt;"
+        ]
+    }
+]

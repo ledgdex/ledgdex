@@ -1010,6 +1010,12 @@ another ledger, granting a key signing power the owner never gave here (vector
 broken root is refused. Before, the dex named its root by address only, so whoever controlled that address could
 serve another ledger as the root, and `ledgdex offer` would name its owner as the arbiter of every new offer.
 
+**v1.0.8** (tenth audit): the dex name is written by dexweb into every page's `<h1>` and footer unescaped and
+upper-cased (no escaping survives that), so a ledger named with markup put script on its own dex site, which on a
+shared origin could reach the viewer's stored data. `ledgdex init` and the viewer's "Download your dex" now drop
+`<`, `>`, `&`, `"`, `'` and control characters from the dex name (`render.dex_name`, `dexName`; vectors
+`dexnames.json` and `dex/hostile-text/`).
+
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.

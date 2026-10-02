@@ -62,3 +62,20 @@ class PagesCarryOnlyText(unittest.TestCase):
             for pages in json.load(f).values():
                 for page in pages:
                     self.assertNotRegex(page['title'], '[<>"]', page['title'])
+
+
+class DexPagesCarryOnlyTheTemplate(unittest.TestCase):
+    def test_no_markup_from_a_ledger_in_any_built_dex(self):
+        # the dex name is written unescaped by dexweb: a hostile ledger name must not become markup (render.dex_name)
+        root = os.path.join(os.path.dirname(__file__), '..', '..', 'vectors', 'dex')
+        pages = 0
+        for dirpath, _, names in os.walk(root):
+            for n in names:
+                if n.endswith('.html'):
+                    with open(os.path.join(dirpath, n), encoding='utf-8') as f:
+                        text = f.read().lower()
+                    self.assertNotIn('<img', text, n)
+                    self.assertNotIn('<script>x', text, n)
+                    self.assertNotRegex(text, r'<[^>]*\son\w+=', n)
+                    pages += 1
+        self.assertGreater(pages, 10)

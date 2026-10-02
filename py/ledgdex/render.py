@@ -263,10 +263,17 @@ def generated(page):
 RUN_PY = 'from dexweb import dexgen\ndex = dexgen.Dexgen()\n'
 
 
+def dex_name(name):
+    """A dex name dexweb can write into its pages as it is (it does not escape it, and upper-cases it, which no
+    escaping survives): without the characters HTML gives meaning to, or control characters."""
+    return ''.join(c for c in name if c not in '<>&"\'' and ' ' <= c != '\x7f') or 'Ledgdex'
+
+
 def create_dex(dex, data, dexname, publish=None):
     """A complete dex (spec 7.1) around the ledger bytes `data`: config.json with dexweb's own template and
     "publish" with "append_only", data.json, run.py, then render. Keeps a config.json that is already there."""
     from dexweb import dexgen
+    dexname = dex_name(dexname)
     from .dex import write
     os.makedirs(dex, exist_ok=True)
     write(dex, data)

@@ -1,0 +1,42 @@
+[
+ [
+  "Farm ü",
+  "Farm ü"
+ ],
+ [
+  "Maps & co",
+  "Maps  co"
+ ],
+ [
+  "<script>x()</script>",
+  "scriptx()/script"
+ ],
+ [
+  "\"'><img src=x onerror=y()>",
+  "img src=x onerror=y()"
+ ],
+ [
+  "\u0000\u001f",
+  "Ledgdex"
+ ],
+ [
+  "",
+  "Ledgdex"
+ ],
+ [
+  "<>&",
+  "Ledgdex"
+ ],
+ [
+  "आम 😀 Asha",
+  "आम 😀 Asha"
+ ],
+ [
+  "tab\there",
+  "tabhere"
+ ],
+ [
+  "line\nbreak",
+  "linebreak"
+ ]
+]

@@ -331,13 +331,20 @@ def build():
             rendered[name] = pages(led, ['Mangoes', 'About', 'Farm ledger'])
     files['pages.json'] = json.dumps(rendered, indent=1, ensure_ascii=False) + '\n'
 
+    # dex names as dexweb may write them, unescaped (render.dex_name): JavaScript's dexName must agree
+    from ledgdex.render import dex_name
+    names = ['Farm ü', 'Maps & co', '<script>x()</script>', '"\'><img src=x onerror=y()>', '\x00\x1f\x7f', '', '<>&',
+             'आम 😀 Asha', 'tab\there', 'line\nbreak']
+    files['dexnames.json'] = json.dumps([[n, dex_name(n)] for n in names], indent=1, ensure_ascii=False) + '\n'
+
     # whole dexs built by dexweb (what "ledgdex init" makes): JavaScript's dexweb.js must build the same files
     import contextlib, io, shutil, tempfile
     from dexweb import dexgen
     from ledgdex.render import create_dex, render
     tmp = tempfile.mkdtemp(prefix='ledgdex-vectors-')
     try:
-        for name, dexname in (('market', 'Farm ü'), ('buyer', 'आम Asha'), ('index', 'Market'), ('auctions', 'Maps & co')):
+        for name, dexname in (('market', 'Farm ü'), ('buyer', 'आम Asha'), ('index', 'Market'), ('auctions', 'Maps & co'),
+                              ('hostile-text', '<img src=x onerror=y()>"\'\x00\x7f')):
             dex = os.path.join(tmp, name)
             with contextlib.redirect_stdout(io.StringIO()):
                 create_dex(dex, ledgers[name], dexname)

@@ -11,7 +11,7 @@ import * as ed from './ed25519.js';
 import { unhex, hex } from './sha.js';
 import { signer, vendoredSigner, webCryptoSigner, webCryptoWorks } from './sig.js';
 import { sealKey, openKey, sealWith, openWith } from './keystore.js';
-import { safeUrl } from './render.js';
+import { safeUrl, dexName } from './render.js';
 
 const V = join(dirname(fileURLToPath(import.meta.url)), '..', 'vectors');
 const json = (p) => JSON.parse(readFileSync(join(V, p), 'utf8'));
@@ -75,6 +75,9 @@ for (const name of Object.keys(rendered)) {
     }
   }
 }
+
+// dex names dexweb writes unescaped: the same characters removed as in Python
+for (const [raw, want] of json('dexnames.json')) ok(dexName(raw) === want, 'dex name ' + JSON.stringify(raw));
 
 // whole dexs: dexweb.js must build every file dexweb built (vectors/dex/)
 const template = JSON.parse(readFileSync(join(V, '..', 'js', 'dexweb-template.json'), 'utf8'));

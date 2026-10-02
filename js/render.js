@@ -28,6 +28,9 @@ export const code = (s) => '<code>' + esc(s) + '</code>';
 /** dexweb names each page file after its title: letters and digits only, lowercase. */
 export const htmlTitle = (t) => [...t].filter((c) => ALNUM.test(c)).join('').toLowerCase();
 // only http(s) addresses become links: a ledger names them, so a javascript: or data: address must not
+// a dex name dexweb can write into its pages as it is (it does not escape it, and upper-cases it, which no escaping
+// survives): without the characters HTML gives meaning to, or control characters
+export const dexName = (name) => [...name].filter((c) => !'<>&"\''.includes(c) && c >= ' ' && c !== '\x7f').join('') || 'Ledgdex';
 export const safeUrl = (u) => (u.startsWith('http://') || u.startsWith('https://')) && !/[\x00-\x20\x7f]/.test(u);
 const urlLink = (u) => safeUrl(u) ? "<a href='" + esc(u) + "' rel='nofollow noopener noreferrer'>" + esc(u) + '</a>' : code(u);
 const link = (title) => "<a href='" + htmlTitle(title) + ".html'>" + title + '</a>';

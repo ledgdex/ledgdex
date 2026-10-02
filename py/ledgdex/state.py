@@ -1,25 +1,32 @@
 """The state function (spec 6): replay a ledger into one JSON object."""
 from .canon import hash_
-from .core import Keys
+from .core import SKEW, Keys, seconds
 
 OUTCOME = {'release': 'released', 'refund': 'refunded', 'split': 'split'}
 
 
 def admissions(root):
-    """The root's admit and revoke entries in order, as {key: [(time, admitted)]} (a message recorded twice counts
-    once, as in 6.2). A claim or bid is judged by the root's admissions when its author signed it (msg.at, which the
-    seller cannot move, unlike its own entry time), never by later ones (spec 5.7)."""
+    """The root's admit and revoke entries in order, as {key: [(seconds, admitted)]} (a message recorded twice counts
+    once, as in 6.2). A claim or bid is judged by the root's admissions at judged_at() (spec 5.7)."""
     out, seen = {}, set()
     for e in root.entries:
         m = e['msg']
         if m['type'] in ('admit', 'revoke') and hash_(m) not in seen:
-            out.setdefault(m['body']['key'], []).append((e['time'], m['type'] == 'admit'))
+            out.setdefault(m['body']['key'], []).append((seconds(e['time']), m['type'] == 'admit'))
         seen.add(hash_(m))
     return out
 
 
+def judged_at(m, entry_time):
+    """When a claim or bid is judged against the root (spec 5.7), in seconds: the later of the time its author signed
+    it (msg.at, which the seller cannot move) and the time the seller recorded it less the allowed skew (which the
+    buyer cannot move back: a revoked key cannot buy by dating its claim before the revoke). Never a later root
+    entry: a past claim stays as it was judged."""
+    return max(seconds(m['at']), seconds(entry_time) - SKEW)
+
+
 def admitted_at(admits, key, t):
-    """Whether the root had admitted key at time t."""
+    """Whether the root had admitted key at time t (seconds)."""
     now = False
     for time, admitted in admits.get(key, []):
         if time > t:
@@ -130,7 +137,7 @@ def state(led, root=None, now=None):
                 reason = 'expired'
             elif mine(m['by']):
                 reason = 'self_claim'  # a self never buys from its own ledger
-            elif not may(ob['allow'], m['by'], m['at']):
+            elif not may(ob['allow'], m['by'], judged_at(m, at)):
                 reason = 'not_allowed'
             elif b['quantity'] < 1 or b['quantity'] > o['remaining']:
                 reason = 'bad_quantity'
@@ -199,7 +206,7 @@ def state(led, root=None, now=None):
                 ignore(n, 'late_bid')
             elif mine(m['by']):
                 ignore(n, 'self_bid')
-            elif not may(h['body']['allow'], m['by'], m['at']):
+            elif not may(h['body']['allow'], m['by'], judged_at(m, at)):
                 ignore(n, 'not_allowed')
             elif m['by'] in h['bids']:
                 ignore(n, 'duplicate_bid')

@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.14. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.15. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -26,7 +26,10 @@ ledger or steps that show the problem. Please do not open a public issue for a w
   against a hostile root; upgrade to 1.0.3, and delete `~/.cache/ledgdex` if you ever verified with a root you do
   not trust.)
 - **`check` accuses only with the accused's own signatures.** A receipt signed by a revoked device, or naming an
-  address that never served the ledger, is a warning, not an error.
+  address that never served the ledger, is a warning, not an error. Every entry a receipt holds (its key chain
+  too) is compared, so deleting an owner-signed entry that a receipt holds is caught. Receipts signed by a device key
+  are weaker evidence than the owner's: if the ledger later shows that device revoked before the entry, `check` cannot
+  tell a rewrite from a stolen device and warns; keep `check` running so its kept copies catch the rewrite itself.
 - **Only the owner key changes a ledger's keys.** `device`, `device_revoke`, `rotate` (and the root's `recover`) must
   be authored *and* recorded by the owner key, so a device cannot copy in such a message its owner signed for
   another ledger. (1.0.5 and earlier allowed it.)

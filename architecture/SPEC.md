@@ -424,10 +424,12 @@ Delisting a ledger that is not listed is ignored (`not_listed`). The state lists
 
 The root is a ledger whose `admit` and `revoke` entries define who is in The Matrix. A verifier MAY be given a root
 ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root at
-the time the claim or bid was signed: the root's `admit` and `revoke` entries with `time` at or before the message's
-`at` (signed by the buyer or bidder, so the seller cannot move it, as it could its own entry `time`)
+the time the claim or bid is judged: the later of its `at` (signed by the buyer or bidder, which the seller cannot
+move) and the recording entry's `time` less 300 seconds (which the buyer cannot move back, so a revoked key cannot buy
+by dating its claim before the revoke). The root's `admit` and `revoke` entries with `time` at or before that
 (the last one for that key decides; a message recorded twice counts once). A later `revoke` or `admit` in the root
-never changes a past claim, so everyone holding any later copy of the root computes the same state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
+never changes a past claim, so everyone holding any later copy of the root computes the same state.
+A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
 The root is pinned by ledger id: a tool reading it without `root_id` writes the id it read (trust on first use), and
 refuses a root of another id or a broken root, since an address can come to serve another ledger (its hosting or
 DNS changes hands) and the root's owner is the default arbiter of new offers. Rotation and recovery keep the id.
@@ -1058,6 +1060,15 @@ judged at the claim's or bid's own `at`, signed by the buyer (vector `admitted-f
 voiding a root `recover` after a later-timed key change let a thief holding the stolen key block recovery for good
 by stamping a `rotate` years ahead; it is removed (a `recover` is still spent once; vector `recovered-from-thief`).
 `check` warns of entries timed ahead of now (`future_time`).
+
+**v1.0.15** (twentieth audit, of the fixes themselves): judging root admissions at the buyer's own `at` (1.0.14) let
+a key the root had revoked keep buying from `"admitted"` offers by dating its claims before the revoke. They are now
+judged at the later of `at` and the recording entry's `time` less 300 seconds, so neither side alone can move the
+judgement back (vectors `admitted-backdated`, `admitted-future-stamp`). A receipt's key chain now ignores a key
+message recorded again, as the ledger does, so a device message repeated after its revoke cannot make an entry
+signed by the revoked device verify (vector `broken-receipt-replayed-device`). And `check` compares every entry a
+receipt holds with each copy, its key chain too: a rewrite that deleted an owner-signed `device` entry, with the
+claims that device recorded, read as warnings and is now `receipt_mismatch`.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

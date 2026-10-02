@@ -1,26 +1,30 @@
 // The state function (spec 6): replay a ledger into one JSON object. Mirrors py/ledgdex/state.py.
 import { hash } from './canon.js';
-import { Keys, has } from './core.js';
+import { Keys, has, SKEW, seconds } from './core.js';
 
 const OUTCOME = { release: 'released', refund: 'refunded', split: 'split' };
 
 /** The root's admit and revoke entries in order, as Map key -> [[time, admitted]] (a message recorded twice counts
- * once, as in 6.2). A claim or bid is judged by the root's admissions when its author signed it (msg.at, which the
- * seller cannot move, unlike its own entry time), never by later ones (spec 5.7). */
+ * once, as in 6.2). A claim or bid is judged by the root's admissions at judgedAt() (spec 5.7). */
 export function admissions(root) {
   const out = new Map(), seen = new Set();
   for (const e of root.entries) {
     const m = e.msg, id = hash(m);
     if ((m.type === 'admit' || m.type === 'revoke') && !seen.has(id)) {
       if (!out.has(m.body.key)) out.set(m.body.key, []);
-      out.get(m.body.key).push([e.time, m.type === 'admit']);
+      out.get(m.body.key).push([seconds(e.time), m.type === 'admit']);
     }
     seen.add(id);
   }
   return out;
 }
 
-/** Whether the root had admitted key at time t. */
+/** When a claim or bid is judged against the root (spec 5.7), in seconds: the later of the time its author signed it
+ * (msg.at, which the seller cannot move) and the time the seller recorded it less the allowed skew (which the buyer
+ * cannot move back: a revoked key cannot buy by dating its claim before the revoke). */
+export const judgedAt = (m, entryTime) => Math.max(seconds(m.at), seconds(entryTime) - SKEW);
+
+/** Whether the root had admitted key at time t (seconds). */
 export function admittedAt(admits, key, t) {
   let now = false;
   for (const [time, admitted] of admits.get(key) || []) {
@@ -107,7 +111,7 @@ export function state(led, root = null, now = null) {
       else if (o.status === 'withdrawn') reason = 'withdrawn';
       else if (has(ob, 'expires') && at >= ob.expires) reason = 'expired';
       else if (mine(m.by)) reason = 'self_claim';
-      else if (!may(ob.allow, m.by, m.at)) reason = 'not_allowed';
+      else if (!may(ob.allow, m.by, judgedAt(m, at))) reason = 'not_allowed';
       else if (b.quantity < 1 || b.quantity > o.remaining) reason = 'bad_quantity';
       else if (b.price !== ob.price) reason = 'price_mismatch';
       if (reason) { c.status = 'rejected'; c.reason = reason; } else {
@@ -157,7 +161,7 @@ export function state(led, root = null, now = null) {
       if (h === null) ignore(n, 'unknown_auction');
       else if (at >= h.body.close) ignore(n, 'late_bid');
       else if (mine(m.by)) ignore(n, 'self_bid');
-      else if (!may(h.body.allow, m.by, m.at)) ignore(n, 'not_allowed');
+      else if (!may(h.body.allow, m.by, judgedAt(m, at))) ignore(n, 'not_allowed');
       else if (has(h.bids, m.by)) ignore(n, 'duplicate_bid');
       else { h.bids[m.by] = { commit: b.commit, seq: n }; auctions[b.auction].bids += 1; }
     } else if (t === 'reveal') {

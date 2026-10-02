@@ -269,7 +269,7 @@ def check_receipt(body, root=None):
     if hash_(body['header']) != body['ledger']:
         raise Invalid('receipt: header does not match ledger id')
     e = body['entry']
-    keys, last = Keys(body['header']['owner']), -1
+    keys, last, seen = Keys(body['header']['owner']), -1, set()
     for k in body.get('keys', []):
         if not last < k['seq'] < e['seq']:
             raise Invalid('receipt: key entries must be in order and before the entry')
@@ -286,7 +286,9 @@ def check_receipt(body, root=None):
                 m['type'] not in OWNER_ONLY or signer == keys.owner)
         if not ok:
             raise Invalid('receipt: key entry ' + str(k['seq']) + ' does not verify')
-        keys.apply(m)
+        if hash_(m) not in seen:   # as in the ledger: a key message recorded again changes nothing (6.2)
+            keys.apply(m)
+        seen.add(hash_(m))
         last = k['seq']
     if keys.signed_by(e) is None:
         raise Invalid('receipt: entry signature does not verify')

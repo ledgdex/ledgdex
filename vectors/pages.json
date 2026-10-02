@@ -1,4 +1,51 @@
 {
+ "admitted-backdated": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 4 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 3, <code>sha256:b922f6342ae4be10b7e37806ecc3e208ca777bb82ab9c594946c184d1dd0790f</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>, <a href='farmadmissions.html'>Farm admissions</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:38:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 1 dozen at INR 1,200.00 (120000) each <code>sha256:32799f1d8c24</code>",
+    "2. 2026-10-01T09:39:00Z admit by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:53300590e573</code>",
+    "3. 2026-10-01T09:40:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:32799f1d8c24</code> <code>sha256:b922f6342ae4</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 0 of 1 left, sold",
+    "ripe",
+    "Status: sold",
+    "Remaining: 0 of 1 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: keys admitted by this ledger",
+    "Offer id: <code>sha256:32799f1d8c246ef96e77d76fdfed4b65644bd1b2ebb6855918dc94574c7c0416</code>",
+    "Offer hash: <code>sha256:d9f470bb324edfeba7eba785a8c12809a15456c2db190c2060ad8c5ac82c4212</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:32799f1d8c246ef96e77d76fdfed4b65644bd1b2ebb6855918dc94574c7c0416 --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:b922f6342ae4</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted"
+   ]
+  },
+  {
+   "title": "Farm admissions",
+   "body": [
+    "<!-- ledgdex -->1 keys admitted",
+    "2026-10-01T09:39:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: "
+   ]
+  }
+ ],
  "admitted-future-stamp": [
   {
    "title": "Farm ledger (ledgdex)",

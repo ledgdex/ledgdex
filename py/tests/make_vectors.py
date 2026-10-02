@@ -288,13 +288,22 @@ def scenarios():
     ra.own('admit', {'key': public(OTHER), 'name': 'Other', 'note': ''})
     out['root-later'] = (ra, None, None)
     out['admitted-then'] = (rs, 'root-later', None)
-    # the seller stamps its entry years ahead: admission is still judged when the buyer signed (msg.at)
+    # the seller stamps its entry years ahead: admission is judged at the later of msg.at and the entry time less the
+    # skew, so this seller's own claim is judged in 2030 (check flags such ledgers: future_time)
     fs = Book(SELLER, 'Farm')
     fo, foh = fs.offer(quantity=1, allow='admitted')
     fs.own('admit', {'key': public(BUYER), 'name': '', 'note': ''})
     fc = message(BUYER, 'claim', {'offer': fo, 'offer_hash': foh, 'quantity': 1, 'price': 120000}, at=t(5))
     fs.led.append(fs.led.next_entry(SELLER, fc, at='2030-01-01T00:00:00Z'))
     out['admitted-future-stamp'] = (fs, 'root-later', None)
+    # a buyer the root has revoked dates its claim before the revoke: judged when the seller recorded it, so refused
+    bs = Book(SELLER, 'Farm')
+    bs.minute = ra.minute + 20
+    bo, boh = bs.offer(quantity=1, allow='admitted')
+    bs.own('admit', {'key': public(BUYER), 'name': '', 'note': ''})
+    bc = message(BUYER, 'claim', {'offer': bo, 'offer_hash': boh, 'quantity': 1, 'price': 120000}, at=t(1))
+    bs.led.append(bs.led.next_entry(SELLER, bc, at=t(bs.minute + 1)))
+    out['admitted-backdated'] = (bs, 'root-later', None)
     # a thief with the owner key rotates to itself, stamped years ahead; the root's recovery must still work
     tr = Book(ROOTKEY, 'Root')
     tv = Book(SELLER, 'Farm')
@@ -317,6 +326,25 @@ def scenarios():
     dup.rec(da)
     dup.rec(da)
     out['duplicate-offer'] = (dup, None, None)
+
+    # a receipt whose key chain holds a device message recorded again after its revoke: as in the ledger it changes
+    # nothing, so an entry signed by the revoked device does not verify (before 1.0.15 it did)
+    ds = Book()
+    dsm = message(SELLER, 'device', {'key': public(PHONE), 'name': 'phone'}, at=ds.tick())
+    ds.led.append(ds.led.next_entry(SELLER, dsm, at=t(ds.minute)))
+    ds.own('device_revoke', {'key': public(PHONE), 'reason': 'stolen'})
+    ds.led.append(ds.led.next_entry(SELLER, dsm, at=t(ds.tick() and ds.minute)))
+    dsf = {'seq': len(ds.led.entries), 'prev': ds.led.ids[-1], 'time': t(40),
+           'msg': message(BUYER, 'confirmed', {'claim': ZERO}, at=t(40))}
+    dsf['sig'] = sign(PHONE, dsf)
+    dsb = Book(BUYER, 'Asha')
+    dsr = {'v': 1, 'type': 'receipt', 'by': public(BUYER), 'at': t(41), 'body': {
+        'ledger': ds.led.id, 'url': 'https://farm.example', 'header': ds.led.header, 'entry': dsf,
+        'keys': [x for x in ds.led.entries if x['msg']['type'] in ('device', 'device_revoke')]}}
+    dsr['sig'] = sign(BUYER, dsr)
+    dse = {'seq': 1, 'prev': dsb.led.ids[-1], 'time': t(41), 'msg': dsr}
+    dse['sig'] = sign(BUYER, dse)
+    out['broken-receipt-replayed-device'] = (dsb.led.data + canon(dse) + b'\n', None, None)
 
     # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
     from ledgdex import ed25519

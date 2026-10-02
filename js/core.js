@@ -160,7 +160,7 @@ export function rootRecovers(root, ledgerId, e, prior = []) {
 // a "recovered" key entry is checked against the root, as in the ledger: else anyone could sign a false receipt
 export function checkReceipt(body, root = null) {
   if (hash(body.header) !== body.ledger) throw new Invalid('receipt: header does not match ledger id');
-  const e = body.entry, keys = new Keys(body.header.owner);
+  const e = body.entry, keys = new Keys(body.header.owner), seen = new Set();
   let last = -1;
   for (const k of body.keys || []) {
     if (!(last < k.seq && k.seq < e.seq)) throw new Invalid('receipt: key entries must be in order and before the entry');
@@ -173,7 +173,8 @@ export function checkReceipt(body, root = null) {
     const signer = m.type === 'recovered' ? null : keys.signedBy(k);
     const ok = m.type === 'recovered' || (signer !== null && keys.canAuthor(m.type, m.by) && (!OWNER_ONLY.has(m.type) || signer === keys.owner));
     if (!ok) throw new Invalid('receipt: key entry ' + k.seq + ' does not verify');
-    keys.apply(m);
+    if (!seen.has(hash(m))) keys.apply(m);  // as in the ledger: a key message recorded again changes nothing (6.2)
+    seen.add(hash(m));
     last = k.seq;
   }
   if (keys.signedBy(e) === null) throw new Invalid('receipt: entry signature does not verify');

@@ -200,6 +200,7 @@ class Checker:
             if not copies:
                 self.problem('warning', 'receipts_unchecked', url, 'could not reach ledger ' + ledger_id)
                 continue
+            reported = set()
             for r in g['receipts']:
                 e, s = r['entry'], r['entry']['seq']
                 found = False
@@ -207,18 +208,26 @@ class Checker:
                     if s >= len(c.ids):
                         continue
                     found = True
-                    if c.ids[s] != hash_(e) and not self.signed_then(c, e):
-                        # signed by a key this ledger did not have at that seq (a revoked device, a forged chain):
-                        # not the owner's word, so not proof against the ledger
-                        self.problem('warning', 'receipt_bad_signer', url, 'the receipt for entry ' + str(s) +
-                                     ' of ledger ' + ledger_id + ' is not signed by a key that ledger had then')
-                    elif c.ids[s] != hash_(e):
-                        proof = self.store.proof('receipt-' + ledger_id[7:19] + '-' + str(s), {
+                    # every entry the receipt holds (its key chain too) is compared: a chain entry signed by the owner
+                    # that differs from this copy proves a rewrite as surely as the receipt entry itself
+                    for x in r.get('keys', []) + [e]:
+                        xs = x['seq']
+                        if xs >= len(c.ids) or c.ids[xs] == hash_(x) or (c_url, xs) in reported:
+                            continue
+                        reported.add((c_url, xs))
+                        if not self.signed_then(c, x):
+                            # signed by a key this ledger did not have at that seq (a revoked device, a forged
+                            # chain): not the owner's word, so not proof against the ledger
+                            self.problem('warning', 'receipt_bad_signer', url, 'the receipt\'s entry ' + str(xs) +
+                                         ' of ledger ' + ledger_id + ' is not signed by a key that ledger had then')
+                            continue
+                        proof = self.store.proof('receipt-' + ledger_id[7:19] + '-' + str(xs), {
                             'kind': 'receipt_mismatch', 'ledger': ledger_id, 'url': c_url, 'receipt': r,
-                            'now': json.loads(c.lines[s]),
-                            'note': 'The ledger owner signed the receipt entry at this seq; this copy has another.'})
-                        self.problem('error', 'receipt_mismatch', c_url, 'entry ' + str(s) + ' differs from the receipt '
-                                     'held by ' + url, ledger_id, proof)
+                            'entry': x, 'now': json.loads(c.lines[xs]),
+                            'note': 'The receipt holds an entry at this seq signed by a key the ledger had then; this '
+                                    'copy has another.'})
+                        self.problem('error', 'receipt_mismatch', c_url, 'entry ' + str(xs) + ' differs from the '
+                                     'receipt held by ' + url, ledger_id, proof)
                 if not found:
                     self.problem('warning', 'receipt_not_visible', url, 'no copy of ledger ' + ledger_id +
                                  ' has entry ' + str(s) + ' yet')

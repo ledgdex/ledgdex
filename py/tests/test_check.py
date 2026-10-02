@@ -150,6 +150,27 @@ class Check(unittest.TestCase):
         self.assertTrue(r['ok'])
         self.assertIn(('warning', 'future_time'), self.codes(r))
 
+    def test_a_rewrite_that_deletes_a_device_is_caught(self):
+        from helpers import t
+        from ledgdex.core import message, public
+        PHONE = bytes(range(10, 42))
+        s = Book()
+        oid, oh = s.offer()
+        s.own('device', {'key': public(PHONE), 'name': 'phone'})
+        c = message(BUYER, 'claim', {'offer': oid, 'offer_hash': oh, 'quantity': 1, 'price': 120000}, at=s.tick())
+        s.led.append(s.led.next_entry(PHONE, c, at=t(s.minute)))           # the phone records the claim
+        sp = os.path.join(self.tmp, 'seller.jsonl')
+        buyer = Book(BUYER, 'Asha')
+        buyer.own('receipt', {'ledger': s.led.id, 'url': sp, 'header': s.led.header, 'entry': s.led.entries[-1],
+                              'keys': [s.led.entries[2]]})
+        bp = self.put('buyer.jsonl', buyer.led.data)
+        r = Book()                                                             # the rewrite: no device, no claim
+        r.offer()
+        r.own('note', {'ref': r.led.ids[0], 'text': 'nothing to see'})
+        r.own('note', {'ref': r.led.ids[0], 'text': 'really'})
+        self.put('seller.jsonl', r.led.data)
+        self.assertIn(('error', 'receipt_mismatch'), self.codes(self.run_check(bp, sp)))
+
     def test_unreachable_counterparty_is_a_warning(self):
         _, _, sp, bp = self.trade()
         os.remove(sp)

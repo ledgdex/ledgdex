@@ -191,6 +191,31 @@ def resign_from(lines, k, change, rnd):
     return b'\n'.join(out) + b'\n'
 
 
+def transplant(lines, donors, rnd):
+    """Record, on top of a ledger, a message taken from another ledger (or from earlier in this one), signed by any
+    known key, with the chain and time kept valid: only the rules on who may record what decide (owner-only copies,
+    devices, counterparties, duplicates)."""
+    head = json.loads(lines[0])
+    entries = [json.loads(x) for x in lines[1:]]
+    donor = rnd.choice(donors)
+    msgs = [json.loads(x)['msg'] for x in donor[1:]]
+    if not entries or not msgs:
+        return b'\n'.join(lines) + b'\n'
+    m = rnd.choice(msgs)
+    for x in (m.get('body', {}).get('msg'), m.get('body', {}).get('entry', {}).get('msg') if isinstance(m.get('body', {}).get('entry'), dict) else None):
+        if isinstance(x, dict) and rnd.random() < 0.3:
+            m = x            # sometimes the message inside a "sent" or a receipt
+    last = entries[-1]
+    t = max(last['time'], m['at']) if isinstance(m.get('at'), str) else last['time']
+    e = {'seq': len(entries), 'prev': 'sha256:' + __import__('hashlib').sha256(lines[-1]).hexdigest(), 'time': t, 'msg': m}
+    try:   # mostly signed by one of the ledger's own current keys (owner or a device), so the rules are reached
+        own = [KEYS[k] for k in Ledger(b'\n'.join(lines) + b'\n', cache=False).keys.signing() if k in KEYS]
+    except Exception:
+        own = []
+    e['sig'] = sign(rnd.choice(own) if own and rnd.random() < 0.8 else rnd.choice(list(KEYS.values())), e)
+    return b'\n'.join(lines + [canon(e)]) + b'\n'
+
+
 def random_value(rnd):
     return rnd.choice([0, -1, 2 ** 53 - 1, 2 ** 53, 1.5, True, False, None, '', 'x', '\ud800', 'é', [], {}, [1],
                        {'a': 1}, {'A': 1}, 'sha256:' + '0' * 64, 'ed25519:' + '1' * 64, '2026-02-30T00:00:00Z',
@@ -331,7 +356,9 @@ def corpus(seed, n_ledgers, n_texts):
         else:
             src = rnd.choice(bases + [build(rnd, 20).data])
             lines = src.split(b'\n')[:-1]
-            if rnd.random() < 0.5 and len(lines) > 2:
+            if rnd.random() < 0.3 and len(lines) > 1:
+                data = transplant(lines, [b.split(b'\n')[:-1] for b in bases], rnd)
+            elif rnd.random() < 0.5 and len(lines) > 2:
                 data = resign_from(lines, rnd.randrange(len(lines) - 1), mutate_field, rnd)
             else:
                 data = src

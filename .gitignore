@@ -5,3 +5,8 @@ dist/
 viewer/gen/
 viewer/backup/
 viewer/to_add/
+guide/dex/gen/
+guide/dex/backup/
+guide/dex/to_add/
+guide/dex/.ledgdex.lock
+guide/dex/.publish/

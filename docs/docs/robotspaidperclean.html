@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Robots Paid per Clean - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>ROBOTS PAID PER CLEAN</h1>
+<br>
+<p>The use case in <a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>spec section 10</a>: vacuum robots clean a mall's floor, the shops pay per clean, settled daily, and robots of different operators fill in for each other. With what is built today:</p><p>1. Each robot has its own ledgdex; its operator holds the owner key, the robot a device key.</p><p>2. Each morning each robot offers the day's cleans (quantity, price per clean, <code>expires</code> at midnight).</p><p>3. A shop needing a clean claims one from a robot with cleans left; the robot records the claim, cleans, and records <code>delivered</code> with its photo (address and hash) as evidence; the shop confirms.</p><p>4. A robot going offline withdraws its offer; shops claim from the other robots.</p><p>5. In the evening each shop pays each robot for the day's confirmed cleans; each robot records <code>received</code>. The day's totals are computed from the ledgers alone.</p><p><a href='examplerobotcleaning.html'>Example: Robot Cleaning</a> runs a whole day with two operators and three shops. Deadlines that lapse unclaimed cleans, mall credits and a clearing ledger are drafted in the spec (milestone 11).</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

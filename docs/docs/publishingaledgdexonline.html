@@ -1,0 +1,18 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Publishing a Ledgdex Online - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>PUBLISHING A LEDGDEX ONLINE</h1>
+<br>
+<p>A ledgdex is published like any dex, with dexweb: to a git repository (GitHub Pages for free hosting) or a folder. The difference: <code>config.json</code> has <code>"append_only": ["ledgdex.jsonl"]</code>, so dexweb refuses to publish a ledger that does not extend the published one.</p><p>1. Make a repository (on GitHub: <code>YOU.github.io</code>, or any repository with Pages on).</p><p>2. Name it at init, or later in <code>config.json</code> <code>"publish"</code>: <pre><code>ledgdex init shop --name "Mango Farm" --key farm --url https://YOU.github.io \
+    --dest git@github.com:YOU/YOU.github.io.git --branch main</code></pre></p><p>3. Publish after changes: <pre><code>ledgdex publish shop</code></pre></p><p>4. Others read it at the address: <pre><code>ledgdex verify https://YOU.github.io</code></pre></p><p>From several devices: each keeps a copy of the dex and its own device key. If another device published first, <code>ledgdex publish</code> re-signs this device's unpublished entries on top of the published ledger and publishes again: one history, never two entries at one position. <a href='examplepublish.html'>Example: Publish</a> runs it against a local repository.</p><p>Static hosting is enough: GitHub Pages, any web server, a shared folder on a local network (machines can trade over plain HTTP: <a href='botsandagents.html'>Bots and Agents</a>).</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

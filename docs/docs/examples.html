@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Examples - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>EXAMPLES</h1>
+<br>
+<p>Every example below is a file in <a href='https://github.com/matrixdex/ledgdex/tree/main/guide/examples'><code>guide/examples/</code></a>, run as it is on every push: each must exit without error and print what its <code>expect:</code> lines name. Download one and run it in an empty folder (keys go to <code>~/.ledgdex</code>, or set <code>LEDGDEX_HOME</code> to keep them apart).</p><p><a href='examplefirsttrade.html'>Example: First Trade</a> (everyone): A whole trade between a seller and a buyer on one machine: offer, claim, receipt, payment, delivery and confirmation, then verification.</p><p><a href='examplemarketplace.html'>Example: Marketplace</a> (market operators): An operator's root and index, two shops selling to admitted members, a buyer choosing the cheapest offer through the index, and a stranger turned away.</p><p><a href='exampleauction.html'>Example: Auction</a> (sellers and bidders): A sealed-bid auction with two bidders, their reveals, and the winner by rule.</p><p><a href='exampledisputes.html'>Example: Disputes</a> (buyers, sellers and arbiters): A dispute ruled by the arbiter the offer names, and a seller's own ruling ignored.</p><p><a href='examplekeys.html'>Example: Keys</a> (everyone): A phone with a device key, revoking it, rotating the owner key, and recovering a lost key through the root.</p><p><a href='examplepublish.html'>Example: Publish</a> (sellers): Publishing to a git repository from two devices, with the second catching up automatically.</p><p><a href='examplecheck.html'>Example: Check</a> (everyone): A seller rewriting its ledger to erase a sale, caught by ledgdex check with signed proof, and the GitHub workflow that runs the check daily.</p><p><a href='examplepythonapi.html'>Example: Python API</a> (developers): The core API without a dex: a ledger in memory, signed messages, verification, state, and a one-byte change caught.</p><p><a href='examplebots.html'>Example: Bots</a> (bots and developers): A seller bot and two buyer bots trading through an index to closed deals, with no person involved.</p><p><a href='examplerobotcleaning.html'>Example: Robot Cleaning</a> (bots and machine operators): Robots of two operators paid per clean by the shops of a mall, one robot going offline mid-day, and the day's totals from the ledgers.</p><p><a href='exampleextending.html'>Example: Extending</a> (developers): A sales report from the state, added to the dex as a page that ledgdex keeps.</p><p><a href='examplejavascript.html'>Example: JavaScript</a> (developers): The JavaScript core in Node (and the browser): a ledger made, read back from its bytes, and its state.</p><p>Smaller examples are on each topic page: <a href='selling.html'>Selling</a>, <a href='buying.html'>Buying</a>, <a href='setupamarketplace.html'>Set Up a Marketplace</a>, <a href='checkingfortampering.html'>Checking for Tampering</a>.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

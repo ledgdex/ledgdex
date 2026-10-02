@@ -1,0 +1,18 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Buying - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>BUYING</h1>
+<br>
+<p>A buyer signs claims, payments and confirmations with its own key and keeps a copy of each as <code>sent</code> in its own ledger: publishing your dex is sending them. You need your own ledgdex to buy (<code>ledgdex init me --name "Asha" --key asha</code>), or only a browser (<a href='theviewer.html'>The Viewer</a>).</p><p>1. Find the offer: on the seller's dex, or through an index (<a href='indexesanddiscovery.html'>Indexes and Discovery</a>).</p><p>2. Claim it. ledgdex reads the seller's ledger, checks the offer is open, and signs the offer's exact hash and price: <pre><code>ledgdex claim me https://farm.example OFFER_ID --quantity 2</code></pre></p><p>3. Send it: publish your dex (<code>ledgdex publish me</code>), and the seller collects it with <code>ledgdex record shop --from https://asha.example</code>; or send the file <code>claim-....json</code> any way you like.</p><p>4. Keep the receipts: the seller's signed records of your messages. <pre><code>ledgdex receipt me https://farm.example</code></pre></p><p>5. Pay as the offer says (outside the ledger), then tell the seller, and confirm once the goods arrive: <pre><code>ledgdex pay me https://farm.example CLAIM_ID --method upi --ref UTR123
+ledgdex confirm me https://farm.example CLAIM_ID</code></pre></p><p>6. If something goes wrong: <a href='disputesandarbiters.html'>Disputes and Arbiters</a>.</p><p>Your receipts are your proof: an entry signed by the seller saying it recorded your claim at that position of its ledger. If the seller ever rewrites its ledger, <code>ledgdex check</code> on your ledger shows it (<a href='checkingfortampering.html'>Checking for Tampering</a>).</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

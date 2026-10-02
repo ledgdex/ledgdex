@@ -1,0 +1,26 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Configuration - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>CONFIGURATION</h1>
+<br>
+<p><code>config.json</code> is dexweb's, with two parts ledgdex reads:</p><p><pre><code>{
+  "dexname": "Mango Farm", ... dexweb's templates and settings ...,
+  "publish": {"dest": "git@github.com:YOU/YOU.github.io.git", "branch": "main",
+              "append_only": ["ledgdex.jsonl"]},
+  "ledgdex": {"root": "https://market.example", "root_id": "sha256:..."}
+}</code></pre></p><p><code>publish</code>: where dexweb publishes (<a href='https://matrixdex.github.io/dexweb/publishingdexonline.html'>dexweb docs</a>); <code>append_only</code> must list <code>ledgdex.jsonl</code>. <code>ledgdex</code>: the root this dex trades under, pinned by its id.</p><p><b>Environment variables</b>:</p><p><pre><code>LEDGDEX_HOME       where keys live (default ~/.ledgdex)
+LEDGDEX_CACHE      the verification cache (default ~/.cache/ledgdex)
+LEDGDEX_NO_CACHE   1: verify every entry every time
+LEDGDEX_PURE       1: sign and verify with the built-in Ed25519 (not constant time)
+LEDGDEX_MAX_BYTES  the most read from one address (default 67108864, 64 MiB)</code></pre></p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

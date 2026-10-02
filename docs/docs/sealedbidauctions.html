@@ -1,0 +1,19 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Sealed-Bid Auctions - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>SEALED-BID AUCTIONS</h1>
+<br>
+<p>An auction takes secret bids until <code>close</code>. A bid signs only the hash of the amount and a random nonce, so nobody, not even the seller, sees it; after the close each bidder reveals; once <code>reveal_until</code> passes, the best valid reveal wins, by rule.</p><p><pre><code>{"item": {"title": "Map of Bombay, 1893"}, "currency": "INR",
+ "close": "2026-11-01T12:00:00Z", "reveal_until": "2026-11-02T12:00:00Z",
+ "best": "highest", "reserve": 500000}</code></pre></p><p>1. <code>ledgdex auction gallery auction.json</code></p><p>2. Bidders bid (the amount and nonce stay in <code>~/.ledgdex/bids</code> until the reveal): <pre><code>ledgdex bid me https://gallery.example AUCTION_ID --amount 650000</code></pre></p><p>3. After <code>close</code>: <pre><code>ledgdex reveal me https://gallery.example AUCTION_ID</code></pre></p><p>4. The seller records bids and reveals as they come (<code>ledgdex record</code>). After <code>reveal_until</code>, the state names the winner (<code>awarded</code>); the trade goes on as a claim: paid, delivered, confirmed.</p><p>Rules: one bid per key; bids after <code>close</code> and reveals outside the window are ignored; a reveal must match its bid; <code>"best": "lowest"</code> runs a procurement (the lowest offer at or under <code>reserve</code> wins); ties go to the earliest bid. A ledger's state is judged at its last entry, so a seller announces the result with any entry after <code>reveal_until</code> (a note). <a href='exampleauction.html'>Example: Auction</a>.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

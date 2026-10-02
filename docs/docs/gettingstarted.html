@@ -1,0 +1,21 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Getting Started - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>GETTING STARTED</h1>
+<br>
+<p>Ledgdex is a simple market on a <a href='https://matrixdex.github.io/dexweb'>dex</a>. A dex is a website made by <a href='https://github.com/matrixdex/dexweb'>dexweb</a> from your own files; a ledgdex is a dex with a signed, append-only ledger in it (<code>ledgdex.jsonl</code>). Every seller and buyer keeps one. A trade then exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record. No server, no blockchain: SHA-256, Ed25519 and plain files. <a href='dexandledgdex.html'>Dex is the core; dex + ledger is a ledgdex.</a></p><p>These docs are a ledgdex too: <a href='ledgdexdocsledger.html'>its own ledger</a> (signed once, as a demonstration) is rendered into the pages listed here, next to the written ones.</p><p>1. Install ledgdex (Python 3.8 or later, with git; more ways in <a href='installation.html'>Installation</a>): <pre><code>pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py"</code></pre></p><p>2. Make your ledgdex, a dex with a new ledger and a key kept in <code>~/.ledgdex</code>: <pre><code>ledgdex init shop --name "Mango Farm" --key farm</code></pre></p><p>3. Offer something. Prices are integers in the smallest unit of the currency (120000 is INR 1,200.00): <pre><code>cat &gt; offer.json &lt;&lt;EOF
+{"item": {"title": "Alphonso mangoes"}, "quantity": 10, "unit": "dozen",
+ "currency": "INR", "price": 120000, "pay": [{"method": "upi", "to": "farm@bank"}]}
+EOF
+ledgdex offer shop offer.json</code></pre></p><p>4. Open <code>shop/gen/index.html</code>: your dex, with a page for your ledger and one for the offer. Your own pages go in <code>shop/data.json</code> or <code>shop/to_add/</code> as in any dex.</p><p>5. Put it online (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>), and buyers claim from it (<a href='buying.html'>Buying</a>). <a href='examplefirsttrade.html'>Example: First Trade</a> runs a whole trade on one machine.</p><p>Where to go next: simple users setting up a market start at <a href='setupamarketplace.html'>Set Up a Marketplace</a>; developers at <a href='extendingledgdex.html'>Extending Ledgdex</a> and the <a href='apireference.html'>API Reference</a>; bots and agents at <a href='botsandagents.html'>Bots and Agents</a>. Every command is in <a href='commandlineoptions.html'>Command Line Options</a>, every example in <a href='examples.html'>Examples</a>.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

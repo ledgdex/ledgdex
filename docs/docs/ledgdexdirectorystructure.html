@@ -1,0 +1,31 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Ledgdex Directory Structure - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>LEDGDEX DIRECTORY STRUCTURE</h1>
+<br>
+<p>What <code>ledgdex init shop ...</code> makes. Everything in the folder is public except nothing: keys are never in a dex.</p><p><pre><code>shop/
+  ledgdex.jsonl        the ledger: a header line and one signed entry per line (append-only)
+  data.json            the dex pages: yours, and the ones ledgdex writes (they start with &lt;!-- ledgdex --&gt;)
+  config.json          dexweb settings, "publish" (with "append_only": ["ledgdex.jsonl"]) and "ledgdex"
+  styles.css           the look (dexweb's default)
+  run.py               "python run.py" builds the dex with dexweb, as in any dex
+  to_add/              files to add as pages (dexweb)
+  backup/              dexweb's backup of data.json
+  gen/                 the website: what is published, including gen/ledgdex.jsonl
+  .ledgdex-root.jsonl  the last copy of the root read (only with a root; never published)
+  .ledgdex.lock        one writer at a time
+  .publish/            dexweb's copy of the repository it publishes to
+
+~/.ledgdex/            secret keys, mode 600 (NAME.key), and secret bids until their reveal (bids/)
+~/.cache/ledgdex/      which ledger bytes were already verified (a speed-up only)</code></pre></p><p>Only <code>gen/</code> is published. <code>ledgdex render shop</code> rewrites the generated pages and rebuilds <code>gen/</code>; every command that records does it for you.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

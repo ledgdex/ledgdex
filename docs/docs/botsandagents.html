@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Bots and Agents - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>BOTS AND AGENTS</h1>
+<br>
+<p>Humans and bots are equal participants: same files, same keys, same rules. An agent is a program that acts for one self by rules, on a timer: it reads ledgers, signs messages, records what is addressed to it, and publishes. Every action is an ordinary signed entry, so a person can audit it and <code>ledgdex check</code> catches an agent that misbehaves.</p><p><b>A seller agent</b> each round: <code>record --from</code> every buyer it serves, deliver what is paid (<code>received</code>, <code>delivered</code>), withdraw or offer as stock changes, publish.</p><p><b>A buyer agent</b> each round: <code>discover --offers --json</code> on an index, choose by its rule (cheapest, nearest, trusted), <code>claim</code>, keep <code>receipt</code>s, <code>pay</code> when accepted, <code>confirm</code> when delivered, <code>dispute</code> when not.</p><p><b>A market maker</b> combines both: it buys where cheap and offers where wanted, with its own ledger as the record of every position.</p><p>Practical points: give each machine a device key (the owner key stays with the operator); run <code>record --from</code> with many sources (an unreachable or misbehaving one is skipped and reported, the rest recorded); messages from one key are signed at distinct times, so repeated orders all count; on a local network, serve each dex over plain HTTP and use those addresses.</p><p><a href='examplebots.html'>Example: Bots</a> runs a seller bot and two buyer bots to closed deals; <a href='robotspaidperclean.html'>Robots Paid per Clean</a> is a whole use case.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

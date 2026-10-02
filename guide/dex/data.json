@@ -1,0 +1,714 @@
+[
+    {
+        "title": "Getting Started",
+        "body": [
+            "Ledgdex is a simple market on a <a href='https://matrixdex.github.io/dexweb'>dex</a>. A dex is a website made by <a href='https://github.com/matrixdex/dexweb'>dexweb</a> from your own files; a ledgdex is a dex with a signed, append-only ledger in it (<code>ledgdex.jsonl</code>). Every seller and buyer keeps one. A trade then exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record. No server, no blockchain: SHA-256, Ed25519 and plain files. <a href='dexandledgdex.html'>Dex is the core; dex + ledger is a ledgdex.</a>",
+            "These docs are a ledgdex too: <a href='ledgdexdocsledger.html'>its own ledger</a> (signed once, as a demonstration) is rendered into the pages listed here, next to the written ones.",
+            "1. Install ledgdex (Python 3.8 or later, with git; more ways in <a href='installation.html'>Installation</a>): <pre><code>pip install \"ledgdex @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py\"</code></pre>",
+            "2. Make your ledgdex, a dex with a new ledger and a key kept in <code>~/.ledgdex</code>: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm</code></pre>",
+            "3. Offer something. Prices are integers in the smallest unit of the currency (120000 is INR 1,200.00): <pre><code>cat &gt; offer.json &lt;&lt;EOF\n{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 10, \"unit\": \"dozen\",\n \"currency\": \"INR\", \"price\": 120000, \"pay\": [{\"method\": \"upi\", \"to\": \"farm@bank\"}]}\nEOF\nledgdex offer shop offer.json</code></pre>",
+            "4. Open <code>shop/gen/index.html</code>: your dex, with a page for your ledger and one for the offer. Your own pages go in <code>shop/data.json</code> or <code>shop/to_add/</code> as in any dex.",
+            "5. Put it online (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>), and buyers claim from it (<a href='buying.html'>Buying</a>). <a href='examplefirsttrade.html'>Example: First Trade</a> runs a whole trade on one machine.",
+            "Where to go next: simple users setting up a market start at <a href='setupamarketplace.html'>Set Up a Marketplace</a>; developers at <a href='extendingledgdex.html'>Extending Ledgdex</a> and the <a href='apireference.html'>API Reference</a>; bots and agents at <a href='botsandagents.html'>Bots and Agents</a>. Every command is in <a href='commandlineoptions.html'>Command Line Options</a>, every example in <a href='examples.html'>Examples</a>."
+        ]
+    },
+    {
+        "title": "Dex and Ledgdex",
+        "body": [
+            "<b>The dex is the core.</b> A dex is a website dexweb builds from a folder: <code>data.json</code> (its pages), <code>config.json</code> (its look and where it is published), <code>to_add/</code> (files to turn into pages) and <code>gen/</code> (the site). A dex works on its own, is freely shared, is readable by people and bots, and is hosted anywhere static files are (<a href='https://matrixdex.github.io/dexweb/dexhosting.html'>dex hosting</a>).",
+            "<b>Dex + ledger = ledgdex.</b> A ledgdex is a dex with one more file, <code>ledgdex.jsonl</code>: a ledger signed by its owner, entry by entry, each entry chained to the one before by its hash. ledgdex reads the ledger, replays it into a state (offers, claims, payments, disputes, auctions, admissions, listings) and writes pages for it into the same <code>data.json</code>, next to your own pages; dexweb builds the site as always. Nothing else changes: same folder, same build, same hosting.",
+            "<pre><code>dex          = data.json + config.json + to_add/        -&gt;  gen/ (website)\nledgdex      = dex + ledgdex.jsonl (signed ledger)      -&gt;  gen/ (website + ledger pages + ledger)\na market     = many ledgdexes that read each other's ledgers</code></pre>",
+            "So everything you know about dexes holds: <a href='https://matrixdex.github.io/dexweb/gettingstarted.html'>dexweb's getting started</a>, its styles and themes, publishing with <code>python run.py</code>. ledgdex adds the commands that sign and record (<a href='commandlineoptions.html'>Command Line Options</a>), and refuses to publish a ledger that does not extend the one already published (<code>\"append_only\": [\"ledgdex.jsonl\"]</code> in <code>config.json</code>).",
+            "Which to use: a dex when you publish (documents, a shop window, a journal); a ledgdex when what you publish must be trusted later: offers people buy from, records of who bought what, admissions to a market. A dex can become a ledgdex at any time: <code>ledgdex init</code> on an existing dex folder keeps its pages and <code>config.json</code> and adds a ledger.",
+            "This documentation is both: a dex (the written pages) and a ledgdex (<a href='ledgdexdocsledger.html'>Ledgdex Docs ledger</a>, <a href='exampleofferalphonsomangoes.html'>Example offer: Alphonso mangoes</a> and <a href='exampleauctionmapofbombay1893.html'>Example auction: Map of Bombay, 1893</a> are generated from <a href='https://matrixdex.github.io/ledgdex/docs/ledgdex.jsonl'>its ledger</a>). Load that ledger in the <a href='https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://matrixdex.github.io/ledgdex/docs'>viewer</a>, or check it: <pre><code>ledgdex verify https://matrixdex.github.io/ledgdex/docs</code></pre>"
+        ]
+    },
+    {
+        "title": "Installation",
+        "body": [
+            "Ledgdex needs Python 3.8 or later and dexweb (installed with it). Publishing needs git.",
+            "1. From the release (recommended): <pre><code>pip install \"ledgdex @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py\"</code></pre>",
+            "2. With fast, constant-time signing (recommended on every machine that signs; ledgdex warns without it): <pre><code>pip install \"ledgdex[fast] @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py\"</code></pre>",
+            "3. From a clone, to develop: <pre><code>git clone https://github.com/matrixdex/ledgdex\ncd ledgdex\npip install -e \"py[fast]\"\ncd py &amp;&amp; python -m unittest discover -s tests</code></pre>",
+            "4. Check: <pre><code>ledgdex --help\nledgdex verify https://matrixdex.github.io/ledgdex/docs</code></pre>",
+            "The JavaScript core needs no install: it is plain ES modules in <code>js/</code>, also served next to the <a href='https://matrixdex.github.io/ledgdex/viewer.html'>viewer</a> (<a href='apireference.html'>API Reference</a>).",
+            "Where things live: keys in <code>~/.ledgdex</code> (or <code>$LEDGDEX_HOME</code>), the verification cache in <code>~/.cache/ledgdex</code> (or <code>$LEDGDEX_CACHE</code>); see <a href='configuration.html'>Configuration</a>."
+        ]
+    },
+    {
+        "title": "Ledgdex Directory Structure",
+        "body": [
+            "What <code>ledgdex init shop ...</code> makes. Everything in the folder is public except nothing: keys are never in a dex.",
+            "<pre><code>shop/\n  ledgdex.jsonl        the ledger: a header line and one signed entry per line (append-only)\n  data.json            the dex pages: yours, and the ones ledgdex writes (they start with &lt;!-- ledgdex --&gt;)\n  config.json          dexweb settings, \"publish\" (with \"append_only\": [\"ledgdex.jsonl\"]) and \"ledgdex\"\n  styles.css           the look (dexweb's default)\n  run.py               \"python run.py\" builds the dex with dexweb, as in any dex\n  to_add/              files to add as pages (dexweb)\n  backup/              dexweb's backup of data.json\n  gen/                 the website: what is published, including gen/ledgdex.jsonl\n  .ledgdex-root.jsonl  the last copy of the root read (only with a root; never published)\n  .ledgdex.lock        one writer at a time\n  .publish/            dexweb's copy of the repository it publishes to\n\n~/.ledgdex/            secret keys, mode 600 (NAME.key), and secret bids until their reveal (bids/)\n~/.cache/ledgdex/      which ledger bytes were already verified (a speed-up only)</code></pre>",
+            "Only <code>gen/</code> is published. <code>ledgdex render shop</code> rewrites the generated pages and rebuilds <code>gen/</code>; every command that records does it for you."
+        ]
+    },
+    {
+        "title": "Set Up a Marketplace",
+        "body": [
+            "A market for a place, a trade or a community, with no platform in the middle: every member keeps their own ledgdex, and one operator keeps a ledger that is both the <b>index</b> (which shops are listed) and the <b>root</b> (who is admitted). Shops sell to admitted members; buyers find offers through the index; the operator is the default arbiter of disputes. <a href='examplemarketplace.html'>Example: Marketplace</a> does all of this on one machine.",
+            "1. The operator makes the market's ledgdex and publishes it (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>): <pre><code>ledgdex init market --name \"Ratnagiri Market\" --about \"Fruit sellers of Ratnagiri\" --key market \\\n    --url https://market.example --dest git@github.com:YOU/market.git --branch main\nledgdex publish market</code></pre>",
+            "2. Each shop makes its own ledgdex under the market: <pre><code>ledgdex init farm --name \"Mango Farm\" --key farm --root https://market.example</code></pre>",
+            "3. Shops and buyers send the operator their public key (printed by <code>ledgdex keygen NAME</code> or <code>ledgdex init</code>). The operator checks who they are, off the ledger, and admits them: <pre><code>ledgdex admit market ed25519:SHOP_KEY --name \"Mango Farm\"\nledgdex admit market ed25519:BUYER_KEY --name \"Asha\"\nledgdex publish market</code></pre>",
+            "4. The operator lists the shops: <pre><code>ledgdex list market https://farm.example --note \"mangoes\"</code></pre>",
+            "5. Shops offer to admitted members only (<code>\"allow\": \"admitted\"</code>; a shop admits the buyers it serves too, with <code>ledgdex admit farm KEY</code>), or to anyone (<code>\"any\"</code>).",
+            "6. Buyers read the index to find offers: <pre><code>ledgdex discover https://market.example --offers</code></pre>",
+            "7. Everyone runs <code>ledgdex check</code> on the ledgers they trade with, daily (<a href='checkingfortampering.html'>Checking for Tampering</a>): any rewrite is caught, with signed proof.",
+            "What the operator can and cannot do: it decides membership and rules disputes (signed, in public); it cannot change anyone's ledger, hide a sale, or set a price. Its key is the most valuable one in the market: keep it offline and use a device key day to day (<a href='keysdevicesandrecovery.html'>Keys, Devices and Recovery</a>).",
+            "Variations: without <code>--root</code>, a market is just an index anyone can be listed in. Several markets can list the same shop. A shop under no root arbitrates its own offers unless it names an arbiter (<a href='disputesandarbiters.html'>Disputes and Arbiters</a>)."
+        ]
+    },
+    {
+        "title": "Selling",
+        "body": [
+            "A seller signs offers into its own ledger, records the claims that come in, and records payment and delivery.",
+            "1. Write the offer as JSON. Required: <code>item.title</code>, <code>quantity</code>, <code>currency</code>, <code>price</code>. The rest has defaults: <code>unit</code> \"unit\", <code>allow</code> \"any\", <code>pay</code> [], <code>terms</code> \"\", <code>item.text</code> \"\", <code>item.media</code> [], and the arbiter is the root's owner, or the seller when the dex names no root. <pre><code>{\"item\": {\"title\": \"Alphonso mangoes\", \"text\": \"One dozen, ripe.\",\n          \"media\": [{\"url\": \"https://farm.example/mango.jpg\", \"hash\": \"sha256:...\"}]},\n \"quantity\": 10, \"unit\": \"dozen\", \"currency\": \"INR\", \"price\": 120000,\n \"allow\": \"any\", \"pay\": [{\"method\": \"upi\", \"to\": \"farm@bank\"}],\n \"terms\": \"Delivered in Ratnagiri within 2 days.\", \"expires\": \"2026-12-31T23:59:59Z\"}</code></pre>",
+            "2. Sign and record it: <pre><code>ledgdex offer shop offer.json</code></pre>",
+            "3. Collect claims: from each buyer's published dex, or from files buyers send you. <pre><code>ledgdex record shop --from https://asha.example --from https://ravi.example\nledgdex record shop claim-1a2b3c4d5e6f.json</code></pre>",
+            "4. When the money arrives, and when you deliver: <pre><code>ledgdex received shop CLAIM_ID 240000\nledgdex delivered shop CLAIM_ID --note \"by courier\"</code></pre>",
+            "5. Stop selling: <pre><code>ledgdex withdraw shop OFFER_ID</code></pre>",
+            "6. Publish after each step others need to see: <pre><code>ledgdex publish shop</code></pre>",
+            "<b>Rules the state enforces</b> (anyone recomputes them): a claim must name the offer by id and by hash (the offer cannot change under it), pay the offer's price, ask for 1 to the remaining quantity, come from someone <code>allow</code> admits, arrive before <code>expires</code>, and not come from the seller itself; otherwise it is kept and marked rejected with the reason. Two claims for the last unit: the first recorded wins.",
+            "<b>Media</b> are linked, never embedded: a URL and the SHA-256 of the file, so a picture cannot change after a sale without <code>ledgdex check --media</code> noticing.",
+            "Prices are integers in the smallest unit: INR and USD in paise and cents (2 digits), JPY in yen, BTC in satoshi. Any currency code works; pages format the ones they know. See <a href='atradestepbystep.html'>A Trade, Step by Step</a> and <a href='examplefirsttrade.html'>Example: First Trade</a>."
+        ]
+    },
+    {
+        "title": "Buying",
+        "body": [
+            "A buyer signs claims, payments and confirmations with its own key and keeps a copy of each as <code>sent</code> in its own ledger: publishing your dex is sending them. You need your own ledgdex to buy (<code>ledgdex init me --name \"Asha\" --key asha</code>), or only a browser (<a href='theviewer.html'>The Viewer</a>).",
+            "1. Find the offer: on the seller's dex, or through an index (<a href='indexesanddiscovery.html'>Indexes and Discovery</a>).",
+            "2. Claim it. ledgdex reads the seller's ledger, checks the offer is open, and signs the offer's exact hash and price: <pre><code>ledgdex claim me https://farm.example OFFER_ID --quantity 2</code></pre>",
+            "3. Send it: publish your dex (<code>ledgdex publish me</code>), and the seller collects it with <code>ledgdex record shop --from https://asha.example</code>; or send the file <code>claim-....json</code> any way you like.",
+            "4. Keep the receipts: the seller's signed records of your messages. <pre><code>ledgdex receipt me https://farm.example</code></pre>",
+            "5. Pay as the offer says (outside the ledger), then tell the seller, and confirm once the goods arrive: <pre><code>ledgdex pay me https://farm.example CLAIM_ID --method upi --ref UTR123\nledgdex confirm me https://farm.example CLAIM_ID</code></pre>",
+            "6. If something goes wrong: <a href='disputesandarbiters.html'>Disputes and Arbiters</a>.",
+            "Your receipts are your proof: an entry signed by the seller saying it recorded your claim at that position of its ledger. If the seller ever rewrites its ledger, <code>ledgdex check</code> on your ledger shows it (<a href='checkingfortampering.html'>Checking for Tampering</a>)."
+        ]
+    },
+    {
+        "title": "A Trade, Step by Step",
+        "body": [
+            "Who signs what, in which ledger, and the claim's status after each step. <a href='examplefirsttrade.html'>Example: First Trade</a> runs it.",
+            "<pre><code>step                         signed by   kept in                     claim status\noffer                        seller      seller ledger               (offer open)\nclaim                        buyer       buyer (sent), seller        accepted, or rejected with a reason\nreceipt of the claim         buyer       buyer ledger                (the third entry)\npaid                         buyer       buyer (sent), seller        accepted, paid\nreceived                     seller      seller ledger               accepted, received\ndelivered                    seller      seller ledger               accepted, delivered\nconfirmed                    buyer       buyer (sent), seller        closed (once received + delivered + confirmed)\ndispute                      either      seller ledger               disputed\nruling                       arbiter     seller ledger               released, refunded or split</code></pre>",
+            "Rejection reasons, in the order they are tested: <code>unknown_offer</code>, <code>offer_changed</code>, <code>withdrawn</code>, <code>expired</code>, <code>self_claim</code>, <code>not_allowed</code>, <code>bad_quantity</code>, <code>price_mismatch</code>. Messages that break no structure but no rule accepts (a payment from someone else, a ruling by the wrong key, a message recorded twice) are kept and listed in the state's <code>ignored</code> with a reason; they never break the ledger.",
+            "Read the state of any ledger: <pre><code>ledgdex state https://farm.example\nledgdex state shop | python3 -m json.tool</code></pre>"
+        ]
+    },
+    {
+        "title": "Disputes and Arbiters",
+        "body": [
+            "Every offer and auction names an arbiter: a key that may rule on disputes about it, signed into the offer so buyers see it before they buy. Default: the root's owner when the dex names a root, else the seller. Name another in the offer: <code>\"arbiter\": {\"key\": \"ed25519:...\", \"url\": \"https://assoc.example\"}</code>.",
+            "1. The buyer (or the seller) opens a dispute about an accepted claim, with evidence: <pre><code>ledgdex dispute me CLAIM_ID --seller https://farm.example --text \"Nothing arrived.\" --evidence UTR555</code></pre>",
+            "2. The seller records it (<code>ledgdex record shop --from https://asha.example</code>). The claim is <code>disputed</code>.",
+            "3. The arbiter rules, from its own ledgdex: <pre><code>ledgdex ruling assoc https://farm.example DISPUTE_ID --outcome refund --text \"No proof of delivery.\"</code></pre>",
+            "4. The seller records the ruling: the claim becomes <code>released</code>, <code>refunded</code> or <code>split</code>. A ruling by any other key is kept and ignored (<code>not_arbiter</code>), and a dispute is ruled once.",
+            "Money moves outside the ledger: a ruling is a signed decision the parties and their market act on. <a href='exampledisputes.html'>Example: Disputes</a> runs it, including a seller trying to rule on its own dispute."
+        ]
+    },
+    {
+        "title": "Sealed-Bid Auctions",
+        "body": [
+            "An auction takes secret bids until <code>close</code>. A bid signs only the hash of the amount and a random nonce, so nobody, not even the seller, sees it; after the close each bidder reveals; once <code>reveal_until</code> passes, the best valid reveal wins, by rule.",
+            "<pre><code>{\"item\": {\"title\": \"Map of Bombay, 1893\"}, \"currency\": \"INR\",\n \"close\": \"2026-11-01T12:00:00Z\", \"reveal_until\": \"2026-11-02T12:00:00Z\",\n \"best\": \"highest\", \"reserve\": 500000}</code></pre>",
+            "1. <code>ledgdex auction gallery auction.json</code>",
+            "2. Bidders bid (the amount and nonce stay in <code>~/.ledgdex/bids</code> until the reveal): <pre><code>ledgdex bid me https://gallery.example AUCTION_ID --amount 650000</code></pre>",
+            "3. After <code>close</code>: <pre><code>ledgdex reveal me https://gallery.example AUCTION_ID</code></pre>",
+            "4. The seller records bids and reveals as they come (<code>ledgdex record</code>). After <code>reveal_until</code>, the state names the winner (<code>awarded</code>); the trade goes on as a claim: paid, delivered, confirmed.",
+            "Rules: one bid per key; bids after <code>close</code> and reveals outside the window are ignored; a reveal must match its bid; <code>\"best\": \"lowest\"</code> runs a procurement (the lowest offer at or under <code>reserve</code> wins); ties go to the earliest bid. A ledger's state is judged at its last entry, so a seller announces the result with any entry after <code>reveal_until</code> (a note). <a href='exampleauction.html'>Example: Auction</a>."
+        ]
+    },
+    {
+        "title": "Keys, Devices and Recovery",
+        "body": [
+            "A self is its owner key: an Ed25519 key in <code>~/.ledgdex/NAME.key</code> (mode 600; ledgdex refuses a key file others can read). The owner key signs messages to other ledgers and the owner-only types: <code>device</code>, <code>device_revoke</code>, <code>rotate</code> (and <code>recover</code> in a root).",
+            "<b>Device keys</b> let a phone, a till or a robot sign everyday entries (offers, records, deliveries) without the owner key: <pre><code>PUB=$(ledgdex keygen phone)        # on the phone\nledgdex device add shop \"$PUB\" --name \"shop phone\"   # with the owner key\nledgdex device revoke shop \"$PUB\" --reason lost</code></pre>",
+            "A revoked device signs nothing more; what it signed before stays valid. Give device keys only to devices you trust with the ledger: revoking cannot undo what a stolen device could sign while it was active.",
+            "<b>Rotation</b> replaces the owner key, signed by the old one: <code>ledgdex rotate shop --key farm-2027</code>.",
+            "<b>Recovery</b>, when the owner key is lost: the root names a new key, after checking who the owner is, and the owner takes the ledger back with it. A recovery removes every device key. <pre><code>NEW=$(ledgdex keygen farm-new)                         # owner, on a new machine\nledgdex recover root https://farm.example \"$NEW\"      # root operator, with the root's owner key\nledgdex recovered shop --root https://market.example --key farm-new</code></pre>",
+            "Back up owner keys offline. <a href='examplekeys.html'>Example: Keys</a> runs all of it."
+        ]
+    },
+    {
+        "title": "The Root and Admission",
+        "body": [
+            "The root is a ledger whose <code>admit</code> and <code>revoke</code> entries say who is in a market, whose <code>recover</code> entries name new keys for lost ones, and whose owner is the default arbiter. A dex names it once: <code>ledgdex init ... --root https://market.example</code> (or <code>\"ledgdex\": {\"root\": ...}</code> in <code>config.json</code>).",
+            "The root is pinned by its ledger id (<code>root_id</code>, written the first time it is read): another ledger at that address, or a broken one, is refused. The last copy read is kept (<code>.ledgdex-root.jsonl</code>), so the market keeps working when the root's site is down, and an older copy is never taken.",
+            "<code>\"allow\": \"admitted\"</code> means admitted by the seller's own ledger and by the root, at the time the claim was made: a later revoke never undoes a past sale. Admit and revoke: <pre><code>ledgdex admit market ed25519:KEY --name \"Asha\" --note \"member since 2026\"\nledgdex revoke market ed25519:KEY --reason \"left the market\"</code></pre>",
+            "A root can be a market's, a city's or The Matrix's. Running one: the README's <a href='https://github.com/matrixdex/ledgdex#running-the-root'>Running the root</a>."
+        ]
+    },
+    {
+        "title": "Indexes and Discovery",
+        "body": [
+            "An index is a ledger that lists other ledgers: <code>list</code> and <code>delist</code> entries with the ledger's id, address, owner key and a note. Anyone can run one; a market's index is usually its root.",
+            "<pre><code>ledgdex list market https://farm.example --note \"mangoes\"\nledgdex delist market LEDGER_ID --reason closed</code></pre>",
+            "Discovery reads an index, and with <code>--offers</code> every listed ledger's open offers and auctions, with their signed price and terms (and <code>--json</code> for programs): <pre><code>ledgdex discover https://market.example --offers\nledgdex discover https://market.example --offers --json</code></pre>",
+            "A listed address that serves another ledger than the one listed is reported, not trusted. <a href='examplemarketplace.html'>Example: Marketplace</a> and <a href='examplebots.html'>Example: Bots</a> choose offers this way."
+        ]
+    },
+    {
+        "title": "Publishing a Ledgdex Online",
+        "body": [
+            "A ledgdex is published like any dex, with dexweb: to a git repository (GitHub Pages for free hosting) or a folder. The difference: <code>config.json</code> has <code>\"append_only\": [\"ledgdex.jsonl\"]</code>, so dexweb refuses to publish a ledger that does not extend the published one.",
+            "1. Make a repository (on GitHub: <code>YOU.github.io</code>, or any repository with Pages on).",
+            "2. Name it at init, or later in <code>config.json</code> <code>\"publish\"</code>: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm --url https://YOU.github.io \\\n    --dest git@github.com:YOU/YOU.github.io.git --branch main</code></pre>",
+            "3. Publish after changes: <pre><code>ledgdex publish shop</code></pre>",
+            "4. Others read it at the address: <pre><code>ledgdex verify https://YOU.github.io</code></pre>",
+            "From several devices: each keeps a copy of the dex and its own device key. If another device published first, <code>ledgdex publish</code> re-signs this device's unpublished entries on top of the published ledger and publishes again: one history, never two entries at one position. <a href='examplepublish.html'>Example: Publish</a> runs it against a local repository.",
+            "Static hosting is enough: GitHub Pages, any web server, a shared folder on a local network (machines can trade over plain HTTP: <a href='botsandagents.html'>Bots and Agents</a>)."
+        ]
+    },
+    {
+        "title": "Checking for Tampering",
+        "body": [
+            "A ledger that verifies is consistent and signed by its owner; it is not necessarily the history shown before: an owner can re-sign every entry from some point on. <code>ledgdex check</code> closes that gap with the copies it has seen and the receipts other selves hold.",
+            "<pre><code>ledgdex check shop me https://farm.example         # once; exit code 1 on tampering\nledgdex check shop --every 3600                     # as a worker\n17 6 * * * cd /srv &amp;&amp; ledgdex check shop --json report.json   # from cron\nledgdex workflow shop/ledgdex.jsonl &gt; .github/workflows/ledgdex-check.yml   # daily on GitHub</code></pre>",
+            "Errors come with signed proof in <code>.ledgdex-check/proofs/</code>: <code>equivocation</code> (a ledger differs from the copy seen before), <code>receipt_mismatch</code> (a copy has another entry where a receipt holds a signed one), <code>ledger_changed</code> (an address serves another ledger), <code>broken</code>, <code>media_changed</code>, <code>published_differs</code>. Warnings mean something could not be checked: <code>stale</code>, <code>unreachable</code>, <code>needs_root</code>, <code>receipt_bad_signer</code>, <code>receipt_url_mismatch</code>, <code>future_time</code>, <code>media_unavailable</code>, <code>behind</code>.",
+            "Check the ledgers you trade with, daily. <a href='examplecheck.html'>Example: Check</a> shows a rewrite caught."
+        ]
+    },
+    {
+        "title": "The Viewer",
+        "body": [
+            "The <a href='https://matrixdex.github.io/ledgdex/viewer.html'>viewer</a> is a dex too, and does in a browser what the command line does: it loads any ledger by address or file, verifies every hash and signature, and shows it as the pages its dex has. It keeps your own ledger, signs claims, payments, confirmations, disputes, bids and reveals, collects your receipts, and downloads your ledger as a complete dex to publish. Nothing is uploaded.",
+            "1. Open a ledger: <code>https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.example</code>.",
+            "2. <b>New key</b>, then <b>Keep, sealed</b> with a passphrase (the key is stored only encrypted), and <b>Download key backup</b>.",
+            "3. Create your ledger, sign a claim to the loaded ledger, and <b>Download your dex</b>: publish it like any dex; the seller collects your claim from it.",
+            "The viewer signs with the browser's Web Crypto Ed25519 when it has one, refuses to run inside another site's frame, and loads nothing from elsewhere. For production, serve it from its own address."
+        ]
+    },
+    {
+        "title": "Command Line Options",
+        "body": [
+            "Every command and option, generated from <code>ledgdex --help</code>. SELLER, LEDGER and INDEX are a dex address (<code>https://...</code>), a dex folder or a <code>ledgdex.jsonl</code> file; DEX is your own dex folder; ids are <code>sha256:</code> and 64 hex digits; keys are <code>ed25519:</code> and 64 hex digits, or the name of a key in <code>~/.ledgdex</code> where noted. Messages to another ledger are written to a file (<code>--output</code>, or a name made from the message) and kept as <code>sent</code> in your ledger.",
+            "Commands: <a href='#keygen'>keygen</a>, <a href='#init'>init</a>, <a href='#offer'>offer</a>, <a href='#withdraw'>withdraw</a>, <a href='#received'>received</a>, <a href='#delivered'>delivered</a>, <a href='#admit'>admit</a>, <a href='#revoke'>revoke</a>, <a href='#note'>note</a>, <a href='#delist'>delist</a>, <a href='#device'>device</a>, <a href='#record'>record</a>, <a href='#claim'>claim</a>, <a href='#pay'>pay</a>, <a href='#confirm'>confirm</a>, <a href='#receipt'>receipt</a>, <a href='#rotate'>rotate</a>, <a href='#recover'>recover</a>, <a href='#recovered'>recovered</a>, <a href='#dispute'>dispute</a>, <a href='#ruling'>ruling</a>, <a href='#auction'>auction</a>, <a href='#bid'>bid</a>, <a href='#reveal'>reveal</a>, <a href='#list'>list</a>, <a href='#discover'>discover</a>, <a href='#sign'>sign</a>, <a href='#verify'>verify</a>, <a href='#state'>state</a>, <a href='#render'>render</a>, <a href='#check'>check</a>, <a href='#workflow'>workflow</a>, <a href='#publish'>publish</a>.",
+            "<b id='keygen'>ledgdex keygen</b>",
+            "<pre><code>usage: ledgdex keygen [-h] name\n\nmake a key in ~/.ledgdex and print its public key\n\npositional arguments:\n  name\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='init'>ledgdex init</b>",
+            "<pre><code>usage: ledgdex init [-h] --name NAME [--about ABOUT] [--url URL] --key KEY [--dexname DEXNAME] [--dest DEST]\n                    [--branch BRANCH] [--site-path SITE_PATH] [--root ROOT]\n                    dex\n\nmake a ledgdex: a complete dex with a new ledger\n\npositional arguments:\n  dex                   the dex folder\n\noptions:\n  -h, --help            show this help message and exit\n  --name NAME           your name, shown on the ledger\n  --about ABOUT         one line about you or your shop\n  --url URL             this dex's web address\n  --key KEY             key name in ~/.ledgdex (made if missing)\n  --dexname DEXNAME     dex name (default: --name)\n  --dest DEST           repository address to publish to\n  --branch BRANCH       branch to publish to\n  --site-path SITE_PATH\n                        folder in the repository to publish to (default: its root)\n  --root ROOT           the root ledger this dex trades under (dex, file or URL): admission, recovery and\n                        the default arbiter; pinned by its ledger id</code></pre>",
+            "<b id='offer'>ledgdex offer</b>",
+            "<pre><code>usage: ledgdex offer [-h] dex file\n\nsell something: sign and record an offer from a JSON file\n\npositional arguments:\n  dex         the dex folder\n  file\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='withdraw'>ledgdex withdraw</b>",
+            "<pre><code>usage: ledgdex withdraw [-h] dex offer\n\nwithdraw an offer\n\npositional arguments:\n  dex         the dex folder\n  offer\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='received'>ledgdex received</b>",
+            "<pre><code>usage: ledgdex received [-h] dex claim amount\n\nrecord that a payment arrived\n\npositional arguments:\n  dex         the dex folder\n  claim\n  amount\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='delivered'>ledgdex delivered</b>",
+            "<pre><code>usage: ledgdex delivered [-h] [--note NOTE] dex claim\n\nrecord delivery\n\npositional arguments:\n  dex          the dex folder\n  claim\n\noptions:\n  -h, --help   show this help message and exit\n  --note NOTE</code></pre>",
+            "<b id='admit'>ledgdex admit</b>",
+            "<pre><code>usage: ledgdex admit [-h] [--name NAME] [--note NOTE] dex key\n\nadmit a key (for offers with \"allow\": \"admitted\")\n\npositional arguments:\n  dex          the dex folder\n  key          public key, or the name of a key in ~/.ledgdex\n\noptions:\n  -h, --help   show this help message and exit\n  --name NAME\n  --note NOTE</code></pre>",
+            "<b id='revoke'>ledgdex revoke</b>",
+            "<pre><code>usage: ledgdex revoke [-h] [--reason REASON] dex key\n\nrevoke an admitted key\n\npositional arguments:\n  dex              the dex folder\n  key              public key, or the name of a key in ~/.ledgdex\n\noptions:\n  -h, --help       show this help message and exit\n  --reason REASON</code></pre>",
+            "<b id='note'>ledgdex note</b>",
+            "<pre><code>usage: ledgdex note [-h] dex ref text\n\nadd a remark about an earlier entry\n\npositional arguments:\n  dex         the dex folder\n  ref\n  text\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='delist'>ledgdex delist</b>",
+            "<pre><code>usage: ledgdex delist [-h] [--reason REASON] dex ledger\n\nindex: delist a ledger\n\npositional arguments:\n  dex              the dex folder\n  ledger           ledger id\n\noptions:\n  -h, --help       show this help message and exit\n  --reason REASON</code></pre>",
+            "<b id='device'>ledgdex device</b>",
+            "<pre><code>usage: ledgdex device [-h] [--name NAME] [--reason REASON] {add,revoke} dex key\n\nadd or revoke a device key (needs the owner key)\n\npositional arguments:\n  {add,revoke}\n  dex              the dex folder\n  key              public key, or the name of a key in ~/.ledgdex\n\noptions:\n  -h, --help       show this help message and exit\n  --name NAME\n  --reason REASON</code></pre>",
+            "<b id='record'>ledgdex record</b>",
+            "<pre><code>usage: ledgdex record [-h] [--from SOURCES] dex [files ...]\n\nrecord claims, payments and confirmations from buyers\n\npositional arguments:\n  dex             the dex folder\n  files           message files\n\noptions:\n  -h, --help      show this help message and exit\n  --from SOURCES  a buyer's dex: collect what they sent you</code></pre>",
+            "<b id='claim'>ledgdex claim</b>",
+            "<pre><code>usage: ledgdex claim [-h] [--quantity QUANTITY] [-o OUTPUT] dex seller offer\n\nbuy: sign a claim for a seller's offer\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  offer\n\noptions:\n  -h, --help            show this help message and exit\n  --quantity QUANTITY\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='pay'>ledgdex pay</b>",
+            "<pre><code>usage: ledgdex pay [-h] --method METHOD [--ref REF] [-o OUTPUT] dex seller claim\n\ntell the seller you paid\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  claim                 claim id (or your claim message id)\n\noptions:\n  -h, --help            show this help message and exit\n  --method METHOD\n  --ref REF\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='confirm'>ledgdex confirm</b>",
+            "<pre><code>usage: ledgdex confirm [-h] [-o OUTPUT] dex seller claim\n\nconfirm you received the goods\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  claim\n\noptions:\n  -h, --help            show this help message and exit\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='receipt'>ledgdex receipt</b>",
+            "<pre><code>usage: ledgdex receipt [-h] [--entry ENTRY] dex seller\n\nkeep the seller's records of your messages as receipts\n\npositional arguments:\n  dex            the dex folder\n  seller         the seller's dex URL, dex folder or ledger file\n\noptions:\n  -h, --help     show this help message and exit\n  --entry ENTRY  only this entry id</code></pre>",
+            "<b id='rotate'>ledgdex rotate</b>",
+            "<pre><code>usage: ledgdex rotate [-h] --key KEY dex\n\nreplace the owner key (signed by the old one)\n\npositional arguments:\n  dex         the dex folder\n\noptions:\n  -h, --help  show this help message and exit\n  --key KEY   name of the new key in ~/.ledgdex (made if missing)</code></pre>",
+            "<b id='recover'>ledgdex recover</b>",
+            "<pre><code>usage: ledgdex recover [-h] dex ledger key\n\nroot: name a new key for a ledger whose owner lost theirs\n\npositional arguments:\n  dex         the dex folder\n  ledger      the ledger (dex, file or URL)\n  key         the new public key\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='recovered'>ledgdex recovered</b>",
+            "<pre><code>usage: ledgdex recovered [-h] --root ROOT --key KEY dex\n\ntake a ledger back with the key the root named\n\npositional arguments:\n  dex          the dex folder\n\noptions:\n  -h, --help   show this help message and exit\n  --root ROOT\n  --key KEY    name of the new key</code></pre>",
+            "<b id='dispute'>ledgdex dispute</b>",
+            "<pre><code>usage: ledgdex dispute [-h] [--text TEXT] [--evidence EVIDENCE] [--seller SELLER] [-o OUTPUT] dex claim\n\nopen a dispute about a claim\n\npositional arguments:\n  dex                   the dex folder\n  claim\n\noptions:\n  -h, --help            show this help message and exit\n  --text TEXT\n  --evidence EVIDENCE   an entry id or URL (repeatable)\n  --seller SELLER       buyer: the seller's dex (without it, a dispute in your own ledger)\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='ruling'>ledgdex ruling</b>",
+            "<pre><code>usage: ledgdex ruling [-h] --outcome {release,refund,split} [--text TEXT] [-o OUTPUT] dex seller dispute\n\narbiter: rule on a dispute in a seller's ledger\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  dispute\n\noptions:\n  -h, --help            show this help message and exit\n  --outcome {release,refund,split}\n  --text TEXT\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='auction'>ledgdex auction</b>",
+            "<pre><code>usage: ledgdex auction [-h] dex file\n\nstart a sealed-bid auction from a JSON file\n\npositional arguments:\n  dex         the dex folder\n  file\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='bid'>ledgdex bid</b>",
+            "<pre><code>usage: ledgdex bid [-h] --amount AMOUNT [-o OUTPUT] dex seller auction\n\nbid in a seller's auction (the amount stays secret until you reveal)\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  auction\n\noptions:\n  -h, --help            show this help message and exit\n  --amount AMOUNT\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='reveal'>ledgdex reveal</b>",
+            "<pre><code>usage: ledgdex reveal [-h] [-o OUTPUT] dex seller auction\n\nreveal your bid after the auction closes\n\npositional arguments:\n  dex                   the dex folder\n  seller                the seller's dex URL, dex folder or ledger file\n  auction\n\noptions:\n  -h, --help            show this help message and exit\n  -o OUTPUT, --output OUTPUT\n                        where to write the message file</code></pre>",
+            "<b id='list'>ledgdex list</b>",
+            "<pre><code>usage: ledgdex list [-h] [--url URL] [--note NOTE] dex ledger\n\nindex: list a ledger\n\npositional arguments:\n  dex          the dex folder\n  ledger       dex, file or URL\n\noptions:\n  -h, --help   show this help message and exit\n  --url URL    address to list (default: its dex address)\n  --note NOTE</code></pre>",
+            "<b id='discover'>ledgdex discover</b>",
+            "<pre><code>usage: ledgdex discover [-h] [--offers] [--json] index\n\nread an index: listed ledgers, and with --offers what they sell\n\npositional arguments:\n  index       the index (dex, file or URL)\n\noptions:\n  -h, --help  show this help message and exit\n  --offers\n  --json</code></pre>",
+            "<b id='sign'>ledgdex sign</b>",
+            "<pre><code>usage: ledgdex sign [-h] --key KEY type file\n\nprint a signed message (advanced)\n\npositional arguments:\n  type\n  file\n\noptions:\n  -h, --help  show this help message and exit\n  --key KEY</code></pre>",
+            "<b id='verify'>ledgdex verify</b>",
+            "<pre><code>usage: ledgdex verify [-h] [--full] [--root ROOT] ledger\n\ncheck a ledger; exit code 0 only if whole\n\npositional arguments:\n  ledger       dex, file or URL\n\noptions:\n  -h, --help   show this help message and exit\n  --full       verify every line, ignoring the verification cache\n  --root ROOT  the root ledger (dex, file or URL)</code></pre>",
+            "<b id='state'>ledgdex state</b>",
+            "<pre><code>usage: ledgdex state [-h] [--root ROOT] ledger\n\nprint a ledger's state\n\npositional arguments:\n  ledger       dex, file or URL\n\noptions:\n  -h, --help   show this help message and exit\n  --root ROOT  the root ledger (dex, file or URL)</code></pre>",
+            "<b id='render'>ledgdex render</b>",
+            "<pre><code>usage: ledgdex render [-h] dex\n\nrewrite the generated pages and rebuild the site\n\npositional arguments:\n  dex         the dex folder\n\noptions:\n  -h, --help  show this help message and exit</code></pre>",
+            "<b id='check'>ledgdex check</b>",
+            "<pre><code>usage: ledgdex check [-h] [--state STATE] [--media] [--published] [--json JSON] [--every EVERY] [--quiet]\n                     [--root ROOT]\n                     [sources ...]\n\ncheck ledgers for tampering over time: rewrites, missing receipts, changed addresses\n\npositional arguments:\n  sources        ledgers to check: dex folders, files or URLs (default: this folder)\n\noptions:\n  -h, --help     show this help message and exit\n  --state STATE  where last-seen copies and proofs are kept\n  --media        also fetch offer media and check their hashes\n  --published    for dex folders: compare with the published ledger\n  --json JSON    write the report as JSON to this file\n  --every EVERY  run as a worker: check again every this many seconds\n  --quiet        print only the summary line\n  --root ROOT    the root ledger (dex, file or URL)</code></pre>",
+            "<b id='workflow'>ledgdex workflow</b>",
+            "<pre><code>usage: ledgdex workflow [-h] [--cron CRON] [--media] sources [sources ...]\n\nprint a GitHub Actions workflow that runs ledgdex check\n\npositional arguments:\n  sources      ledger files in the repository, or URLs\n\noptions:\n  -h, --help   show this help message and exit\n  --cron CRON  schedule (UTC cron)\n  --media</code></pre>",
+            "<b id='publish'>ledgdex publish</b>",
+            "<pre><code>usage: ledgdex publish [-h] dex\n\npublish the dex with dexweb (catches up with other devices)\n\npositional arguments:\n  dex         the dex folder\n\noptions:\n  -h, --help  show this help message and exit</code></pre>"
+        ]
+    },
+    {
+        "title": "API Reference",
+        "body": [
+            "Ledgdex is a Python package (<code>ledgdex</code>, in <code>py/</code>) and a JavaScript core (<code>js/</code>) that make the same bytes, ids, signatures and state. Signatures and descriptions below are generated from the code. Start with <a href='examplepythonapi.html'>Example: Python API</a>, <a href='examplejavascript.html'>Example: JavaScript</a> and <a href='extendingledgdex.html'>Extending Ledgdex</a>; the format is in <a href='ledgerfileformat.html'>Ledger File Format</a> and the <a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>.",
+            "<b>Python</b>: <a href='#ledgdex.core'>ledgdex.core</a>, <a href='#ledgdex.canon'>ledgdex.canon</a>, <a href='#ledgdex.state'>ledgdex.state</a>, <a href='#ledgdex.dex'>ledgdex.dex</a>, <a href='#ledgdex.render'>ledgdex.render</a>, <a href='#ledgdex.check'>ledgdex.check</a>, <a href='#ledgdex.publish'>ledgdex.publish</a>, <a href='#ledgdex.cli'>ledgdex.cli</a>, <a href='#ledgdex.sig'>ledgdex.sig</a>.",
+            "<b id='ledgdex.core'>ledgdex.core</b>: Messages, entries and ledgers: signing, verifying, reading a ledger (spec 2, 3).",
+            "<pre><code>class ledgdex.core.Ledger(data, cache=True, root=None)</code></pre>",
+            "A parsed ledger. Verification stops at the first structurally invalid line (spec 3.3).",
+            "Verified prefixes are cached (in ~/.cache/ledgdex, by ledger id, length and SHA-256 of the exact bytes), so a ledger that only grew is verified only from where it was verified before. Any changed byte misses the cache and is verified in full. cache=False, or LEDGDEX_NO_CACHE=1, always verifies everything.",
+            "<pre><code>ledgdex.core.Ledger.append(self, entry)</code></pre>",
+            "Verify entry on top of this ledger and add it. Raises Invalid if it is not valid.",
+            "<pre><code>ledgdex.core.Ledger.next_entry(self, secret, msg, at=None)</code></pre>",
+            "A new signed entry recording msg on top of this ledger. Raises Invalid if it would not be valid.",
+            "<pre><code>ledgdex.core.Ledger.find(self, id_)</code></pre>",
+            "Index of the entry with this entry id, or None.",
+            "<pre><code>ledgdex.core.Ledger.head(self)</code></pre>",
+            "<pre><code>ledgdex.core.Ledger.owner   (property)</code></pre>",
+            "The current owner key (the header's, until a rotate or a recovery).",
+            "<pre><code>ledgdex.core.Ledger.devices   (property)</code></pre>",
+            "<pre><code>ledgdex.core.Ledger.dex   (property)</code></pre>",
+            "The dex address in the \"open\" entry ('' if none).",
+            "<pre><code>ledgdex.core.Ledger.whole   (property)</code></pre>",
+            "<pre><code>ledgdex.core.new_ledger(secret, name, about, dex_url, at=None)</code></pre>",
+            "Header plus the \"open\" entry (spec 3.1, 5.1).",
+            "<pre><code>ledgdex.core.message(secret, type_, body, at=None, root=None)</code></pre>",
+            "<pre><code>ledgdex.core.new_secret()</code></pre>",
+            "<pre><code>ledgdex.core.public(secret)</code></pre>",
+            "<pre><code>ledgdex.core.sign(secret, obj)</code></pre>",
+            "<pre><code>ledgdex.core.verify(key, obj, sig)</code></pre>",
+            "<pre><code>ledgdex.core.unsigned(obj)</code></pre>",
+            "<pre><code>ledgdex.core.check_message(m, root=None)</code></pre>",
+            "Raise Invalid unless m is a valid message (spec 2).",
+            "<pre><code>ledgdex.core.check_body(type_, body, root=None)</code></pre>",
+            "<pre><code>ledgdex.core.check_receipt(body, root=None)</code></pre>",
+            "A receipt verifies on its own (spec 5.1, invariant 10): the entry is signed by the other ledger's header key, or by a key that the key entries in \"keys\" (rotate, device, device_revoke, recovered, in order) lead to. A \"recovered\" key entry is checked against the root, as in the ledger itself: without it anyone could hand the other ledger to a key of their own and sign a false receipt.",
+            "<pre><code>ledgdex.core.root_recovers(root, ledger_id, e, prior=())</code></pre>",
+            "Spec 5.7: a \"recovered\" entry e of ledger ledger_id is signed by the new key, which a \"recover\" entry in the root names. A recover entry is spent by its first \"recovered\" (prior: the ledger's earlier key entries). Nothing the ledger's own keys do can void it: they may be a thief's, and entry times are theirs to choose. Raises Invalid otherwise.",
+            "<pre><code>ledgdex.core.is_key(v)</code></pre>",
+            "<pre><code>ledgdex.core.is_id(v)</code></pre>",
+            "<pre><code>ledgdex.core.is_time(v)</code></pre>",
+            "<pre><code>ledgdex.core.now()</code></pre>",
+            "<pre><code>ledgdex.core.seconds(t)</code></pre>",
+            "<pre><code>ledgdex.core.utc(s)</code></pre>",
+            "<pre><code>class ledgdex.core.Keys(owner)</code></pre>",
+            "A ledger's signing keys as its entries change them (spec 5.1, 5.7, 6.1).",
+            "<pre><code>class ledgdex.core.Invalid</code></pre>",
+            "Inappropriate argument value (of correct type).",
+            "<pre><code>ledgdex.core.SKEW = 300</code></pre>",
+            "<pre><code>ledgdex.core.OWNER_ONLY = {'device', 'device_revoke', 'open', 'recover', 'rotate'}</code></pre>",
+            "<pre><code>ledgdex.core.COUNTERPARTY = {'bid', 'claim', 'confirmed', 'dispute', 'paid', 'reveal', 'ruling'}</code></pre>",
+            "<pre><code>ledgdex.core.KEY_TYPES = {'device', 'device_revoke', 'recovered', 'rotate'}</code></pre>",
+            "<b id='ledgdex.canon'>ledgdex.canon</b>: Canonical JSON: the exact bytes that are hashed and signed (spec 1.2).",
+            "<pre><code>ledgdex.canon.canon(v, keys=re.compile('[a-z][a-z0-9_]*\\\\Z'))</code></pre>",
+            "canon(x): canonical JSON bytes. keys=ID_KEY only for the state object, whose keys are ids.",
+            "<pre><code>ledgdex.canon.parse(data)</code></pre>",
+            "Parse bytes that MUST already be canonical JSON. Returns the value or raises CanonError.",
+            "<pre><code>ledgdex.canon.hash_(v)</code></pre>",
+            "hash(x) = \"sha256:\" + hex(SHA-256(canon(x))).",
+            "<pre><code>ledgdex.canon.sha256(data)</code></pre>",
+            "<pre><code>ledgdex.canon.check(v, keys=re.compile('[a-z][a-z0-9_]*\\\\Z'), depth=1)</code></pre>",
+            "Raise CanonError unless v follows rules 1-3 and 9.",
+            "<pre><code>class ledgdex.canon.CanonError</code></pre>",
+            "Inappropriate argument value (of correct type).",
+            "<pre><code>ledgdex.canon.MAX_DEPTH = 32</code></pre>",
+            "<pre><code>ledgdex.canon.MAX_INT = 9007199254740991</code></pre>",
+            "<b id='ledgdex.state'>ledgdex.state</b>: The state function: a ledger replayed into one JSON object (spec 6).",
+            "<pre><code>ledgdex.state.state(led, root=None, now=None)</code></pre>",
+            "Replay a parsed Ledger. root: the root Ledger, for \"allow\": \"admitted\" (spec 5.7). now: the time auction statuses are judged at (default: the time of the last entry).",
+            "<pre><code>ledgdex.state.judged_at(m, entry_time)</code></pre>",
+            "When a claim or bid is judged against the root (spec 5.7), in seconds: the later of the time its author signed it (msg.at, which the seller cannot move) and the time the seller recorded it less the allowed skew (which the buyer cannot move back: a revoked key cannot buy by dating its claim before the revoke). Never a later root entry: a past claim stays as it was judged.",
+            "<pre><code>ledgdex.state.admissions(root)</code></pre>",
+            "The root's admit and revoke entries in order, as {key: [(seconds, admitted)]} (a message recorded twice counts once, as in 6.2). A claim or bid is judged by the root's admissions at judged_at() (spec 5.7).",
+            "<pre><code>ledgdex.state.admitted_at(admits, key, t)</code></pre>",
+            "Whether the root had admitted key at time t (seconds).",
+            "<b id='ledgdex.dex'>ledgdex.dex</b>: A ledgdex on disk: keys, this dex's ledger, and reading other ledgers.",
+            "<pre><code>ledgdex.dex.load(dex, root=None)</code></pre>",
+            "<pre><code>ledgdex.dex.record(dex, msgs, at=None, secret=None, root=None, skipped=None)</code></pre>",
+            "Record messages in this dex's ledger. Only appends. Returns the entry ids. Signed with secret, or with the key signer() picks. skipped: a list to collect (message, reason) for messages that cannot be recorded (one counterparty's message signed in the future must not stop the rest); without it, the first one raises.",
+            "<pre><code>ledgdex.dex.fetch(src, cache=True, root=None, remote=False)</code></pre>",
+            "Read a ledger from a dex folder, a file, or a dex URL. Returns (Ledger, url). remote: src came from a ledger (a receipt, a listing), so besides http(s) only a dex folder or a .jsonl file is read (ledgers kept on one machine), never any other local file.",
+            "<pre><code>ledgdex.dex.http_get(url, limit=None)</code></pre>",
+            "The bytes at an http(s) address, at most limit (default MAX_BYTES) of them.",
+            "<pre><code>ledgdex.dex.load_root(dex)</code></pre>",
+            "The root ledger named in config.json (\"ledgdex\": {\"root\": SOURCE, \"root_id\": ID}), or None.",
+            "An address can start serving another ledger (its hosting or DNS changes hands), so the root is pinned by ledger id: the first time it is read, its id is written to \"root_id\" (trust on first use), and from then on a root of another id, or a broken one, is refused. A root that rotates or recovers its key keeps its id. The last root read is kept in the dex folder: when the address cannot be read, work goes on with it, and an address serving an older copy (which could hide a revoke or a recovery) is ignored for it.",
+            "<pre><code>ledgdex.dex.keygen(name)</code></pre>",
+            "Write a new secret key to ~/.ledgdex/NAME.key (mode 600) and return its public key.",
+            "<pre><code>ledgdex.dex.load_key(name)</code></pre>",
+            "<pre><code>ledgdex.dex.find_key(pub)</code></pre>",
+            "The secret key in ~/.ledgdex whose public key is pub.",
+            "<pre><code>ledgdex.dex.signer(led, owner_only=False)</code></pre>",
+            "The local secret key to append to led with: an active device key when this machine has one, else the owner key. owner_only: the owner key itself (owner-only types, and messages sent to other ledgers, which carry the self's identity).",
+            "<pre><code>ledgdex.dex.key_dir()</code></pre>",
+            "<pre><code>ledgdex.dex.locked(dex)</code></pre>",
+            "One writer at a time: two appends at once would both take the next seq, and the second would break the ledger. The lock file stays in the dex folder (dexweb publishes only gen/).",
+            "<pre><code>ledgdex.dex.write(dex, data)</code></pre>",
+            "Replace the ledger file (only for re-sequencing unpublished entries, spec 3.5). The caller holds locked(dex).",
+            "<pre><code>ledgdex.dex.inside(folder)</code></pre>",
+            "Run with folder as the working folder (dexweb works on the current folder).",
+            "<pre><code>ledgdex.dex.LEDGER = 'ledgdex.jsonl'</code></pre>",
+            "<pre><code>ledgdex.dex.MAX_BYTES = 67108864</code></pre>",
+            "<pre><code>ledgdex.dex.ROOT_COPY = '.ledgdex-root.jsonl'</code></pre>",
+            "<b id='ledgdex.render'>ledgdex.render</b>: Every ledgdex is a dex: the pages ledgdex generates, and the dexweb build (spec 7).",
+            "<pre><code>ledgdex.render.render(dex, build=True)</code></pre>",
+            "Spec 7.3: rewrite the generated pages in data.json, copy the ledger into gen/, build with dexweb.",
+            "<pre><code>ledgdex.render.create_dex(dex, data, dexname, publish=None)</code></pre>",
+            "A complete dex (spec 7.1) around the ledger bytes `data`: config.json with dexweb's own template and \"publish\" with \"append_only\", data.json, run.py, then render. Keeps a config.json that is already there.",
+            "<pre><code>ledgdex.render.pages(led, author_titles)</code></pre>",
+            "The generated pages (spec 7.2) for a whole ledger, as dex page objects.",
+            "<pre><code>ledgdex.render.dex_name(name)</code></pre>",
+            "A dex name dexweb can write into its pages as it is (it does not escape it, and upper-cases it, which no escaping survives): without the characters HTML gives meaning to, or control characters.",
+            "<pre><code>ledgdex.render.safe_url(u)</code></pre>",
+            "Only http(s) addresses become links: a ledger names them, so a javascript: or data: address must not.",
+            "<pre><code>ledgdex.render.esc(s)</code></pre>",
+            "<pre><code>ledgdex.render.amount(currency, n)</code></pre>",
+            "INR 20,000.00 (2000000). Currencies without known minor units are written as the integer.",
+            "<pre><code>ledgdex.render.MARKER = '&lt;!-- ledgdex --&gt;'</code></pre>",
+            "<b id='ledgdex.check'>ledgdex.check</b>: Tamper checks over time (spec 9.1).",
+            "<pre><code>ledgdex.check.check(sources, state_dir='.ledgdex-check', media=False, published=False, log=&lt;built-in function print&gt;, root=None)</code></pre>",
+            "<pre><code>class ledgdex.check.Checker(state_dir='.ledgdex-check', media=False, log=&lt;built-in function print&gt;, root=None)</code></pre>",
+            "<pre><code>ledgdex.check.workflow(sources, cron='17 6 * * *', media=False, version=None)</code></pre>",
+            "The workflow file. Sources are shell-quoted and the cron is checked, so neither can add steps; ledgdex is installed from a release tag, not from a moving branch.",
+            "<b id='ledgdex.publish'>ledgdex.publish</b>: Publishing with dexweb, from one or more devices (spec 7.4).",
+            "<pre><code>ledgdex.publish.publish(dex, at=None)</code></pre>",
+            "Spec 7.4. True when every entry in the ledger is published.",
+            "<pre><code>ledgdex.publish.catch_up(dex, old, at=None)</code></pre>",
+            "Put this dex's unpublished entries on top of the published ledger `old` (bytes). Spec 3.5 rule 3.",
+            "<b id='ledgdex.cli'>ledgdex.cli</b>: The command line, also callable from Python.",
+            "<pre><code>ledgdex.cli.main(argv=None)</code></pre>",
+            "<pre><code>ledgdex.cli.parser()</code></pre>",
+            "<pre><code>ledgdex.cli.next_at(led, secret)</code></pre>",
+            "The time to sign a new message with: now, or one second after this key's last message in the ledger (kept or sent) if that is later. A message recorded twice counts once (spec 6.2), so two messages with the same body must differ in \"at\": two claims for the same offer within one second are two claims, not one.",
+            "<b id='ledgdex.sig'>ledgdex.sig</b>: Ed25519 backends: the cryptography package when present, else the built-in code.",
+            "<pre><code>ledgdex.sig.backend   (object: .name, .public_key(secret), .sign(secret, msg), .verify(public, msg, signature))</code></pre>",
+            "The Ed25519 backend in use: the cryptography package (name \"cryptography\") when it is installed and passes a known-answer test, else the built-in code (name \"pure\"). LEDGDEX_PURE=1 forces the built-in code. Both verify identically.",
+            "<pre><code>ledgdex.sig.pure   (object: .name, .public_key(secret), .sign(secret, msg), .verify(public, msg, signature))</code></pre>",
+            "The built-in Ed25519 (name \"pure\"), always available. Not constant time when signing.",
+            "<pre><code>ledgdex.sig.sign(secret, msg)</code></pre>",
+            "Sign with the chosen backend. The vendored code is not constant time: say so once, unless asked for.",
+            "<b>JavaScript</b> (ES modules, no dependencies; served next to the viewer, e.g. <code>https://matrixdex.github.io/ledgdex/core.js</code>). Asynchronous twins (<code>messageA</code>, <code>newLedgerA</code>, <code>nextEntryA</code>) take a signer from <code>sig.js</code> (Web Crypto).",
+            "<b>core.js</b>: Keys, messages, entries and ledger verification (spec 1-5). Mirrors py/ledgdex/core.py.",
+            "<pre><code>SKEW\nclass Invalid\nnewSecret()\npublicKey(secret)\nsign(secret, obj)\nverify(key, obj, sig)\nisKey(v)\nisId(v)\nisTime(v)\nseconds(t)\nutc(s)\nnow()\nhas(o, k)\nBODIES\nCOUNTERPARTY\nOWNER_ONLY\nKEY_TYPES\nclass Keys\ncheckBody(type, body, root = null)\ncheckMessage(m, root = null)\nrootRecovers(root, ledgerId, e, prior = [])\ncheckReceipt(body, root = null)\nunsigned(obj)\nmessage(secret, type, body, at, root = null)\nsignA(signer, obj)\nmessageA(signer, type, body, at, root = null)\nclass Ledger\nnewLedger(secret, name, about, dex, at)\nnewLedgerA(signer, name, about, dex, at)</code></pre>",
+            "<b>canon.js</b>: Canonical JSON (spec 1.2): the exact bytes that are hashed and signed.",
+            "<pre><code>KEY\nID_KEY\nMAX_DEPTH\nclass CanonError\ncheck(v, keys = KEY, depth = 1)\ncanonString(v, keys = KEY)\ncanon(v, keys = KEY)\nsha256id(bytes)\nhash(v)\nparse(bytes)</code></pre>",
+            "<b>state.js</b>: The state function (spec 6): replay a ledger into one JSON object. Mirrors py/ledgdex/state.py.",
+            "<pre><code>admissions(root)\njudgedAt(m, entryTime)\nadmittedAt(admits, key, t)\nstate(led, root = null, now = null)</code></pre>",
+            "<b>render.js</b>: Every ledgdex is a dex (spec 7.2): the generated dex pages for a ledger. Mirrors py/ledgdex/render.py pages(), byte for byte (checked against vectors/pages.json).",
+            "<pre><code>MARKER\nLEDGER\nesc(s)\namount(currency, n)\nshort(s)\ncode(s)\nhtmlTitle(t)\ndexName(name)\nsafeUrl(u)\npages(led, authorTitles = [])</code></pre>",
+            "<b>sig.js</b>: Signers for the browser (spec Part III): Web Crypto's Ed25519 when the browser has it and it passes a known-answer test, else the vendored code (ed25519.js). Web Crypto signs in constant time and derives the public key itself, so the secret never goes through the vendored arithmetic. Verification stays with the vendored code everywhere, so every browser judges a ledger the same way. A signer is {name, public, sign(bytes) -&gt; Promise&lt;Uint8Array&gt;}.",
+            "<pre><code>vendoredSigner(secret)\nwebCryptoSigner(secret)\nwebCryptoWorks()\nsigner(secret)</code></pre>",
+            "<b>keystore.js</b>: Keeping secrets in the browser, encrypted (Web Crypto). A secret key is stored only sealed with a passphrase: PBKDF2-SHA-256 (600,000 rounds, 16-byte salt) makes an AES-256-GCM key that encrypts it. Bid secrets (amount and nonce, until the reveal) are sealed with a key made from the secret key itself, so they need no passphrase and cannot be read without the key that bid. Nothing secret is stored in the clear.",
+            "<pre><code>ROUNDS\nMIN_PASSPHRASE\nsealKey(secret, pass, pub, rounds = ROUNDS)\nopenKey(box, pass)\nsealWith(secret, value)\nopenWith(secret, box)</code></pre>",
+            "<b>dexweb.js</b>: A complete dex in the browser (spec 7.1), the same files \"ledgdex init\" makes with dexweb: py/ledgdex/render.py create_dex() and dexweb's dexgen. Checked file for file against dexs dexweb built (vectors/dex/).",
+            "<pre><code>RUN_PY\npyJson(v, indent = null, ascii = true, depth = 0)\nbuildGen(data, config)\nmakeDex(data, dexname, template, publish = {})</code></pre>",
+            "<b>zip.js</b>: A ZIP file (stored, no compression) from {path: Uint8Array} and empty folders, for downloading a whole dex.",
+            "<pre><code>zip(files, dirs = [], prefix = '')</code></pre>"
+        ]
+    },
+    {
+        "title": "Message Types",
+        "body": [
+            "Every message is <code>{\"v\": 1, \"type\": ..., \"by\": key, \"at\": time, \"body\": {...}, \"sig\": ...}</code>, signed by <code>by</code>. The body of each type, with every field (optional ones: <code>expires</code> in an offer; <code>keys</code> in a receipt), as the code accepts it:",
+            "<b>open</b>: signed by owner (owner key only); recorded by the owner, as entry 0.",
+            "<pre><code>{\n \"about\": \"Alphonso mangoes from Ratnagiri\",\n \"dex\": \"https://farm.example\"\n}</code></pre>",
+            "<b>offer</b>: signed by owner or a device; recorded by the seller.",
+            "<pre><code>{\n \"item\": {\n  \"title\": \"Alphonso mangoes\",\n  \"text\": \"One dozen, ripe.\",\n  \"media\": [\n   {\n    \"url\": \"https://farm.example/mango.jpg\",\n    \"hash\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n   }\n  ]\n },\n \"quantity\": 10,\n \"unit\": \"dozen\",\n \"currency\": \"INR\",\n \"price\": 120000,\n \"allow\": \"any\",\n \"pay\": [\n  {\n   \"method\": \"upi\",\n   \"to\": \"farm@bank\"\n  }\n ],\n \"arbiter\": {\n  \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n  \"url\": \"https://assoc.example\"\n },\n \"terms\": \"Delivered in Ratnagiri within 2 days.\",\n \"expires\": \"2026-12-31T23:59:59Z\"\n}</code></pre>",
+            "<b>withdraw</b>: signed by owner or a device; recorded by the seller.",
+            "<pre><code>{\n \"offer\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n}</code></pre>",
+            "<b>claim</b>: signed by the buyer (its owner key); recorded by the seller.",
+            "<pre><code>{\n \"offer\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"offer_hash\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"quantity\": 2,\n \"price\": 120000\n}</code></pre>",
+            "<b>paid</b>: signed by the buyer; recorded by the seller.",
+            "<pre><code>{\n \"claim\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"method\": \"upi\",\n \"ref\": \"UTR123\"\n}</code></pre>",
+            "<b>received</b>: signed by owner or a device; recorded by the seller.",
+            "<pre><code>{\n \"claim\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"amount\": 240000\n}</code></pre>",
+            "<b>delivered</b>: signed by owner or a device; recorded by the seller.",
+            "<pre><code>{\n \"claim\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"note\": \"by courier, tracking 42\"\n}</code></pre>",
+            "<b>confirmed</b>: signed by the buyer; recorded by the seller.",
+            "<pre><code>{\n \"claim\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n}</code></pre>",
+            "<b>dispute</b>: signed by the buyer or the seller; recorded by the seller.",
+            "<pre><code>{\n \"claim\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"text\": \"Nothing arrived.\",\n \"evidence\": [\n  \"UTR123\",\n  \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n ]\n}</code></pre>",
+            "<b>ruling</b>: signed by the offer's arbiter; recorded by the seller.",
+            "<pre><code>{\n \"dispute\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"outcome\": \"refund\",\n \"text\": \"No proof of delivery.\"\n}</code></pre>",
+            "<b>auction</b>: signed by owner or a device; recorded by the seller.",
+            "<pre><code>{\n \"item\": {\n  \"title\": \"Map of Bombay, 1893\",\n  \"text\": \"\",\n  \"media\": []\n },\n \"currency\": \"INR\",\n \"close\": \"2026-11-01T12:00:00Z\",\n \"reveal_until\": \"2026-11-02T12:00:00Z\",\n \"best\": \"highest\",\n \"reserve\": 500000,\n \"allow\": \"any\",\n \"arbiter\": {\n  \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n  \"url\": \"\"\n },\n \"terms\": \"\"\n}</code></pre>",
+            "<b>bid</b>: signed by the bidder; recorded by the seller.",
+            "<pre><code>{\n \"auction\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"commit\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n}</code></pre>",
+            "<b>reveal</b>: signed by the bidder; recorded by the seller.",
+            "<pre><code>{\n \"auction\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"amount\": 650000,\n \"nonce\": \"c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3\"\n}</code></pre>",
+            "<b>admit</b>: signed by owner or a device; recorded by the admitting ledger (a shop, or the root).",
+            "<pre><code>{\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n \"name\": \"Asha\",\n \"note\": \"\"\n}</code></pre>",
+            "<b>revoke</b>: signed by owner or a device; recorded by the admitting ledger.",
+            "<pre><code>{\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n \"reason\": \"left the market\"\n}</code></pre>",
+            "<b>list</b>: signed by owner or a device; recorded by an index.",
+            "<pre><code>{\n \"ledger\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"url\": \"https://farm.example\",\n \"owner\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n \"note\": \"mangoes\"\n}</code></pre>",
+            "<b>delist</b>: signed by owner or a device; recorded by an index.",
+            "<pre><code>{\n \"ledger\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"reason\": \"closed\"\n}</code></pre>",
+            "<b>note</b>: signed by owner or a device; recorded by any ledger, about its own entries.",
+            "<pre><code>{\n \"ref\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"text\": \"restocked\"\n}</code></pre>",
+            "<b>device</b>: signed by owner (owner key only); recorded by the ledger.",
+            "<pre><code>{\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n \"name\": \"shop phone\"\n}</code></pre>",
+            "<b>device_revoke</b>: signed by owner (owner key only); recorded by the ledger.",
+            "<pre><code>{\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\n \"reason\": \"lost\"\n}</code></pre>",
+            "<b>rotate</b>: signed by owner (owner key only); recorded by the ledger.",
+            "<pre><code>{\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\"\n}</code></pre>",
+            "<b>recover</b>: signed by the root's owner key; recorded by the root.",
+            "<pre><code>{\n \"ledger\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"key\": \"ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\"\n}</code></pre>",
+            "<b>recovered</b>: signed by the new key the root named; recorded by the recovered ledger.",
+            "<pre><code>{\n \"root\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\n \"entry\": \"sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"\n}</code></pre>",
+            "<b>sent</b> and <b>receipt</b> (owner or a device, in its own ledger) hold whole messages and entries: <code>{\"to\": key, \"msg\": message}</code> keeps a copy of a message sent to another ledger; <code>{\"ledger\": id, \"url\": str, \"header\": header, \"entry\": entry, \"keys\": [entry, ...]}</code> keeps another ledger's entry about one of this self's messages, which verifies on its own (<a href='ledgerfileformat.html'>Ledger File Format</a>)."
+        ]
+    },
+    {
+        "title": "Ledger File Format",
+        "body": [
+            "A ledger is UTF-8 text, one canonical JSON value per line, each ending with a newline: a header, then entries. Canonical JSON: keys sorted, no spaces, integers only (no floats), at most 32 levels deep, one spelling for each value (<a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>spec 1.2</a>). The ledger id is the SHA-256 of the header line; an entry's id is the SHA-256 of its line.",
+            "The header: <code>{\"ledger\": 1, \"name\": str, \"owner\": key}</code>. Each entry: <code>{\"seq\": n, \"prev\": id of the previous entry (or the ledger id), \"time\": time, \"msg\": message, \"sig\": ...}</code>, signed by a current signing key (the owner, or an active device key). The first entry records <code>open</code>.",
+            "The first lines of this dex's own ledger:",
+            "<pre><code>{\"ledger\":1,\"name\":\"Ledgdex Docs\",\"owner\":\"ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5\"}</code></pre>",
+            "<pre><code>{\n \"msg\": {\n  \"at\": \"2026-10-02T09:00:00Z\",\n  \"body\": {\n   \"about\": \"The ledger of the ledgdex docs: a demonstration. Its key was destroyed after signing, so nothing can be added to it, and nobody may buy from it.\",\n   \"dex\": \"https://matrixdex.github.io/ledgdex/docs\"\n  },\n  \"by\": \"ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5\",\n  \"sig\": \"cae268a3b595ac4dfa085b4f3f600c4ac474bf8114c7985f422d7320d3a222c508e609a7c4048fdd3547068f91ebd7756e9b2d2ee38aa982887f967d91966c0e\",\n  \"type\": \"open\",\n  \"v\": 1\n },\n \"prev\": \"sha256:cdd491a9613fb888083768346cfe0a1183f9fbfb755882d66501678682de67b9\",\n \"seq\": 0,\n \"sig\": \"7bdfde90d636fe05ba4241ba0b82e41432a6c6243f12d80751fe01e8046c4a90582662c98c3e68b674c80f61455c933dedc6e307f546b00dc336d78e3ae9d60c\",\n \"time\": \"2026-10-02T09:00:00Z\"\n}</code></pre>",
+            "<pre><code>{\"msg\":{\"at\":\"2026-10-02T09:00:01Z\",\"body\":{\"allow\":[],\"arbiter\":{\"key\":\"ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5\",\"url\":\"\"},\"cu ...</code></pre>",
+            "A ledger is whole when every line verifies in order: the hash chain, the signatures, the times, and who may record what. Change one byte and verification breaks at that line. <pre><code>ledgdex verify https://matrixdex.github.io/ledgdex/docs</code></pre>",
+            "A receipt (<code>{\"ledger\", \"url\", \"header\", \"entry\", \"keys\"}</code>) verifies on its own: the other ledger's header and its signed entry, with the key entries that lead to the key that signed it."
+        ]
+    },
+    {
+        "title": "Configuration",
+        "body": [
+            "<code>config.json</code> is dexweb's, with two parts ledgdex reads:",
+            "<pre><code>{\n  \"dexname\": \"Mango Farm\", ... dexweb's templates and settings ...,\n  \"publish\": {\"dest\": \"git@github.com:YOU/YOU.github.io.git\", \"branch\": \"main\",\n              \"append_only\": [\"ledgdex.jsonl\"]},\n  \"ledgdex\": {\"root\": \"https://market.example\", \"root_id\": \"sha256:...\"}\n}</code></pre>",
+            "<code>publish</code>: where dexweb publishes (<a href='https://matrixdex.github.io/dexweb/publishingdexonline.html'>dexweb docs</a>); <code>append_only</code> must list <code>ledgdex.jsonl</code>. <code>ledgdex</code>: the root this dex trades under, pinned by its id.",
+            "<b>Environment variables</b>:",
+            "<pre><code>LEDGDEX_HOME       where keys live (default ~/.ledgdex)\nLEDGDEX_CACHE      the verification cache (default ~/.cache/ledgdex)\nLEDGDEX_NO_CACHE   1: verify every entry every time\nLEDGDEX_PURE       1: sign and verify with the built-in Ed25519 (not constant time)\nLEDGDEX_MAX_BYTES  the most read from one address (default 67108864, 64 MiB)</code></pre>"
+        ]
+    },
+    {
+        "title": "Extending Ledgdex",
+        "body": [
+            "Ways to build on ledgdex, from the simplest:",
+            "1. <b>Your own pages</b>: a ledgdex is a dex, so add pages to <code>data.json</code> or files to <code>to_add/</code>; ledgdex rewrites only its own pages (those starting with <code>&lt;!-- ledgdex --&gt;</code>).",
+            "2. <b>Tools on the state</b>: <code>state(Ledger(...))</code> is plain JSON of offers, claims, auctions, disputes, admissions and listings. Reports, exports, dashboards and alerts read it; nothing they do can change a ledger.",
+            "3. <b>Agents</b>: programs that sign and record by rule (<a href='botsandagents.html'>Bots and Agents</a>). Call the commands from Python with <code>ledgdex.cli.main([...])</code>, or the library underneath.",
+            "4. <b>In the browser</b>: the same core in <code>js/</code> (<a href='examplejavascript.html'>Example: JavaScript</a>).",
+            "5. <b>New message types</b>: a change to the format, so to the <a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a> first: the body's fields in <code>BODIES</code> (core.py and core.js), who may author and record it, its rule in both state functions, a line for the ledger page in both renderers, then shared vectors (<code>py/tests/make_vectors.py</code>) and fuzzing so both languages agree byte for byte.",
+            "Things not to do: change a ledger file by hand (it breaks, or it is a rewrite every receipt exposes), keep keys in a dex, or trust a ledger without verifying it (<code>Ledger(data).whole</code>).",
+            "<a href='exampleextending.html'>Example: Extending</a> builds a sales report and adds it to the dex as a page."
+        ]
+    },
+    {
+        "title": "Bots and Agents",
+        "body": [
+            "Humans and bots are equal participants: same files, same keys, same rules. An agent is a program that acts for one self by rules, on a timer: it reads ledgers, signs messages, records what is addressed to it, and publishes. Every action is an ordinary signed entry, so a person can audit it and <code>ledgdex check</code> catches an agent that misbehaves.",
+            "<b>A seller agent</b> each round: <code>record --from</code> every buyer it serves, deliver what is paid (<code>received</code>, <code>delivered</code>), withdraw or offer as stock changes, publish.",
+            "<b>A buyer agent</b> each round: <code>discover --offers --json</code> on an index, choose by its rule (cheapest, nearest, trusted), <code>claim</code>, keep <code>receipt</code>s, <code>pay</code> when accepted, <code>confirm</code> when delivered, <code>dispute</code> when not.",
+            "<b>A market maker</b> combines both: it buys where cheap and offers where wanted, with its own ledger as the record of every position.",
+            "Practical points: give each machine a device key (the owner key stays with the operator); run <code>record --from</code> with many sources (an unreachable or misbehaving one is skipped and reported, the rest recorded); messages from one key are signed at distinct times, so repeated orders all count; on a local network, serve each dex over plain HTTP and use those addresses.",
+            "<a href='examplebots.html'>Example: Bots</a> runs a seller bot and two buyer bots to closed deals; <a href='robotspaidperclean.html'>Robots Paid per Clean</a> is a whole use case."
+        ]
+    },
+    {
+        "title": "Robots Paid per Clean",
+        "body": [
+            "The use case in <a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>spec section 10</a>: vacuum robots clean a mall's floor, the shops pay per clean, settled daily, and robots of different operators fill in for each other. With what is built today:",
+            "1. Each robot has its own ledgdex; its operator holds the owner key, the robot a device key.",
+            "2. Each morning each robot offers the day's cleans (quantity, price per clean, <code>expires</code> at midnight).",
+            "3. A shop needing a clean claims one from a robot with cleans left; the robot records the claim, cleans, and records <code>delivered</code> with its photo (address and hash) as evidence; the shop confirms.",
+            "4. A robot going offline withdraws its offer; shops claim from the other robots.",
+            "5. In the evening each shop pays each robot for the day's confirmed cleans; each robot records <code>received</code>. The day's totals are computed from the ledgers alone.",
+            "<a href='examplerobotcleaning.html'>Example: Robot Cleaning</a> runs a whole day with two operators and three shops. Deadlines that lapse unclaimed cleans, mall credits and a clearing ledger are drafted in the spec (milestone 11)."
+        ]
+    },
+    {
+        "title": "Use Cases",
+        "body": [
+            "Where a ledgdex fits: trades between people or machines who keep their own records and want them to be evidence.",
+            "<pre><code>farm or shop selling to regulars        offers, claims, payment notices, receipts\na market of local sellers              a root (admission) + an index (discovery) + shops\nfreelance services                     an offer per service, delivered with a link, disputes to a guild\ndigital goods and licences             a seller bot delivering on payment\nart, maps, collectables                sealed-bid auctions, with a reserve\nprocurement and tenders                \"best\": \"lowest\" auctions: the lowest bid under the budget wins\nrobots and machines selling service    device keys, per-unit claims, daily settlement\na club or co-operative                 admission through a root, members-only offers\npublic records of supply               notes and offers as dated, signed statements</code></pre>",
+            "Where it does not: anything needing a shared global order or instant finality between strangers (ledgdex has no consensus, by design), or money itself: payment happens outside, and the ledger records it."
+        ]
+    },
+    {
+        "title": "Example: First Trade",
+        "body": [
+            "A whole trade between a seller and a buyer on one machine: offer, claim, receipt, payment, delivery and confirmation, then verification. For everyone. In an empty folder: <code>sh 01-first-trade.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/01-first-trade.sh'><code>guide/examples/01-first-trade.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# A whole trade between two ledgdexes on one machine: a seller (shop) and a buyer (me).\n# Run it in an empty folder. Keys go to ~/.ledgdex (or $LEDGDEX_HOME).\n# expect: receipt kept for your claim\n# expect: \"status\": \"closed\"\n# expect: whole:\nset -eu\n\n# 1. The seller makes a ledgdex: a dex (website) with a signed ledger in it.\nledgdex init shop --name \"Mango Farm\" --about \"Alphonso mangoes from Ratnagiri\" --key farm\n\n# 2. The seller offers something. Prices are integers in the smallest unit: 120000 is INR 1,200.00.\ncat &gt; offer.json &lt;&lt;'JSON'\n{\"item\": {\"title\": \"Alphonso mangoes\", \"text\": \"One dozen, ripe.\"},\n \"quantity\": 10, \"unit\": \"dozen\", \"currency\": \"INR\", \"price\": 120000,\n \"pay\": [{\"method\": \"upi\", \"to\": \"farm@bank\"}]}\nJSON\nOFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')\necho \"offer: $OFFER\"\n\n# 3. The buyer makes a ledgdex too, and claims 2 dozen. The claim is kept in the buyer's ledger as \"sent\".\nledgdex init me --name \"Asha\" --key asha\nledgdex claim me shop \"$OFFER\" --quantity 2 --output claim.json\n\n# 4. The seller records the claim, collected from the buyer's dex (a folder here; a web address online).\nCLAIM=$(ledgdex record shop --from me | awk '/claim recorded/ {print $3}')\n\n# 5. The buyer keeps the seller's record of the claim: the receipt (the third entry of triple entry).\nledgdex receipt me shop\n\n# 6. Payment, delivery and confirmation, each signed by the side that did it.\nledgdex pay me shop \"$CLAIM\" --method upi --ref UTR123 --output paid.json\nledgdex record shop --from me\nledgdex received shop \"$CLAIM\" 240000\nledgdex delivered shop \"$CLAIM\" --note \"by courier\"\nledgdex confirm me shop \"$CLAIM\" --output confirmed.json\nledgdex record shop --from me\n\n# 7. Anyone can verify the seller's ledger and read its state. The claim is closed.\nledgdex verify shop\nledgdex state shop | python3 -m json.tool | grep '\"status\"'</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Marketplace",
+        "body": [
+            "An operator's root and index, two shops selling to admitted members, a buyer choosing the cheapest offer through the index, and a stranger turned away. For market operators. In an empty folder: <code>sh 02-marketplace.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/02-marketplace.sh'><code>guide/examples/02-marketplace.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# A marketplace: one operator ledger is both the root (who is admitted) and the index (which shops are listed).\n# Two shops sell to admitted buyers only; a buyer finds offers through the index and buys the cheapest.\n# expect: Kesar mangoes INR 90000 per dozen\n# expect: (accepted)\n# expect: (rejected, not_allowed)\nset -eu\n\n# 1. The operator's ledgdex. Its owner key admits members and is the default arbiter of every shop's offers.\nledgdex init market --name \"Ratnagiri Market\" --about \"Fruit sellers of Ratnagiri\" --key market\n\n# 2. Two shops, both trading under the market as their root (pinned by its ledger id).\nledgdex init farm --name \"Mango Farm\" --key farm --root market\nledgdex init orchard --name \"Hill Orchard\" --key orchard --root market\n\n# 3. Members. The market admits the shops' keys and a buyer's; each shop admits the buyer too.\n#    (A key is given as a public key, ed25519:..., or by its name in ~/.ledgdex on this machine.)\nASHA=$(ledgdex keygen asha)\nledgdex admit market farm --name \"Mango Farm\"\nledgdex admit market orchard --name \"Hill Orchard\"\nledgdex admit market \"$ASHA\" --name \"Asha\"\nledgdex admit farm \"$ASHA\" --name \"Asha\"\nledgdex admit orchard \"$ASHA\" --name \"Asha\"\n\n# 4. The market lists both shops: it is now an index anyone can read.\nledgdex list market farm --note \"mangoes\"\nledgdex list market orchard --note \"mangoes, cheaper\"\n\n# 5. The shops offer to admitted keys only. The arbiter defaults to the market's owner.\nprintf '%s' '{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 20, \"unit\": \"dozen\", \"currency\": \"INR\", \"price\": 120000, \"allow\": \"admitted\"}' &gt; farm-offer.json\nprintf '%s' '{\"item\": {\"title\": \"Kesar mangoes\"}, \"quantity\": 20, \"unit\": \"dozen\", \"currency\": \"INR\", \"price\": 90000, \"allow\": \"admitted\"}' &gt; orchard-offer.json\nledgdex offer farm farm-offer.json\nledgdex offer orchard orchard-offer.json\n\n# 6. The buyer reads the index: every listed ledger, and what each sells.\nledgdex init me --name \"Asha\" --key asha --root market\nledgdex discover market --offers --json &gt; found.json\npython3 -c '\nimport json\nfor l in json.load(open(\"found.json\")):\n    for o in l[\"offers\"]:\n        print(l[\"note\"], \"|\", o[\"title\"], o[\"currency\"], o[\"price\"], \"per\", o[\"unit\"], \"|\", o[\"remaining\"], \"left\")' \n\n# 7. The buyer picks the cheapest open offer and claims it; that shop records the claim.\nset -- $(python3 -c '\nimport json\nfound = json.load(open(\"found.json\"))\nbest = min(((o[\"price\"], l[\"url\"], o[\"id\"]) for l in found for o in l[\"offers\"]), key=lambda x: x[0])\nprint(best[1], best[2])')\nledgdex claim me \"$1\" \"$2\" --output claim.json\nledgdex record \"$1\" --from me\n\n# 8. Someone the market never admitted is turned away by the same rule.\nledgdex init stranger --name \"Stranger\" --key stranger\nledgdex claim stranger \"$1\" \"$2\" --output stranger-claim.json\nledgdex record \"$1\" --from stranger</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Auction",
+        "body": [
+            "A sealed-bid auction with two bidders, their reveals, and the winner by rule. For sellers and bidders. In an empty folder: <code>sh 03-auction.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/03-auction.sh'><code>guide/examples/03-auction.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# A sealed-bid auction: bids are secret (only a hash is signed) until the bidding closes, then each bidder reveals.\n# The times are a few seconds ahead so the example runs quickly; real auctions close hours or days later.\n# expect: bid recorded:\n# expect: \"winner\":\n# expect: \"status\": \"awarded\"\nset -eu\nat() { python3 -c \"import datetime as d, sys; print((d.datetime.now(d.timezone.utc) + d.timedelta(seconds=int(sys.argv[1]))).strftime('%Y-%m-%dT%H:%M:%SZ'))\" \"$1\"; }\nwait_until() { python3 -c \"import datetime as d, sys, time; t = d.datetime.strptime(sys.argv[1], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=d.timezone.utc); time.sleep(max(0, (t - d.datetime.now(d.timezone.utc)).total_seconds() + 1))\" \"$1\"; }\n\nledgdex init gallery --name \"Old Maps Gallery\" --key gallery\nCLOSE=$(at 20); REVEAL_UNTIL=$(at 35)\ncat &gt; auction.json &lt;&lt;JSON\n{\"item\": {\"title\": \"Map of Bombay, 1893\", \"text\": \"Hand-coloured, framed.\"},\n \"currency\": \"INR\", \"close\": \"$CLOSE\", \"reveal_until\": \"$REVEAL_UNTIL\", \"best\": \"highest\", \"reserve\": 500000}\nJSON\nAUCTION=$(ledgdex auction gallery auction.json | awk '{print $NF}')\n\n# Two bidders. \"ledgdex bid\" keeps the amount and a random nonce private (in ~/.ledgdex/bids) and signs only their hash.\nledgdex init asha --name \"Asha\" --key asha\nledgdex init ravi --name \"Ravi\" --key ravi\nledgdex bid asha gallery \"$AUCTION\" --amount 650000 --output asha-bid.json\nledgdex bid ravi gallery \"$AUCTION\" --amount 720000 --output ravi-bid.json\nledgdex record gallery --from asha --from ravi\n\n# After the close, each bidder reveals; the gallery records the reveals before reveal_until.\nwait_until \"$CLOSE\"\nledgdex reveal asha gallery \"$AUCTION\" --output asha-reveal.json\nledgdex reveal ravi gallery \"$AUCTION\" --output ravi-reveal.json\nledgdex record gallery --from asha --from ravi\n\n# Once reveal_until passes, the highest valid reveal at or above the reserve wins, by rule: anyone computes the same.\n# A ledger's state is judged at the time of its last entry, so the gallery announces the result with a note.\nwait_until \"$REVEAL_UNTIL\"\nledgdex note gallery \"$AUCTION\" \"Bidding is over: the result is in the state.\"\nledgdex state gallery | python3 -c '\nimport json, sys\na = list(json.load(sys.stdin)[\"auctions\"].values())[0]\nprint(json.dumps({\"winner\": a[\"winner\"], \"amount\": a[\"amount\"], \"status\": a[\"status\"]}, indent=1))'</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Disputes",
+        "body": [
+            "A dispute ruled by the arbiter the offer names, and a seller's own ruling ignored. For buyers, sellers and arbiters. In an empty folder: <code>sh 04-disputes.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/04-disputes.sh'><code>guide/examples/04-disputes.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# A dispute settled by the arbiter the offer names. Only that key's ruling counts; anyone else's is ignored.\n# expect: dispute signed and kept as \"sent\"\n# expect: \"status\": \"refunded\"\n# expect: not_arbiter\nset -eu\n\n# The arbiter is a self with its own ledgdex: here a trade association.\nledgdex init assoc --name \"Fruit Traders Association\" --key assoc\nARBITER=$(ledgdex state assoc | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"owner\"])')\n\nledgdex init shop --name \"Mango Farm\" --key farm\ncat &gt; offer.json &lt;&lt;JSON\n{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 5, \"unit\": \"dozen\", \"currency\": \"INR\", \"price\": 120000,\n \"arbiter\": {\"key\": \"$ARBITER\", \"url\": \"assoc\"}}\nJSON\nOFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')\n\nledgdex init me --name \"Asha\" --key asha\nledgdex claim me shop \"$OFFER\" --output claim.json\nCLAIM=$(ledgdex record shop --from me | awk '/claim recorded/ {print $3}')\nledgdex pay me shop \"$CLAIM\" --method upi --ref UTR555 --output paid.json\nledgdex record shop --from me\n\n# Nothing arrives. The buyer opens a dispute in the seller's ledger, with evidence.\nledgdex dispute me \"$CLAIM\" --seller shop --text \"Paid on the 1st, nothing delivered.\" --evidence UTR555 --output dispute.json\nDISPUTE=$(ledgdex record shop --from me | awk '/dispute recorded/ {print $3}')\n\n# The seller cannot rule on its own dispute: its ruling is kept, and ignored.\nledgdex ruling shop shop \"$DISPUTE\" --outcome release --text \"I say it was delivered.\" --output self-ruling.json\nledgdex record shop --from shop || true\n\n# The arbiter rules; the seller records the ruling (or anyone sends it the file).\nledgdex ruling assoc shop \"$DISPUTE\" --outcome refund --text \"No proof of delivery: refund in full.\" --output ruling.json\nledgdex record shop --from assoc\n\nledgdex state shop | python3 -c '\nimport json, sys\nst = json.load(sys.stdin)\nprint(json.dumps({\"status\": [c[\"status\"] for c in st[\"claims\"].values()][0],\n                  \"ignored\": [i[\"reason\"] for i in st[\"ignored\"]]}))'</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Keys",
+        "body": [
+            "A phone with a device key, revoking it, rotating the owner key, and recovering a lost key through the root. For everyone. In an empty folder: <code>sh 05-keys.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/05-keys.sh'><code>guide/examples/05-keys.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# Keys: a phone with a device key, revoking it, rotating the owner key, and recovering a lost key through the root.\n# expect: device recorded:\n# expect: this machine has no signing key of this ledger\n# expect: recovered: the owner key is now\n# expect: whole:\nset -eu\nKEYS=${LEDGDEX_HOME:-$HOME/.ledgdex}\n\n# The root: it admits members, and names a new key for a member who lost theirs.\nledgdex init root --name \"Ratnagiri Market\" --key market\nledgdex init shop --name \"Mango Farm\" --key farm --root root\n\n# 1. A phone gets its own key (it never sees the owner key) and the owner authorises it.\nPHONE=$(LEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex keygen phone)\nledgdex device add shop \"$PHONE\" --name \"shop phone\"\n\n# 2. On the phone (its own key store), everyday work is signed with the device key.\nprintf '%s' '{\"item\": {\"title\": \"Kesar mangoes\"}, \"quantity\": 4, \"currency\": \"INR\", \"price\": 90000}' &gt; offer.json\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex offer shop offer.json\n\n# 3. The phone is lost: revoke it. From the next entry on, its signatures no longer count.\nledgdex device revoke shop \"$PHONE\" --reason \"lost on the train\"\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex note shop \"$(ledgdex state shop | python3 -c 'import json,sys; print(list(json.load(sys.stdin)[\"offers\"])[0])')\" \"from the lost phone\" 2&gt;&amp;1 || true\n\n# 4. Rotate the owner key (signed by the old one), for example once a year.\nledgdex rotate shop --key farm-2026\n\n# 5. The owner key is lost (moved away here). The root, after checking who the owner is off-ledger, names a new key,\n#    and the owner takes the ledger back with it. A recovery also removes every device key.\nmkdir -p lost &amp;&amp; mv \"$KEYS/farm-2026.key\" lost/\nNEW=$(ledgdex keygen farm-new)\nledgdex recover root shop \"$NEW\"\nledgdex recovered shop --root root --key farm-new\nledgdex note shop \"$(ledgdex state shop | python3 -c 'import json,sys; print(list(json.load(sys.stdin)[\"offers\"])[0])')\" \"back with the new key\"\nledgdex verify shop --root root</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Publish",
+        "body": [
+            "Publishing to a git repository from two devices, with the second catching up automatically. For sellers. In an empty folder: <code>sh 06-publish.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/06-publish.sh'><code>guide/examples/06-publish.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# Publishing: a ledgdex is published with dexweb to a git repository (GitHub Pages online; a local bare repository\n# here, so the example runs offline). Two devices publish the same ledger; the second catches up automatically.\n# expect: published\n# expect: re-sequenced 1 unpublished entries\n# expect: from the laptop\n# expect: from the phone\nset -eu\ngit init -q --bare -b main site.git\n\n# 1. A dex that publishes to the repository (for GitHub: --dest git@github.com:YOU/YOU.github.io.git --branch main).\nledgdex init shop --name \"Mango Farm\" --key farm --url https://farm.example --dest \"file://$PWD/site.git\" --branch main\nprintf '%s' '{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 10, \"currency\": \"INR\", \"price\": 120000}' &gt; offer.json\nOFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')\nledgdex publish shop &amp;&amp; echo published\n\n# 2. A second device: a copy of the dex (without dexweb's working copy) and its own device key.\ncp -r shop phone &amp;&amp; rm -rf phone/.publish\nPHONE=$(LEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex keygen phone)\nledgdex device add shop \"$PHONE\" --name phone &amp;&amp; ledgdex publish shop\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex publish phone   # the phone catches up: it learns it is a device\nledgdex note shop \"$OFFER\" \"from the laptop\"\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex note phone \"$OFFER\" \"from the phone\"\n\n# 3. Both publish. The second publish is refused by the append-only rule, so ledgdex re-sequences its unpublished\n#    entry on top of the published ledger and publishes again: one history, never two entries at one seq.\nledgdex publish shop\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex publish phone\n\n# 4. The published ledger has both notes, in order.\ngit --git-dir=site.git show main:ledgdex.jsonl &gt; published.jsonl\nledgdex verify published.jsonl\npython3 -c '\nimport json\nfor line in open(\"published.jsonl\").read().split(\"\\n\")[1:]:\n    if line and json.loads(line)[\"msg\"][\"type\"] == \"note\":\n        print(json.loads(line)[\"msg\"][\"body\"][\"text\"])'</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Check",
+        "body": [
+            "A seller rewriting its ledger to erase a sale, caught by ledgdex check with signed proof, and the GitHub workflow that runs the check daily. For everyone. In an empty folder: <code>sh 07-check.sh</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/07-check.sh'><code>guide/examples/07-check.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>#!/bin/sh\n# Tamper checks over time. A ledger can be re-signed by its owner from any point on, so \"ledgdex check\" keeps the\n# copies it has seen and follows receipts to the ledgers they came from. Here the seller rewrites its ledger to erase a\n# sale the buyer holds a receipt for, and the check catches it with signed proof.\n# expect: ok: 2 ledgers checked, 0 errors\n# expect: ERROR receipt_mismatch\n# expect: check failed with exit code 1\n# expect: name: ledgdex check\nset -eu\n\nledgdex init shop --name \"Mango Farm\" --key farm\nprintf '%s' '{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 10, \"currency\": \"INR\", \"price\": 120000}' &gt; offer.json\nOFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')\nledgdex init me --name \"Asha\" --key asha\nledgdex claim me shop \"$OFFER\" --output claim.json\nledgdex record shop --from me\nledgdex receipt me shop\n\n# 1. A first check: both ledgers whole, the receipt matches. Last-seen copies go to .ledgdex-check/.\nledgdex check shop me --quiet\n\n# 2. The seller rewrites its ledger from the claim on, signing a different entry at that position with its own key.\npython3 - &lt;&lt;'PY'\nfrom ledgdex.core import Ledger, message\nfrom ledgdex.dex import load, load_key, write\nled = load('shop')\nnew = Ledger(led.header_line + b'\\n' + b''.join(line + b'\\n' for line in led.lines[:2]))   # open, offer\nnew.append(new.next_entry(load_key('farm'), message(load_key('farm'), 'note', {'ref': led.ids[1], 'text': 'no sale'})))\nwrite('shop', new.data)\nPY\nledgdex verify shop      # on its own the rewritten ledger is whole: nothing in one copy shows the rewrite\n\n# 3. The check sees it: the buyer's receipt holds the seller's signed entry at that seq, and this copy has another.\nledgdex check shop me || echo \"check failed with exit code $?\"\nls .ledgdex-check/proofs/\n\n# 4. The same check, every day and on every push, as a GitHub Actions workflow (or cron, or \"--every 3600\").\nledgdex workflow shop/ledgdex.jsonl me/ledgdex.jsonl &gt; ledgdex-check.yml\nhead -3 ledgdex-check.yml</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Python API",
+        "body": [
+            "The core API without a dex: a ledger in memory, signed messages, verification, state, and a one-byte change caught. For developers. In an empty folder: <code>python3 08-python-api.py</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/08-python-api.py'><code>guide/examples/08-python-api.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>\"\"\"The Python API without a dex: make a ledger in memory, sign messages, record them, verify, and read the state.\nEverything a dex does is built on these calls (ledgdex.core, ledgdex.state, ledgdex.canon).\"\"\"\n# expect: whole True\n# expect: 'status': 'accepted'\n# expect: broken at 2\nimport json\nfrom ledgdex.canon import canon, hash_\nfrom ledgdex.core import Ledger, message, new_ledger, new_secret, public\nfrom ledgdex.state import state\n\nseller, buyer = new_secret(), new_secret()           # 32-byte Ed25519 secrets: keep them out of any dex\nprint('seller key', public(seller))\n\n# A ledger is a header line and signed entries; new_ledger writes the header and the \"open\" entry.\nled = new_ledger(seller, 'Mango Farm', 'Alphonso mangoes', 'https://farm.example')\n\n# The seller signs an offer and records it in its own ledger.\noffer = message(seller, 'offer', {\n    'item': {'title': 'Alphonso mangoes', 'text': 'One dozen', 'media': []}, 'quantity': 3, 'unit': 'dozen',\n    'currency': 'INR', 'price': 120000, 'allow': 'any', 'pay': [{'method': 'upi', 'to': 'farm@bank'}],\n    'arbiter': {'key': public(seller), 'url': ''}, 'terms': ''})\noffer_id = led.append(led.next_entry(seller, offer))\n\n# The buyer signs a claim naming the offer by id and by hash: the offer cannot change under the claim.\nclaim = message(buyer, 'claim', {'offer': offer_id, 'offer_hash': hash_(offer), 'quantity': 2, 'price': 120000})\nclaim_id = led.append(led.next_entry(seller, claim))   # the seller records it: that entry is the buyer's receipt\n\n# Anyone can verify the bytes and replay them into the same state, in Python or in JavaScript.\nagain = Ledger(led.data, cache=False)\nprint('whole', again.whole, 'entries', len(again.entries), 'id', again.id[:19])\nst = state(again)\nprint(st['claims'][claim_id], st['offers'][offer_id]['remaining'], 'left')\n\n# Change one byte of the recorded claim, and verification breaks exactly there.\ndata = bytearray(led.data)\ndata[data.index(b'\"quantity\":2') + 11] = ord('3')\ntampered = Ledger(bytes(data), cache=False)\nprint('broken at', tampered.broken_at, '-', tampered.error)\n\n# Canonical JSON: the exact bytes that are hashed and signed (sorted keys, no spaces, UTF-8).\nprint(canon({'b': 1, 'a': 'é'}).decode())</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Bots",
+        "body": [
+            "A seller bot and two buyer bots trading through an index to closed deals, with no person involved. For bots and developers. In an empty folder: <code>python3 09-bots.py</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/09-bots.py'><code>guide/examples/09-bots.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>\"\"\"Bots that make a market, with no person in the loop. A seller bot sells software licences; two buyer bots find the\ncheapest offer through an index, claim, pay, and confirm once the licence arrives. Each bot only reads ledgers and\nsigns messages, in rounds, as an agent would on a timer. On the web each dex is published after each round, and the\naddresses are https:// URLs instead of folders.\"\"\"\n# expect: round 1\n# expect: closed\n# expect: all deals closed: True\nimport contextlib, io, json\nfrom ledgdex.cli import main\n\n\ndef ledgdex(*args):\n    \"\"\"Run one ledgdex command in this process and return what it printed.\"\"\"\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):\n        main([str(a) for a in args])\n    return out.getvalue()\n\n\ndef state(src):\n    return json.loads(ledgdex('state', src))\n\n\nclass SellerBot:\n    \"\"\"Collects claims and payments from buyers' dexes, delivers once paid, and records the money as received.\"\"\"\n\n    def __init__(self, dex, buyers):\n        self.dex, self.buyers = dex, buyers\n\n    def round(self):\n        ledgdex('record', self.dex, *[x for b in self.buyers for x in ('--from', b)])\n        for cid, c in state(self.dex)['claims'].items():\n            if c['status'] == 'accepted' and 'paid' in c and not c.get('delivered'):\n                # a real bot checks its bank or payment API for c['paid']['ref'] before this\n                ledgdex('received', self.dex, cid, c['price'] * c['quantity'])\n                ledgdex('delivered', self.dex, cid, '--note', 'licence key LIC-' + cid[7:15].upper())\n\n\nclass BuyerBot:\n    \"\"\"Buys one unit of a title, at the lowest price on the index, within a budget.\"\"\"\n\n    def __init__(self, dex, index, title, budget):\n        self.dex, self.index, self.title, self.budget = dex, index, title, budget\n        self.me = state(dex)['owner']\n        self.seller = None\n\n    def round(self):\n        if self.seller is None:          # find the cheapest open offer for the title on the index\n            found = json.loads(ledgdex('discover', self.index, '--offers', '--json'))\n            offers = [(o['price'], listed['url'], o['id']) for listed in found for o in listed['offers']\n                      if o['title'] == self.title and o['price'] &lt;= self.budget and o['remaining'] &gt; 0]\n            if offers:\n                price, self.seller, oid = min(offers)\n                ledgdex('claim', self.dex, self.seller, oid, '--output', self.dex + '-claim.json')\n            return\n        ledgdex('receipt', self.dex, self.seller)    # keep the seller's records of my messages\n        for cid, c in state(self.seller)['claims'].items():\n            if c['buyer'] != self.me:\n                continue\n            if c['status'] == 'accepted' and 'paid' not in c:\n                ledgdex('pay', self.dex, self.seller, cid, '--method', 'card', '--ref', 'PAY-' + cid[7:13],\n                        '--output', self.dex + '-paid.json')\n            elif c.get('delivered') and not c.get('confirmed'):\n                ledgdex('confirm', self.dex, self.seller, cid, '--output', self.dex + '-confirmed.json')\n\n\n# The market: an index listing two software shops, and two buyers.\nledgdex('init', 'index', '--name', 'Software Market', '--key', 'index')\nfor shop, price in (('acme', 4900), ('globex', 3900)):\n    ledgdex('init', shop, '--name', shop.title() + ' Software', '--key', shop)\n    with open(shop + '.json', 'w') as f:\n        json.dump({'item': {'title': 'Photo editor licence'}, 'quantity': 100, 'unit': 'licence',\n                   'currency': 'USD', 'price': price}, f)          # USD 39.00 at globex\n    ledgdex('offer', shop, shop + '.json')\n    ledgdex('list', 'index', shop, '--note', 'software')\nfor buyer in ('alice', 'bob'):\n    ledgdex('init', buyer, '--name', buyer.title(), '--key', buyer)\n\nsellers = [SellerBot('acme', ['alice', 'bob']), SellerBot('globex', ['alice', 'bob'])]\nbuyers = [BuyerBot('alice', 'index', 'Photo editor licence', 5000), BuyerBot('bob', 'index', 'Photo editor licence', 5000)]\nfor n in range(1, 5):\n    for bot in buyers + sellers:\n        bot.round()\n    claims = state('globex')['claims']\n    print('round', n, sorted(c['status'] + (' delivered' if c.get('delivered') else '') for c in claims.values()))\nprint('all deals closed:', all(c['status'] == 'closed' for c in state('globex')['claims'].values()) and\n      len(state('globex')['claims']) == 2)</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Robot Cleaning",
+        "body": [
+            "Robots of two operators paid per clean by the shops of a mall, one robot going offline mid-day, and the day's totals from the ledgers. For bots and machine operators. In an empty folder: <code>python3 10-robot-cleaning.py</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/10-robot-cleaning.py'><code>guide/examples/10-robot-cleaning.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>\"\"\"Robots paid per clean (spec section 10, with the features built today). Two operators' robots each offer the\nday's cleans; shops on the floor claim a clean when they need one; the robot records the clean with its photo as\nevidence; shops confirm and pay for the day's cleans. One robot goes offline mid-day: it withdraws its offer and the\nshops claim from the other robot. Each robot signs with its own device key; its operator keeps the owner key.\"\"\"\n# expect: robot offline: hoover\n# expect: day total\n# expect: paid per clean: True\nimport contextlib, hashlib, io, json, os\nfrom ledgdex.cli import main\nHOME = os.environ.get('LEDGDEX_HOME') or os.path.join(os.path.expanduser('~'), '.ledgdex')\n\n\ndef ledgdex(*args, keys=None):\n    \"\"\"One ledgdex command. keys: the key store to sign from (a robot's own, or an operator's).\"\"\"\n    os.environ['LEDGDEX_HOME'] = keys or HOME\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):\n        main([str(a) for a in args])\n    return out.getvalue()\n\n\ndef state(src):\n    return json.loads(ledgdex('state', src))\n\n\n# Two operators, one robot each. The robot gets a device key; the operator's owner key never leaves the operator.\nrobots = {'roomba': 'CleanCo', 'hoover': 'Brightfloor'}\nfor robot, operator in robots.items():\n    ledgdex('init', robot, '--name', robot.title() + ' (' + operator + ')', '--key', operator.lower())\n    robot_keys = os.path.join(os.getcwd(), robot + '-keys')\n    device = ledgdex('keygen', robot, keys=robot_keys).strip()\n    ledgdex('device', 'add', robot, device, '--name', robot)\n    with open(robot + '-offer.json', 'w') as f:      # today's cleans: 10 at USD 4.00 each, until midnight\n        json.dump({'item': {'title': 'Floor clean, 2026-10-01'}, 'quantity': 10, 'unit': 'clean',\n                   'currency': 'USD', 'price': 400, 'expires': '2099-01-01T00:00:00Z'}, f)\n    ledgdex('offer', robot, robot + '-offer.json', keys=robot_keys)\nshops = ['bakery', 'pharmacy', 'bookshop']\nfor shop in shops:\n    ledgdex('init', shop, '--name', shop.title(), '--key', shop)\n\n\ndef open_offer(robot):\n    return next((i for i, o in state(robot)['offers'].items() if o['status'] == 'open' and o['remaining']), None)\n\n\ndef clean(shop, robot):\n    \"\"\"The shop claims one clean; the robot records it, cleans, and records the photo as evidence.\"\"\"\n    keys = os.path.join(os.getcwd(), robot + '-keys')\n    ledgdex('claim', shop, robot, open_offer(robot), '--output', shop + '-claim.json')\n    claim = ledgdex('record', robot, '--from', shop, keys=keys).split('claim recorded: ')[1].split()[0]\n    photo = hashlib.sha256((robot + claim).encode()).hexdigest()          # stands in for the photo's real hash\n    ledgdex('delivered', robot, claim, '--note', 'photo https://photos.example/' + photo + '.jpg sha256:' + photo,\n            keys=keys)\n    ledgdex('confirm', shop, robot, claim, '--output', shop + '-confirmed.json')\n    ledgdex('record', robot, '--from', shop, keys=keys)\n    return claim\n\n\n# Morning: the shops spread their cleans over both robots. Midday the hoover's battery fails: it withdraws its offer.\ndone = [(shop, robot, clean(shop, robot)) for shop in shops for robot in robots]\nledgdex('withdraw', 'hoover', open_offer('hoover'), keys=os.path.join(os.getcwd(), 'hoover-keys'))\nprint('robot offline: hoover; open offers:', {r: open_offer(r) is not None for r in robots})\ndone += [(shop, 'roomba', clean(shop, 'roomba')) for shop in shops]  # afternoon: everyone uses the roomba\n\n# Evening: each shop pays each robot for the day's confirmed cleans, and each robot records the money.\nfor shop, robot, claim in done:\n    ledgdex('pay', shop, robot, claim, '--method', 'card', '--ref', 'DAY-2026-10-01', '--output', shop + '-paid.json')\nfor robot in robots:\n    keys = os.path.join(os.getcwd(), robot + '-keys')\n    ledgdex('record', robot, *[x for s in shops for x in ('--from', s)], keys=keys)\n    for cid, c in state(robot)['claims'].items():\n        if 'paid' in c and 'received' not in c:\n            ledgdex('received', robot, cid, c['price'], keys=keys)\n\n# The day's report, from the ledgers alone: anyone can recompute it.\nfor robot in robots:\n    claims = state(robot)['claims'].values()\n    print(robot, 'day total: USD', sum(c['price'] for c in claims if c['status'] == 'closed') / 100,\n          'for', sum(c['status'] == 'closed' for c in claims), 'cleans')\nprint('paid per clean:', all(c['status'] == 'closed' for r in robots for c in state(r)['claims'].values()))</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: Extending",
+        "body": [
+            "A sales report from the state, added to the dex as a page that ledgdex keeps. For developers. In an empty folder: <code>python3 11-extending.py</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/11-extending.py'><code>guide/examples/11-extending.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>\"\"\"Extending ledgdex: your own tools on the state, and your own pages in the dex. A ledgdex is a dex first: its\ndata.json holds your pages and the pages ledgdex generates from the ledger (those start with &lt;!-- ledgdex --&gt;).\nledgdex only ever rewrites its own pages, so anything you add stays.\"\"\"\n# expect: sales.csv\n# expect: Mango Farm sales\n# expect: your page kept: True\nimport contextlib, csv, io, json, os\nfrom ledgdex.cli import main\nfrom ledgdex.dex import load\nfrom ledgdex.render import MARKER, render\nfrom ledgdex.state import state\n\n\ndef ledgdex(*args):\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):\n        main([str(a) for a in args])\n    return out.getvalue()\n\n\n# A shop with a few sales (as in the first trade example).\nledgdex('init', 'shop', '--name', 'Mango Farm', '--key', 'farm')\nwith open('offer.json', 'w') as f:\n    json.dump({'item': {'title': 'Alphonso mangoes'}, 'quantity': 50, 'unit': 'dozen', 'currency': 'INR',\n               'price': 120000}, f)\noffer = ledgdex('offer', 'shop', 'offer.json').split()[-1]\nfor buyer, qty in (('asha', 2), ('ravi', 5), ('meena', 1)):\n    ledgdex('init', buyer, '--name', buyer.title(), '--key', buyer)\n    ledgdex('claim', buyer, 'shop', offer, '--quantity', qty, '--output', buyer + '.json')\n    ledgdex('record', 'shop', '--from', buyer)\n\n# 1. A tool on the state: a CSV of sales, from the verified ledger alone.\nled = load('shop')\nst = state(led)\nwith open('sales.csv', 'w', newline='') as f:\n    w = csv.writer(f)\n    w.writerow(['claim', 'buyer', 'quantity', 'amount', 'status'])\n    for cid, c in st['claims'].items():\n        w.writerow([cid, c['buyer'], c['quantity'], c['quantity'] * c['price'], c['status']])\ntotal = sum(c['quantity'] * c['price'] for c in st['claims'].values() if c['status'] != 'rejected')\nprint('sales.csv written:', len(st['claims']), 'claims, INR', total / 100)\n\n# 2. A page of your own in the dex: add it to data.json like any dex page, then render.\nwith open('shop/data.json') as f:\n    pages = json.load(f)\npages.append({'title': 'Sales report', 'body': [\n    led.header['name'] + ' sales: ' + str(len(st['claims'])) + ' orders, INR ' + '{:,.2f}'.format(total / 100) + '.',\n    'Every figure here is computed from the signed ledger: &lt;a href=\"ledgdex.jsonl\"&gt;ledgdex.jsonl&lt;/a&gt;.']})\nwith open('shop/data.json', 'w') as f:\n    json.dump(pages, f, indent=4, ensure_ascii=False)\nrender('shop')\nprint(open('shop/gen/salesreport.html').read().split('&lt;p&gt;')[1].split('&lt;/p&gt;')[0])\n\n# 3. ledgdex keeps it: more ledger entries rewrite only the generated pages.\nledgdex('note', 'shop', offer, 'restocked')\nwith open('shop/data.json') as f:\n    kept = [p for p in json.load(f) if p['title'] == 'Sales report' and not p['body'][0].startswith(MARKER)]\nprint('your page kept:', len(kept) == 1, '| ledgdex pages:', sum(p['body'][0].startswith(MARKER) for p in pages))</code></pre>"
+        ]
+    },
+    {
+        "title": "Example: JavaScript",
+        "body": [
+            "The JavaScript core in Node (and the browser): a ledger made, read back from its bytes, and its state. For developers. From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/12-javascript.mjs</code>.",
+            "File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/12-javascript.mjs'><code>guide/examples/12-javascript.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):",
+            "<pre><code>// The JavaScript core (js/ in the ledgdex repository; served next to the viewer, e.g. core.js at\n// https://matrixdex.github.io/ledgdex/core.js). The same module runs in Node and in the browser: plain ES modules, no\n// npm. It makes the same bytes, ids, signatures and state as the Python package, checked on every push.\n// expect: whole true\n// expect: accepted\n// expect: same state as a fresh read: true\nimport { pathToFileURL } from 'url';\n// where core.js is: LEDGDEX_JS (a folder or a URL), else js/ next to this guide in the ledgdex repository\nconst where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger, message, newLedger, newSecret, publicKey } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { hash, canonString, ID_KEY } = await import(new URL('canon.js', base));\n\nconst seller = newSecret(), buyer = newSecret();\nconst led = newLedger(seller, 'Mango Farm', 'Alphonso mangoes', 'https://farm.example');\nconst offer = message(seller, 'offer', {\n  item: { title: 'Alphonso mangoes', text: '', media: [] }, quantity: 3, unit: 'dozen', currency: 'INR', price: 120000,\n  allow: 'any', pay: [], arbiter: { key: publicKey(seller), url: '' }, terms: '' });\nconst offerId = led.append(led.nextEntry(seller, offer));\nconst claim = message(buyer, 'claim', { offer: offerId, offer_hash: hash(offer), quantity: 1, price: 120000 });\nled.append(led.nextEntry(seller, claim));\n\n// Read it back from the bytes alone, as the viewer does with a ledgdex.jsonl it fetched.\nconst read = new Ledger(led.data);\nconsole.log('whole', read.whole, 'entries', read.entries.length);\nconst st = state(read);\nconsole.log(Object.values(st.claims).map((c) =&gt; c.status).join(', '));\nconsole.log('same state as a fresh read:', canonString(st, ID_KEY) === canonString(state(new Ledger(led.data)), ID_KEY));\n\n// In a browser page:\n//   &lt;script type=\"module\"&gt;\n//     import { Ledger } from 'https://matrixdex.github.io/ledgdex/core.js';\n//     const bytes = new Uint8Array(await (await fetch('https://farm.example/ledgdex.jsonl')).arrayBuffer());\n//     const led = new Ledger(bytes);   // led.whole, led.entries, led.error\n//   &lt;/script&gt;</code></pre>"
+        ]
+    },
+    {
+        "title": "Examples",
+        "body": [
+            "Every example below is a file in <a href='https://github.com/matrixdex/ledgdex/tree/main/guide/examples'><code>guide/examples/</code></a>, run as it is on every push: each must exit without error and print what its <code>expect:</code> lines name. Download one and run it in an empty folder (keys go to <code>~/.ledgdex</code>, or set <code>LEDGDEX_HOME</code> to keep them apart).",
+            "<a href='examplefirsttrade.html'>Example: First Trade</a> (everyone): A whole trade between a seller and a buyer on one machine: offer, claim, receipt, payment, delivery and confirmation, then verification.",
+            "<a href='examplemarketplace.html'>Example: Marketplace</a> (market operators): An operator's root and index, two shops selling to admitted members, a buyer choosing the cheapest offer through the index, and a stranger turned away.",
+            "<a href='exampleauction.html'>Example: Auction</a> (sellers and bidders): A sealed-bid auction with two bidders, their reveals, and the winner by rule.",
+            "<a href='exampledisputes.html'>Example: Disputes</a> (buyers, sellers and arbiters): A dispute ruled by the arbiter the offer names, and a seller's own ruling ignored.",
+            "<a href='examplekeys.html'>Example: Keys</a> (everyone): A phone with a device key, revoking it, rotating the owner key, and recovering a lost key through the root.",
+            "<a href='examplepublish.html'>Example: Publish</a> (sellers): Publishing to a git repository from two devices, with the second catching up automatically.",
+            "<a href='examplecheck.html'>Example: Check</a> (everyone): A seller rewriting its ledger to erase a sale, caught by ledgdex check with signed proof, and the GitHub workflow that runs the check daily.",
+            "<a href='examplepythonapi.html'>Example: Python API</a> (developers): The core API without a dex: a ledger in memory, signed messages, verification, state, and a one-byte change caught.",
+            "<a href='examplebots.html'>Example: Bots</a> (bots and developers): A seller bot and two buyer bots trading through an index to closed deals, with no person involved.",
+            "<a href='examplerobotcleaning.html'>Example: Robot Cleaning</a> (bots and machine operators): Robots of two operators paid per clean by the shops of a mall, one robot going offline mid-day, and the day's totals from the ledgers.",
+            "<a href='exampleextending.html'>Example: Extending</a> (developers): A sales report from the state, added to the dex as a page that ledgdex keeps.",
+            "<a href='examplejavascript.html'>Example: JavaScript</a> (developers): The JavaScript core in Node (and the browser): a ledger made, read back from its bytes, and its state.",
+            "Smaller examples are on each topic page: <a href='selling.html'>Selling</a>, <a href='buying.html'>Buying</a>, <a href='setupamarketplace.html'>Set Up a Marketplace</a>, <a href='checkingfortampering.html'>Checking for Tampering</a>."
+        ]
+    },
+    {
+        "title": "Security",
+        "body": [
+            "What ledgdex guarantees, and the trust that remains, in full: <a href='https://github.com/matrixdex/ledgdex/blob/main/SECURITY.md'>SECURITY.md</a>. In short:",
+            "<pre><code>tampering is evident        any changed byte breaks verification at that line, in Python and the browser\nrewrites are caught         ledgdex check keeps copies and follows receipts: signed proof of a rewrite\nonly a key's holder signs   strict Ed25519; keys never leave your machine (600 files, sealed in browsers)\nmessages count once         a signed message recorded twice is ignored\nhostile ledgers are data    no script or link injection, no local file reads, size and depth limits</code></pre>",
+            "What you do: keep owner keys offline and backed up, use device keys day to day, install the <code>fast</code> extra where you sign, run <code>ledgdex check</code> daily, and report problems to the address in SECURITY.md before publishing them."
+        ]
+    },
+    {
+        "title": "Issues and Future Development",
+        "body": [
+            "Report issues at <a href='https://github.com/matrixdex/ledgdex/issues'>https://github.com/matrixdex/ledgdex/issues</a> (security problems: privately, as <a href='https://github.com/matrixdex/ledgdex/blob/main/SECURITY.md'>SECURITY.md</a> says).",
+            "Planned (<a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>, \"Future improvements\" and milestone 11): encrypted key files on disk, robots paid per clean with deadlines and a clearing ledger, delegated admission, publishing on PyPI, browser tests in CI, and an independent third verifier."
+        ]
+    },
+    {
+        "title": "Ledgdex Docs ledger",
+        "body": [
+            "<!-- ledgdex -->Ledgdex Docs's ledger: 4 entries, whole",
+            "The ledger of the ledgdex docs: a demonstration. Its key was destroyed after signing, so nothing can be added to it, and nobody may buy from it.",
+            "Owner key: <code>ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5</code>",
+            "Device keys: none",
+            "Ledger id: <code>sha256:cdd491a9613fb888083768346cfe0a1183f9fbfb755882d66501678682de67b9</code>",
+            "Head: seq 3, <code>sha256:b35c1971573497930f0ae88b92e7a796ad24b67891a26017a5e73f890a1a3fed</code>",
+            "Verification: whole",
+            "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+            "Pages: <a href='exampleofferalphonsomangoes.html'>Example offer: Alphonso mangoes</a>, <a href='exampleauctionmapofbombay1893.html'>Example auction: Map of Bombay, 1893</a>",
+            "Entries:",
+            "0. 2026-10-02T09:00:00Z open by <code>ed25519:f22b25d5578c</code>: opened the ledger <code>sha256:a8e8f7d30d38</code>",
+            "1. 2026-10-02T09:00:01Z offer by <code>ed25519:f22b25d5578c</code>: Example offer: Alphonso mangoes, 12 dozen at INR 1,200.00 (120000) each <code>sha256:7f4d96ad231a</code>",
+            "2. 2026-10-02T09:00:02Z auction by <code>ed25519:f22b25d5578c</code>: Example auction: Map of Bombay, 1893, bids until 2026-10-09T09:00:00Z <code>sha256:70b096f0ed97</code>",
+            "3. 2026-10-02T09:00:03Z note by <code>ed25519:f22b25d5578c</code>: about <code>sha256:7f4d96ad231a</code>: This ledger was signed once, for the docs. <code>sha256:b35c19715734</code>"
+        ]
+    },
+    {
+        "title": "Example offer: Alphonso mangoes",
+        "body": [
+            "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 12 of 12 left, open",
+            "A demonstration of the page ledgdex makes for an offer. Nobody may buy it.",
+            "Status: open",
+            "Remaining: 12 of 12 dozen",
+            "Price: INR 1,200.00 (120000) per dozen",
+            "Pay by upi: example@bank",
+            "Arbiter: <code>ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5</code>",
+            "Terms: An example in the ledgdex docs: &quot;allow&quot; is an empty list, so every claim is refused.",
+            "Who may buy: ",
+            "Offer id: <code>sha256:7f4d96ad231ad5db5d8b5afce27d276d5a90ccd394ca808b08d3618963cfb705</code>",
+            "Offer hash: <code>sha256:b01c50b2d123a7208269770b236899c3515f5ce2483a2d450acf4925e8f9809b</code>",
+            "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://matrixdex.github.io/ledgdex/docs sha256:7f4d96ad231ad5db5d8b5afce27d276d5a90ccd394ca808b08d3618963cfb705 --quantity 1</code>",
+            "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>."
+        ]
+    },
+    {
+        "title": "Example auction: Map of Bombay, 1893",
+        "body": [
+            "<!-- ledgdex -->open, 0 sealed bids",
+            "A demonstration of the page ledgdex makes for a sealed-bid auction. Nobody may bid.",
+            "Status: open",
+            "Bids close: 2026-10-09T09:00:00Z",
+            "Reveals until: 2026-10-10T09:00:00Z",
+            "Best bid: highest, reserve INR 5,000.00 (500000)",
+            "Arbiter: <code>ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5</code>",
+            "Terms: An example in the ledgdex docs.",
+            "Auction id: <code>sha256:70b096f0ed97fb5f449f548edaa3728e8ec6d4e68a05b51226cb2159e9626cb0</code>",
+            "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://matrixdex.github.io/ledgdex/docs sha256:70b096f0ed97fb5f449f548edaa3728e8ec6d4e68a05b51226cb2159e9626cb0 --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://matrixdex.github.io/ledgdex/docs sha256:70b096f0ed97fb5f449f548edaa3728e8ec6d4e68a05b51226cb2159e9626cb0</code>."
+        ]
+    }
+]

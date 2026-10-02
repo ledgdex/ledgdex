@@ -1,0 +1,27 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>A Trade, Step by Step - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>A TRADE, STEP BY STEP</h1>
+<br>
+<p>Who signs what, in which ledger, and the claim's status after each step. <a href='examplefirsttrade.html'>Example: First Trade</a> runs it.</p><p><pre><code>step                         signed by   kept in                     claim status
+offer                        seller      seller ledger               (offer open)
+claim                        buyer       buyer (sent), seller        accepted, or rejected with a reason
+receipt of the claim         buyer       buyer ledger                (the third entry)
+paid                         buyer       buyer (sent), seller        accepted, paid
+received                     seller      seller ledger               accepted, received
+delivered                    seller      seller ledger               accepted, delivered
+confirmed                    buyer       buyer (sent), seller        closed (once received + delivered + confirmed)
+dispute                      either      seller ledger               disputed
+ruling                       arbiter     seller ledger               released, refunded or split</code></pre></p><p>Rejection reasons, in the order they are tested: <code>unknown_offer</code>, <code>offer_changed</code>, <code>withdrawn</code>, <code>expired</code>, <code>self_claim</code>, <code>not_allowed</code>, <code>bad_quantity</code>, <code>price_mismatch</code>. Messages that break no structure but no rule accepts (a payment from someone else, a ruling by the wrong key, a message recorded twice) are kept and listed in the state's <code>ignored</code> with a reason; they never break the ledger.</p><p>Read the state of any ledger: <pre><code>ledgdex state https://farm.example
+ledgdex state shop | python3 -m json.tool</code></pre></p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

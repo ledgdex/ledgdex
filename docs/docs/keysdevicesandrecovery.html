@@ -1,0 +1,21 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Keys, Devices and Recovery - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>KEYS, DEVICES AND RECOVERY</h1>
+<br>
+<p>A self is its owner key: an Ed25519 key in <code>~/.ledgdex/NAME.key</code> (mode 600; ledgdex refuses a key file others can read). The owner key signs messages to other ledgers and the owner-only types: <code>device</code>, <code>device_revoke</code>, <code>rotate</code> (and <code>recover</code> in a root).</p><p><b>Device keys</b> let a phone, a till or a robot sign everyday entries (offers, records, deliveries) without the owner key: <pre><code>PUB=$(ledgdex keygen phone)        # on the phone
+ledgdex device add shop "$PUB" --name "shop phone"   # with the owner key
+ledgdex device revoke shop "$PUB" --reason lost</code></pre></p><p>A revoked device signs nothing more; what it signed before stays valid. Give device keys only to devices you trust with the ledger: revoking cannot undo what a stolen device could sign while it was active.</p><p><b>Rotation</b> replaces the owner key, signed by the old one: <code>ledgdex rotate shop --key farm-2027</code>.</p><p><b>Recovery</b>, when the owner key is lost: the root names a new key, after checking who the owner is, and the owner takes the ledger back with it. A recovery removes every device key. <pre><code>NEW=$(ledgdex keygen farm-new)                         # owner, on a new machine
+ledgdex recover root https://farm.example "$NEW"      # root operator, with the root's owner key
+ledgdex recovered shop --root https://market.example --key farm-new</code></pre></p><p>Back up owner keys offline. <a href='examplekeys.html'>Example: Keys</a> runs all of it.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

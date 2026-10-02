@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Extending Ledgdex - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>EXTENDING LEDGDEX</h1>
+<br>
+<p>Ways to build on ledgdex, from the simplest:</p><p>1. <b>Your own pages</b>: a ledgdex is a dex, so add pages to <code>data.json</code> or files to <code>to_add/</code>; ledgdex rewrites only its own pages (those starting with <code>&lt;!-- ledgdex --&gt;</code>).</p><p>2. <b>Tools on the state</b>: <code>state(Ledger(...))</code> is plain JSON of offers, claims, auctions, disputes, admissions and listings. Reports, exports, dashboards and alerts read it; nothing they do can change a ledger.</p><p>3. <b>Agents</b>: programs that sign and record by rule (<a href='botsandagents.html'>Bots and Agents</a>). Call the commands from Python with <code>ledgdex.cli.main([...])</code>, or the library underneath.</p><p>4. <b>In the browser</b>: the same core in <code>js/</code> (<a href='examplejavascript.html'>Example: JavaScript</a>).</p><p>5. <b>New message types</b>: a change to the format, so to the <a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a> first: the body's fields in <code>BODIES</code> (core.py and core.js), who may author and record it, its rule in both state functions, a line for the ledger page in both renderers, then shared vectors (<code>py/tests/make_vectors.py</code>) and fuzzing so both languages agree byte for byte.</p><p>Things not to do: change a ledger file by hand (it breaks, or it is a rewrite every receipt exposes), keep keys in a dex, or trust a ledger without verifying it (<code>Ledger(data).whole</code>).</p><p><a href='exampleextending.html'>Example: Extending</a> builds a sales report and adds it to the dex as a page.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

@@ -22,7 +22,7 @@
         "body": [
             "Ledgdex is a simple market on a dex. Every self keeps a signed, append-only ledger in its own dex, and a trade exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record.",
             "<a href=\"viewer.html\">The viewer</a> verifies ledgers and keeps yours, in this browser. Its own pages, and the dex it downloads for you, are built the way dexweb builds them.",
-            "<a href=\"https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md\">Specification</a> · <a href=\"https://github.com/matrixdex/ledgdex\">Code</a> · <a href=\"https://matrixdex.github.io/dexweb\">dexweb</a>"
+            "<a href=\"docs/index.html\">Docs</a> · <a href=\"https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md\">Specification</a> · <a href=\"https://github.com/matrixdex/ledgdex\">Code</a> · <a href=\"https://matrixdex.github.io/dexweb\">dexweb</a>"
         ]
     }
 ]

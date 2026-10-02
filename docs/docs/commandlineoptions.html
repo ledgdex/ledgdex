@@ -1,0 +1,380 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Command Line Options - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>COMMAND LINE OPTIONS</h1>
+<br>
+<p>Every command and option, generated from <code>ledgdex --help</code>. SELLER, LEDGER and INDEX are a dex address (<code>https://...</code>), a dex folder or a <code>ledgdex.jsonl</code> file; DEX is your own dex folder; ids are <code>sha256:</code> and 64 hex digits; keys are <code>ed25519:</code> and 64 hex digits, or the name of a key in <code>~/.ledgdex</code> where noted. Messages to another ledger are written to a file (<code>--output</code>, or a name made from the message) and kept as <code>sent</code> in your ledger.</p><p>Commands: <a href='#keygen'>keygen</a>, <a href='#init'>init</a>, <a href='#offer'>offer</a>, <a href='#withdraw'>withdraw</a>, <a href='#received'>received</a>, <a href='#delivered'>delivered</a>, <a href='#admit'>admit</a>, <a href='#revoke'>revoke</a>, <a href='#note'>note</a>, <a href='#delist'>delist</a>, <a href='#device'>device</a>, <a href='#record'>record</a>, <a href='#claim'>claim</a>, <a href='#pay'>pay</a>, <a href='#confirm'>confirm</a>, <a href='#receipt'>receipt</a>, <a href='#rotate'>rotate</a>, <a href='#recover'>recover</a>, <a href='#recovered'>recovered</a>, <a href='#dispute'>dispute</a>, <a href='#ruling'>ruling</a>, <a href='#auction'>auction</a>, <a href='#bid'>bid</a>, <a href='#reveal'>reveal</a>, <a href='#list'>list</a>, <a href='#discover'>discover</a>, <a href='#sign'>sign</a>, <a href='#verify'>verify</a>, <a href='#state'>state</a>, <a href='#render'>render</a>, <a href='#check'>check</a>, <a href='#workflow'>workflow</a>, <a href='#publish'>publish</a>.</p><p><b id='keygen'>ledgdex keygen</b></p><p><pre><code>usage: ledgdex keygen [-h] name
+
+make a key in ~/.ledgdex and print its public key
+
+positional arguments:
+  name
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='init'>ledgdex init</b></p><p><pre><code>usage: ledgdex init [-h] --name NAME [--about ABOUT] [--url URL] --key KEY [--dexname DEXNAME] [--dest DEST]
+                    [--branch BRANCH] [--site-path SITE_PATH] [--root ROOT]
+                    dex
+
+make a ledgdex: a complete dex with a new ledger
+
+positional arguments:
+  dex                   the dex folder
+
+options:
+  -h, --help            show this help message and exit
+  --name NAME           your name, shown on the ledger
+  --about ABOUT         one line about you or your shop
+  --url URL             this dex's web address
+  --key KEY             key name in ~/.ledgdex (made if missing)
+  --dexname DEXNAME     dex name (default: --name)
+  --dest DEST           repository address to publish to
+  --branch BRANCH       branch to publish to
+  --site-path SITE_PATH
+                        folder in the repository to publish to (default: its root)
+  --root ROOT           the root ledger this dex trades under (dex, file or URL): admission, recovery and
+                        the default arbiter; pinned by its ledger id</code></pre></p><p><b id='offer'>ledgdex offer</b></p><p><pre><code>usage: ledgdex offer [-h] dex file
+
+sell something: sign and record an offer from a JSON file
+
+positional arguments:
+  dex         the dex folder
+  file
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='withdraw'>ledgdex withdraw</b></p><p><pre><code>usage: ledgdex withdraw [-h] dex offer
+
+withdraw an offer
+
+positional arguments:
+  dex         the dex folder
+  offer
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='received'>ledgdex received</b></p><p><pre><code>usage: ledgdex received [-h] dex claim amount
+
+record that a payment arrived
+
+positional arguments:
+  dex         the dex folder
+  claim
+  amount
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='delivered'>ledgdex delivered</b></p><p><pre><code>usage: ledgdex delivered [-h] [--note NOTE] dex claim
+
+record delivery
+
+positional arguments:
+  dex          the dex folder
+  claim
+
+options:
+  -h, --help   show this help message and exit
+  --note NOTE</code></pre></p><p><b id='admit'>ledgdex admit</b></p><p><pre><code>usage: ledgdex admit [-h] [--name NAME] [--note NOTE] dex key
+
+admit a key (for offers with "allow": "admitted")
+
+positional arguments:
+  dex          the dex folder
+  key          public key, or the name of a key in ~/.ledgdex
+
+options:
+  -h, --help   show this help message and exit
+  --name NAME
+  --note NOTE</code></pre></p><p><b id='revoke'>ledgdex revoke</b></p><p><pre><code>usage: ledgdex revoke [-h] [--reason REASON] dex key
+
+revoke an admitted key
+
+positional arguments:
+  dex              the dex folder
+  key              public key, or the name of a key in ~/.ledgdex
+
+options:
+  -h, --help       show this help message and exit
+  --reason REASON</code></pre></p><p><b id='note'>ledgdex note</b></p><p><pre><code>usage: ledgdex note [-h] dex ref text
+
+add a remark about an earlier entry
+
+positional arguments:
+  dex         the dex folder
+  ref
+  text
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='delist'>ledgdex delist</b></p><p><pre><code>usage: ledgdex delist [-h] [--reason REASON] dex ledger
+
+index: delist a ledger
+
+positional arguments:
+  dex              the dex folder
+  ledger           ledger id
+
+options:
+  -h, --help       show this help message and exit
+  --reason REASON</code></pre></p><p><b id='device'>ledgdex device</b></p><p><pre><code>usage: ledgdex device [-h] [--name NAME] [--reason REASON] {add,revoke} dex key
+
+add or revoke a device key (needs the owner key)
+
+positional arguments:
+  {add,revoke}
+  dex              the dex folder
+  key              public key, or the name of a key in ~/.ledgdex
+
+options:
+  -h, --help       show this help message and exit
+  --name NAME
+  --reason REASON</code></pre></p><p><b id='record'>ledgdex record</b></p><p><pre><code>usage: ledgdex record [-h] [--from SOURCES] dex [files ...]
+
+record claims, payments and confirmations from buyers
+
+positional arguments:
+  dex             the dex folder
+  files           message files
+
+options:
+  -h, --help      show this help message and exit
+  --from SOURCES  a buyer's dex: collect what they sent you</code></pre></p><p><b id='claim'>ledgdex claim</b></p><p><pre><code>usage: ledgdex claim [-h] [--quantity QUANTITY] [-o OUTPUT] dex seller offer
+
+buy: sign a claim for a seller's offer
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  offer
+
+options:
+  -h, --help            show this help message and exit
+  --quantity QUANTITY
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='pay'>ledgdex pay</b></p><p><pre><code>usage: ledgdex pay [-h] --method METHOD [--ref REF] [-o OUTPUT] dex seller claim
+
+tell the seller you paid
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  claim                 claim id (or your claim message id)
+
+options:
+  -h, --help            show this help message and exit
+  --method METHOD
+  --ref REF
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='confirm'>ledgdex confirm</b></p><p><pre><code>usage: ledgdex confirm [-h] [-o OUTPUT] dex seller claim
+
+confirm you received the goods
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  claim
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='receipt'>ledgdex receipt</b></p><p><pre><code>usage: ledgdex receipt [-h] [--entry ENTRY] dex seller
+
+keep the seller's records of your messages as receipts
+
+positional arguments:
+  dex            the dex folder
+  seller         the seller's dex URL, dex folder or ledger file
+
+options:
+  -h, --help     show this help message and exit
+  --entry ENTRY  only this entry id</code></pre></p><p><b id='rotate'>ledgdex rotate</b></p><p><pre><code>usage: ledgdex rotate [-h] --key KEY dex
+
+replace the owner key (signed by the old one)
+
+positional arguments:
+  dex         the dex folder
+
+options:
+  -h, --help  show this help message and exit
+  --key KEY   name of the new key in ~/.ledgdex (made if missing)</code></pre></p><p><b id='recover'>ledgdex recover</b></p><p><pre><code>usage: ledgdex recover [-h] dex ledger key
+
+root: name a new key for a ledger whose owner lost theirs
+
+positional arguments:
+  dex         the dex folder
+  ledger      the ledger (dex, file or URL)
+  key         the new public key
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='recovered'>ledgdex recovered</b></p><p><pre><code>usage: ledgdex recovered [-h] --root ROOT --key KEY dex
+
+take a ledger back with the key the root named
+
+positional arguments:
+  dex          the dex folder
+
+options:
+  -h, --help   show this help message and exit
+  --root ROOT
+  --key KEY    name of the new key</code></pre></p><p><b id='dispute'>ledgdex dispute</b></p><p><pre><code>usage: ledgdex dispute [-h] [--text TEXT] [--evidence EVIDENCE] [--seller SELLER] [-o OUTPUT] dex claim
+
+open a dispute about a claim
+
+positional arguments:
+  dex                   the dex folder
+  claim
+
+options:
+  -h, --help            show this help message and exit
+  --text TEXT
+  --evidence EVIDENCE   an entry id or URL (repeatable)
+  --seller SELLER       buyer: the seller's dex (without it, a dispute in your own ledger)
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='ruling'>ledgdex ruling</b></p><p><pre><code>usage: ledgdex ruling [-h] --outcome {release,refund,split} [--text TEXT] [-o OUTPUT] dex seller dispute
+
+arbiter: rule on a dispute in a seller's ledger
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  dispute
+
+options:
+  -h, --help            show this help message and exit
+  --outcome {release,refund,split}
+  --text TEXT
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='auction'>ledgdex auction</b></p><p><pre><code>usage: ledgdex auction [-h] dex file
+
+start a sealed-bid auction from a JSON file
+
+positional arguments:
+  dex         the dex folder
+  file
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='bid'>ledgdex bid</b></p><p><pre><code>usage: ledgdex bid [-h] --amount AMOUNT [-o OUTPUT] dex seller auction
+
+bid in a seller's auction (the amount stays secret until you reveal)
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  auction
+
+options:
+  -h, --help            show this help message and exit
+  --amount AMOUNT
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='reveal'>ledgdex reveal</b></p><p><pre><code>usage: ledgdex reveal [-h] [-o OUTPUT] dex seller auction
+
+reveal your bid after the auction closes
+
+positional arguments:
+  dex                   the dex folder
+  seller                the seller's dex URL, dex folder or ledger file
+  auction
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        where to write the message file</code></pre></p><p><b id='list'>ledgdex list</b></p><p><pre><code>usage: ledgdex list [-h] [--url URL] [--note NOTE] dex ledger
+
+index: list a ledger
+
+positional arguments:
+  dex          the dex folder
+  ledger       dex, file or URL
+
+options:
+  -h, --help   show this help message and exit
+  --url URL    address to list (default: its dex address)
+  --note NOTE</code></pre></p><p><b id='discover'>ledgdex discover</b></p><p><pre><code>usage: ledgdex discover [-h] [--offers] [--json] index
+
+read an index: listed ledgers, and with --offers what they sell
+
+positional arguments:
+  index       the index (dex, file or URL)
+
+options:
+  -h, --help  show this help message and exit
+  --offers
+  --json</code></pre></p><p><b id='sign'>ledgdex sign</b></p><p><pre><code>usage: ledgdex sign [-h] --key KEY type file
+
+print a signed message (advanced)
+
+positional arguments:
+  type
+  file
+
+options:
+  -h, --help  show this help message and exit
+  --key KEY</code></pre></p><p><b id='verify'>ledgdex verify</b></p><p><pre><code>usage: ledgdex verify [-h] [--full] [--root ROOT] ledger
+
+check a ledger; exit code 0 only if whole
+
+positional arguments:
+  ledger       dex, file or URL
+
+options:
+  -h, --help   show this help message and exit
+  --full       verify every line, ignoring the verification cache
+  --root ROOT  the root ledger (dex, file or URL)</code></pre></p><p><b id='state'>ledgdex state</b></p><p><pre><code>usage: ledgdex state [-h] [--root ROOT] ledger
+
+print a ledger's state
+
+positional arguments:
+  ledger       dex, file or URL
+
+options:
+  -h, --help   show this help message and exit
+  --root ROOT  the root ledger (dex, file or URL)</code></pre></p><p><b id='render'>ledgdex render</b></p><p><pre><code>usage: ledgdex render [-h] dex
+
+rewrite the generated pages and rebuild the site
+
+positional arguments:
+  dex         the dex folder
+
+options:
+  -h, --help  show this help message and exit</code></pre></p><p><b id='check'>ledgdex check</b></p><p><pre><code>usage: ledgdex check [-h] [--state STATE] [--media] [--published] [--json JSON] [--every EVERY] [--quiet]
+                     [--root ROOT]
+                     [sources ...]
+
+check ledgers for tampering over time: rewrites, missing receipts, changed addresses
+
+positional arguments:
+  sources        ledgers to check: dex folders, files or URLs (default: this folder)
+
+options:
+  -h, --help     show this help message and exit
+  --state STATE  where last-seen copies and proofs are kept
+  --media        also fetch offer media and check their hashes
+  --published    for dex folders: compare with the published ledger
+  --json JSON    write the report as JSON to this file
+  --every EVERY  run as a worker: check again every this many seconds
+  --quiet        print only the summary line
+  --root ROOT    the root ledger (dex, file or URL)</code></pre></p><p><b id='workflow'>ledgdex workflow</b></p><p><pre><code>usage: ledgdex workflow [-h] [--cron CRON] [--media] sources [sources ...]
+
+print a GitHub Actions workflow that runs ledgdex check
+
+positional arguments:
+  sources      ledger files in the repository, or URLs
+
+options:
+  -h, --help   show this help message and exit
+  --cron CRON  schedule (UTC cron)
+  --media</code></pre></p><p><b id='publish'>ledgdex publish</b></p><p><pre><code>usage: ledgdex publish [-h] dex
+
+publish the dex with dexweb (catches up with other devices)
+
+positional arguments:
+  dex         the dex folder
+
+options:
+  -h, --help  show this help message and exit</code></pre></p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

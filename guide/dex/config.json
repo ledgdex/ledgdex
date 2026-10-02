@@ -1,0 +1,17 @@
+{
+    "dexname": "Ledgdex Docs",
+    "author": "Dexgen",
+    "index_template": "<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>\n<link rel='stylesheet' href='styles.css'>\n<title>{} Dex</title>\n</head>\n<body>\n<br><h1>{}</h1><br>\n{}\n<br><br><br><br><br><br><br>\n<h3><a href='index.html'>{}</a></h3>\n</body>\n</html>",
+    "page_template": "<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>\n<link rel='stylesheet' href='styles.css'>\n<title>{} - {} Dex</title>\n</head>\n<body>\n<br>\n<h1>{}</h1>\n<br>\n{}\n<br><br><br><br><br><br><br>\n<h3><a href='index.html'>BACK TO {}</a></h3>\n</body>\n</html>",
+    "page_javascript": "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'\"><meta name=\"referrer\" content=\"no-referrer\">",
+    "index_javascript": "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'\"><meta name=\"referrer\" content=\"no-referrer\">",
+    "index_list_type_para": false,
+    "index_list_no_page_link_only": false,
+    "publish": {
+        "method": "folder",
+        "path": "../../docs/docs",
+        "append_only": [
+            "ledgdex.jsonl"
+        ]
+    }
+}

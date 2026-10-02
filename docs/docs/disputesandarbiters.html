@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Disputes and Arbiters - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>DISPUTES AND ARBITERS</h1>
+<br>
+<p>Every offer and auction names an arbiter: a key that may rule on disputes about it, signed into the offer so buyers see it before they buy. Default: the root's owner when the dex names a root, else the seller. Name another in the offer: <code>"arbiter": {"key": "ed25519:...", "url": "https://assoc.example"}</code>.</p><p>1. The buyer (or the seller) opens a dispute about an accepted claim, with evidence: <pre><code>ledgdex dispute me CLAIM_ID --seller https://farm.example --text "Nothing arrived." --evidence UTR555</code></pre></p><p>2. The seller records it (<code>ledgdex record shop --from https://asha.example</code>). The claim is <code>disputed</code>.</p><p>3. The arbiter rules, from its own ledgdex: <pre><code>ledgdex ruling assoc https://farm.example DISPUTE_ID --outcome refund --text "No proof of delivery."</code></pre></p><p>4. The seller records the ruling: the claim becomes <code>released</code>, <code>refunded</code> or <code>split</code>. A ruling by any other key is kept and ignored (<code>not_arbiter</code>), and a dispute is ruled once.</p><p>Money moves outside the ledger: a ruling is a signed decision the parties and their market act on. <a href='exampledisputes.html'>Example: Disputes</a> runs it, including a seller trying to rule on its own dispute.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

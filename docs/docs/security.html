@@ -1,0 +1,21 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Security - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>SECURITY</h1>
+<br>
+<p>What ledgdex guarantees, and the trust that remains, in full: <a href='https://github.com/matrixdex/ledgdex/blob/main/SECURITY.md'>SECURITY.md</a>. In short:</p><p><pre><code>tampering is evident        any changed byte breaks verification at that line, in Python and the browser
+rewrites are caught         ledgdex check keeps copies and follows receipts: signed proof of a rewrite
+only a key's holder signs   strict Ed25519; keys never leave your machine (600 files, sealed in browsers)
+messages count once         a signed message recorded twice is ignored
+hostile ledgers are data    no script or link injection, no local file reads, size and depth limits</code></pre></p><p>What you do: keep owner keys offline and backed up, use device keys day to day, install the <code>fast</code> extra where you sign, run <code>ledgdex check</code> daily, and report problems to the address in SECURITY.md before publishing them.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

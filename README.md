@@ -2,6 +2,8 @@
 
 A simple market on a dex. Every seller and buyer keeps a signed, append-only ledger (`ledgdex.jsonl`) in their own dex, a freely shared website built with [dexweb](https://github.com/matrixdex/dexweb). A trade exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record. No server, no blockchain: SHA-256, Ed25519 and plain files.
 
+**Docs: https://matrixdex.github.io/ledgdex/docs/** (getting started, setting up a marketplace, extending ledgdex, bots, the command line and API references, and tested examples). The docs are a dex built with dexweb, and a ledgdex too: dex is the core; dex + ledger is a ledgdex. Their source is [guide/](guide/).
+
 The specification is [architecture/SPEC.md](architecture/SPEC.md). Everything in it is built: the market (offers, claims, payment, delivery, receipts), disputes, sealed-bid auctions, device keys, key rotation and recovery, indexes, the root, dex pages, publishing and tamper checks, in Python, plus a JavaScript version and a browser viewer.
 
 ## Install

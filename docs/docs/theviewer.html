@@ -1,0 +1,17 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>The Viewer - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>THE VIEWER</h1>
+<br>
+<p>The <a href='https://matrixdex.github.io/ledgdex/viewer.html'>viewer</a> is a dex too, and does in a browser what the command line does: it loads any ledger by address or file, verifies every hash and signature, and shows it as the pages its dex has. It keeps your own ledger, signs claims, payments, confirmations, disputes, bids and reveals, collects your receipts, and downloads your ledger as a complete dex to publish. Nothing is uploaded.</p><p>1. Open a ledger: <code>https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.example</code>.</p><p>2. <b>New key</b>, then <b>Keep, sealed</b> with a passphrase (the key is stored only encrypted), and <b>Download key backup</b>.</p><p>3. Create your ledger, sign a claim to the loaded ledger, and <b>Download your dex</b>: publish it like any dex; the seller collects your claim from it.</p><p>The viewer signs with the browser's Web Crypto Ed25519 when it has one, refuses to run inside another site's frame, and loads nothing from elsewhere. For production, serve it from its own address.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

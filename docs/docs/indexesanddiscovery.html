@@ -1,0 +1,19 @@
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<link rel='stylesheet' href='styles.css'>
+<title>Indexes and Discovery - Ledgdex Docs Dex</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<body>
+<br>
+<h1>INDEXES AND DISCOVERY</h1>
+<br>
+<p>An index is a ledger that lists other ledgers: <code>list</code> and <code>delist</code> entries with the ledger's id, address, owner key and a note. Anyone can run one; a market's index is usually its root.</p><p><pre><code>ledgdex list market https://farm.example --note "mangoes"
+ledgdex delist market LEDGER_ID --reason closed</code></pre></p><p>Discovery reads an index, and with <code>--offers</code> every listed ledger's open offers and auctions, with their signed price and terms (and <code>--json</code> for programs): <pre><code>ledgdex discover https://market.example --offers
+ledgdex discover https://market.example --offers --json</code></pre></p><p>A listed address that serves another ledger than the one listed is reported, not trusted. <a href='examplemarketplace.html'>Example: Marketplace</a> and <a href='examplebots.html'>Example: Bots</a> choose offers this way.</p>
+<br><br><br><br><br><br><br>
+<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+</body>
+</html>

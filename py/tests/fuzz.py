@@ -194,7 +194,10 @@ def resign_from(lines, k, change, rnd):
 def random_value(rnd):
     return rnd.choice([0, -1, 2 ** 53 - 1, 2 ** 53, 1.5, True, False, None, '', 'x', '\ud800', 'é', [], {}, [1],
                        {'a': 1}, {'A': 1}, 'sha256:' + '0' * 64, 'ed25519:' + '1' * 64, '2026-02-30T00:00:00Z',
-                       '2026-10-01T09:00:60Z', '2026-10-01T09:00:00Z', 'ab' * 15, 'AB' * 16])
+                       '2026-10-01T09:00:60Z', '2026-10-01T09:00:00Z', 'ab' * 15, 'AB' * 16,
+                       # non-ASCII digits that look like the real thing (Python's \d took them in times before 1.0.4)
+                       '\uff12026-10-01T09:00:00Z', '2026-10-01T09:00:0\u0663Z', 'sha256:' + '\uff10' * 64,
+                       'ed25519:' + '\u0661' * 64, '\uff12', '\u0661'])
 
 
 def mutate_field(e, rnd):

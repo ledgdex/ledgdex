@@ -6,7 +6,7 @@ from .canon import canon, hash_, sha256, parse, check, CanonError
 KEY_RE = re.compile(r'ed25519:[0-9a-f]{64}\Z')
 SIG_RE = re.compile(r'[0-9a-f]{128}\Z')
 ID_RE = re.compile(r'sha256:[0-9a-f]{64}\Z')
-TIME_RE = re.compile(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\Z')
+TIME_RE = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z')  # ASCII digits only (\d is any Unicode digit)
 TIME = '%Y-%m-%dT%H:%M:%SZ'
 SKEW = 300  # spec 3.3 rule 7
 

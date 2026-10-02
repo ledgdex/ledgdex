@@ -115,7 +115,7 @@ Keywords MUST, MUST NOT and MAY are used as in RFC 2119.
 | Public key | `ed25519:` + 64 lowercase hex chars (32 bytes) | `ed25519:d75a9801...511a` |
 | Signature | 128 lowercase hex chars (64 bytes) | |
 | Hash / id | `sha256:` + 64 lowercase hex chars | `sha256:9f86d081...0f00a08` |
-| Time | UTC, ISO 8601, whole seconds, `Z` suffix | `2026-10-01T09:30:00Z` |
+| Time | UTC, `YYYY-MM-DDThh:mm:ssZ` in ASCII digits only (a real date, no leap second) | `2026-10-01T09:30:00Z` |
 | Amount | integer, in the currency's smallest unit | `150000` (= INR 1500.00) |
 | Currency | uppercase string | `INR`, `USD`, `BTC`, `ASS` |
 
@@ -984,6 +984,10 @@ against a hostile root (`--root`, or a `config.json` naming it) was remembered a
 with no root at all, owned by the attacker's key. The cache now stops before the first entry holding a `recovered`
 message (invariant 20). Long integers are refused before they are converted, so no Python version spends quadratic
 time on one.
+
+**v1.0.4** (fifth audit): times, ids and keys are ASCII only. Python's `\d` matched any Unicode digit, so it read
+`２026-…` (a full-width 2) as a time where JavaScript did not, and string order no longer matched time order; times
+now match `[0-9]` only (vector `broken-fullwidth-time`), and the fuzzer tries look-alike digits.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

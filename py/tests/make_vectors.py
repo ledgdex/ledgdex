@@ -256,6 +256,15 @@ def scenarios():
                        'entry': hs.led.entries[hs.led.find(hcid)]})
     out['hostile-buyer'] = (hb, None, None)
 
+    # a time with a full-width digit: Python read it as a time before 1.0.4, JavaScript did not
+    fw = Book()
+    fe = json.loads(fw.led.lines[0])
+    fe['time'] = '\uff12' + fe['time'][1:]
+    fe['msg']['at'] = fe['time']
+    fe['msg']['sig'] = sign(SELLER, {k: v for k, v in fe['msg'].items() if k != 'sig'})
+    fe['sig'] = sign(SELLER, {k: v for k, v in fe.items() if k != 'sig'})
+    out['broken-fullwidth-time'] = (fw.led.header_line + b'\n' + canon(fe) + b'\n', None, None)
+
     # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
     from ledgdex import ed25519
     from ledgdex.core import sha256 as id_of

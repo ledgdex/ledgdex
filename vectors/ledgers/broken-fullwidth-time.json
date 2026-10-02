@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": false,
+ "broken_at": 0,
+ "entries": 0,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":0,\"claims\":{},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"seq\":-1},\"ignored\":[],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "broken-fullwidth-time"
+}

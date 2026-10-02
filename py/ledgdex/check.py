@@ -7,7 +7,7 @@ their hashes. Errors mean tampering or equivocation and come with signed proof w
 something could not be checked (a site is down)."""
 import datetime, hashlib, json, os, re
 from .canon import hash_
-from .core import KEY_TYPES, Invalid, Keys, Ledger
+from .core import KEY_TYPES, SKEW, Invalid, Keys, Ledger, now, seconds
 from .dex import LEDGER, fetch, http_get, inside
 
 STATE = '.ledgdex-check'
@@ -103,6 +103,11 @@ class Checker:
         if not led.whole:
             self.problem('error', 'broken', url, 'broken at seq ' + str(led.broken_at) + ': ' + str(led.error), led.id)
             ok = False
+        if led.entries and seconds(led.entries[-1]['time']) > seconds(now()) + SKEW:
+            # an owner stamping entries ahead of time: every later entry must follow it, and it plays with any rule
+            # that compares times across ledgers
+            self.problem('warning', 'future_time', url, 'entries are timed up to ' + led.entries[-1]['time'] +
+                         ', ahead of now', led.id)
         before = self.store.urls.get(url)
         if before and before != led.id:
             self.problem('error', 'ledger_changed', url, 'this address served ledger ' + before + ' before and now '

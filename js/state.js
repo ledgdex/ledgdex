@@ -5,7 +5,8 @@ import { Keys, has } from './core.js';
 const OUTCOME = { release: 'released', refund: 'refunded', split: 'split' };
 
 /** The root's admit and revoke entries in order, as Map key -> [[time, admitted]] (a message recorded twice counts
- * once, as in 6.2). A claim is judged by the root's admissions at its own time, never by later ones (spec 5.7). */
+ * once, as in 6.2). A claim or bid is judged by the root's admissions when its author signed it (msg.at, which the
+ * seller cannot move, unlike its own entry time), never by later ones (spec 5.7). */
 export function admissions(root) {
   const out = new Map(), seen = new Set();
   for (const e of root.entries) {
@@ -106,7 +107,7 @@ export function state(led, root = null, now = null) {
       else if (o.status === 'withdrawn') reason = 'withdrawn';
       else if (has(ob, 'expires') && at >= ob.expires) reason = 'expired';
       else if (mine(m.by)) reason = 'self_claim';
-      else if (!may(ob.allow, m.by, at)) reason = 'not_allowed';
+      else if (!may(ob.allow, m.by, m.at)) reason = 'not_allowed';
       else if (b.quantity < 1 || b.quantity > o.remaining) reason = 'bad_quantity';
       else if (b.price !== ob.price) reason = 'price_mismatch';
       if (reason) { c.status = 'rejected'; c.reason = reason; } else {
@@ -156,7 +157,7 @@ export function state(led, root = null, now = null) {
       if (h === null) ignore(n, 'unknown_auction');
       else if (at >= h.body.close) ignore(n, 'late_bid');
       else if (mine(m.by)) ignore(n, 'self_bid');
-      else if (!may(h.body.allow, m.by, at)) ignore(n, 'not_allowed');
+      else if (!may(h.body.allow, m.by, m.at)) ignore(n, 'not_allowed');
       else if (has(h.bids, m.by)) ignore(n, 'duplicate_bid');
       else { h.bids[m.by] = { commit: b.commit, seq: n }; auctions[b.auction].bids += 1; }
     } else if (t === 'reveal') {

@@ -140,6 +140,16 @@ class Check(unittest.TestCase):
         self.assertTrue(r['ok'])
         self.assertIn(('warning', 'unreachable'), self.codes(r))
 
+    def test_entries_timed_ahead_are_flagged(self):
+        from helpers import t
+        from ledgdex.core import message
+        b = Book()
+        b.led.append(b.led.next_entry(SELLER, message(SELLER, 'note', {'ref': b.led.ids[0], 'text': 'x'}, at=t(1)),
+                                      at='2999-01-01T00:00:00Z'))
+        r = self.run_check(self.put('s.jsonl', b.led.data))
+        self.assertTrue(r['ok'])
+        self.assertIn(('warning', 'future_time'), self.codes(r))
+
     def test_unreachable_counterparty_is_a_warning(self):
         _, _, sp, bp = self.trade()
         os.remove(sp)

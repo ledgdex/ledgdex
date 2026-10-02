@@ -424,7 +424,8 @@ Delisting a ledger that is not listed is ignored (`not_listed`). The state lists
 
 The root is a ledger whose `admit` and `revoke` entries define who is in The Matrix. A verifier MAY be given a root
 ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root at
-the time of the claim or bid: the root's `admit` and `revoke` entries with `time` at or before the entry's `time`
+the time the claim or bid was signed: the root's `admit` and `revoke` entries with `time` at or before the message's
+`at` (signed by the buyer or bidder, so the seller cannot move it, as it could its own entry `time`)
 (the last one for that key decides; a message recorded twice counts once). A later `revoke` or `admit` in the root
 never changes a past claim, so everyone holding any later copy of the root computes the same state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
 The root is pinned by ledger id: a tool reading it without `root_id` writes the id it read (trust on first use), and
@@ -436,9 +437,11 @@ Key recovery (lost key): the root records `{"type": "recover", "body": {"ledger"
 `{"type": "recovered", "body": {"root": root_ledger_id, "entry": root_entry_id}}`, authored by `new_key`. A verifier
 accepts the switch only if it can verify that root entry: given the root, the entry must be a `recover` naming this
 ledger and `new_key`. Without the root, the ledger reads as broken at the `recovered` entry. A `recover` entry is
-spent by the first `recovered` that cites it (`recovered: that recover entry was already used`), and is void once
-the ledger has a `rotate` or `recovered` entry timed after the root's `recover` entry (`recovered: the ledger changed
-its keys after the root named this key`): so a key the root once named cannot take the ledger back later. A recovery replaces
+spent by the first `recovered` that cites it (`recovered: that recover entry was already used`), so it cannot take
+the ledger back a second time. Nothing the ledger's own keys do voids a `recover`: those keys may be a thief's, and
+entry times are theirs to choose (before 1.0.14 a later-timed `rotate` voided it, so a thief could block recovery by
+stamping one years ahead). A key the root named can take the ledger until that `recover` is spent: the owner should
+append `recovered` promptly, even after finding the old key. A recovery replaces
 every key: from the next entry on, `new_key` is the owner and there are no device keys (the lost key may have
 authorised them).
 
@@ -1047,6 +1050,14 @@ kept as `sent` in the victim's own ledger, collected by the seller once the vict
 is `duplicate_message`, 6.2) crashed both renderers, which listed offers from the entries and then looked them up in
 the state. A seller could so make its ledger unviewable in the viewer, and `ledgdex render` failed on it. Pages now
 list the offers and auctions the state counts (vector `duplicate-offer`).
+
+**v1.0.14** (eighteenth audit, cross-ledger time): an entry's `time` is chosen by whoever holds the ledger's key, so
+no rule may let it decide something across ledgers. Root admissions were judged at the claim's entry time (1.0.11),
+which a seller stamping entries years ahead could use to have a later root `revoke` reject a past sale; they are now
+judged at the claim's or bid's own `at`, signed by the buyer (vector `admitted-future-stamp`). And 1.0.2's rule
+voiding a root `recover` after a later-timed key change let a thief holding the stolen key block recovery for good
+by stamping a `rotate` years ahead; it is removed (a `recover` is still spent once; vector `recovered-from-thief`).
+`check` warns of entries timed ahead of now (`future_time`).
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

@@ -242,8 +242,8 @@ def check_message(m, root=None):
 
 def root_recovers(root, ledger_id, e, prior=()):
     """Spec 5.7: a "recovered" entry e of ledger ledger_id is signed by the new key, which a "recover" entry in the
-    root names. A recover entry is spent by its first "recovered", and is void once the ledger changes its keys after
-    the root made it (prior: the ledger's earlier key entries), so an old key it named cannot take the ledger back.
+    root names. A recover entry is spent by its first "recovered" (prior: the ledger's earlier key entries). Nothing
+    the ledger's own keys do can void it: they may be a thief's, and entry times are theirs to choose.
     Raises Invalid otherwise."""
     m, b = e['msg'], e['msg']['body']
     if not verify(m['by'], unsigned(e), e['sig']):
@@ -259,8 +259,6 @@ def root_recovers(root, ledger_id, e, prior=()):
     for p in prior:
         if p['msg']['type'] == 'recovered' and p['msg']['body']['entry'] == b['entry']:
             raise Invalid('recovered: that recover entry was already used')
-        if p['msg']['type'] in ('rotate', 'recovered') and p['time'] > root.entries[i]['time']:
-            raise Invalid('recovered: the ledger changed its keys after the root named this key')
 
 
 def check_receipt(body, root=None):

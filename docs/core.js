@@ -140,8 +140,8 @@ export function checkMessage(m, root = null) {
 }
 
 /** Spec 5.7: a "recovered" entry e of ledger ledgerId is signed by the new key, which a "recover" entry in the root
- * names. A recover entry is spent by its first "recovered", and is void once the ledger changes its keys after the
- * root made it (prior: the ledger's earlier key entries). Throws otherwise. */
+ * names. A recover entry is spent by its first "recovered" (prior: the ledger's earlier key entries). Nothing the
+ * ledger's own keys do can void it: they may be a thief's, and entry times are theirs to choose. Throws otherwise. */
 export function rootRecovers(root, ledgerId, e, prior = []) {
   const m = e.msg, b = m.body;
   if (!verify(m.by, unsigned(e), e.sig)) throw new Invalid('recovered: the entry is not signed by the recovered key');
@@ -154,9 +154,6 @@ export function rootRecovers(root, ledgerId, e, prior = []) {
   }
   for (const p of prior) {
     if (p.msg.type === 'recovered' && p.msg.body.entry === b.entry) throw new Invalid('recovered: that recover entry was already used');
-    if ((p.msg.type === 'rotate' || p.msg.type === 'recovered') && p.time > root.entries[i].time) {
-      throw new Invalid('recovered: the ledger changed its keys after the root named this key');
-    }
   }
 }
 

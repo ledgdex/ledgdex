@@ -7,7 +7,8 @@ OUTCOME = {'release': 'released', 'refund': 'refunded', 'split': 'split'}
 
 def admissions(root):
     """The root's admit and revoke entries in order, as {key: [(time, admitted)]} (a message recorded twice counts
-    once, as in 6.2). A claim is judged by the root's admissions at its own time, never by later ones (spec 5.7)."""
+    once, as in 6.2). A claim or bid is judged by the root's admissions when its author signed it (msg.at, which the
+    seller cannot move, unlike its own entry time), never by later ones (spec 5.7)."""
     out, seen = {}, set()
     for e in root.entries:
         m = e['msg']
@@ -129,7 +130,7 @@ def state(led, root=None, now=None):
                 reason = 'expired'
             elif mine(m['by']):
                 reason = 'self_claim'  # a self never buys from its own ledger
-            elif not may(ob['allow'], m['by'], at):
+            elif not may(ob['allow'], m['by'], m['at']):
                 reason = 'not_allowed'
             elif b['quantity'] < 1 or b['quantity'] > o['remaining']:
                 reason = 'bad_quantity'
@@ -198,7 +199,7 @@ def state(led, root=None, now=None):
                 ignore(n, 'late_bid')
             elif mine(m['by']):
                 ignore(n, 'self_bid')
-            elif not may(h['body']['allow'], m['by'], at):
+            elif not may(h['body']['allow'], m['by'], m['at']):
                 ignore(n, 'not_allowed')
             elif m['by'] in h['bids']:
                 ignore(n, 'duplicate_bid')

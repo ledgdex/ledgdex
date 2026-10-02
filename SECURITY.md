@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.13. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.14. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -18,7 +18,8 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **Only a key's holder can sign for it.** Verification is strict Ed25519 and refuses the eight small-order public
   keys, for which one signature would verify for every message. (1.0.0 accepted them.)
 - **Only the root's owner can hand a ledger to a new key.** A `recover` must be signed by the root's owner key (not
-  a device), is used once, and is void after the ledger changes its keys. A receipt that carries a recovery is
+  a device) and is used once; nothing a stolen key does can block it. Complete a recovery promptly: until it is used,
+  the key the root named can take the ledger. A receipt that carries a recovery is
   checked against the root too. (1.0.1 and earlier let a buyer forge a receipt this way; upgrade to 1.0.2.)
 - **The verification cache cannot be poisoned.** It only remembers entries whose validity depends on nothing but
   their bytes, never a recovery checked against some root. (1.0.2 and earlier remembered a recovery checked once

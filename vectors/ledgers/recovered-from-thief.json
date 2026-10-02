@@ -1,0 +1,9 @@
+{
+ "root": "root-thief",
+ "now": null,
+ "whole": true,
+ "broken_at": null,
+ "entries": 3,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":null,\"claims\":{},\"devices\":[],\"disputes\":{},\"head\":{\"id\":\"sha256:e7ee771e54e206123d36d1e00442e8ba5c7c953157f960f15cff127a903520b2\",\"seq\":2},\"ignored\":[],\"ledger\":\"sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead\",\"recoveries\":{}}",
+ "ledger": "recovered-from-thief"
+}

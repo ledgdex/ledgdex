@@ -143,14 +143,17 @@ class Recovery(unittest.TestCase):
         with self.assertRaisesRegex(Invalid, 'already used'):
             self.b.led.append(self.recovered(rid))
 
-    def test_an_old_recovery_cannot_take_the_ledger_back(self):
-        # the root names NEWKEY; the owner finds the old key and rotates instead; NEWKEY is stolen later
+    def test_a_thief_cannot_block_recovery(self):
+        # the thief holds the owner key, hands the ledger to itself and stamps that years ahead; the root then names
+        # the owner's new key, and the recovery must still work (1.0.2 to 1.0.13 refused it)
+        self.b.led.append(self.b.led.next_entry(SELLER, message(SELLER, 'rotate', {'key': public(OTHER)},
+                                                                at=self.b.tick()), at='2099-01-01T00:00:00Z'))
         rid = self.root.own('recover', {'ledger': self.b.led.id, 'key': public(NEWKEY)})
         self.b.led.root = Ledger(self.root.led.data)
-        self.b.own('rotate', {'key': public(OTHER)})
-        self.b.secret = OTHER
-        with self.assertRaisesRegex(Invalid, 'changed its keys after'):
-            self.b.led.append(self.recovered(rid))
+        m = message(NEWKEY, 'recovered', {'root': self.root.led.id, 'entry': rid}, at=self.b.tick())
+        self.b.led.append(self.b.led.next_entry(NEWKEY, m, at='2099-01-01T00:00:01Z'))
+        self.assertEqual(self.b.led.owner, public(NEWKEY))
+        self.assertEqual(self.b.led.devices, [])
 
     def test_only_the_root_owner_recovers(self):
         self.root.own('device', {'key': public(PHONE), 'name': 'laptop'})

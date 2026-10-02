@@ -288,6 +288,24 @@ def scenarios():
     ra.own('admit', {'key': public(OTHER), 'name': 'Other', 'note': ''})
     out['root-later'] = (ra, None, None)
     out['admitted-then'] = (rs, 'root-later', None)
+    # the seller stamps its entry years ahead: admission is still judged when the buyer signed (msg.at)
+    fs = Book(SELLER, 'Farm')
+    fo, foh = fs.offer(quantity=1, allow='admitted')
+    fs.own('admit', {'key': public(BUYER), 'name': '', 'note': ''})
+    fc = message(BUYER, 'claim', {'offer': fo, 'offer_hash': foh, 'quantity': 1, 'price': 120000}, at=t(5))
+    fs.led.append(fs.led.next_entry(SELLER, fc, at='2030-01-01T00:00:00Z'))
+    out['admitted-future-stamp'] = (fs, 'root-later', None)
+    # a thief with the owner key rotates to itself, stamped years ahead; the root's recovery must still work
+    tr = Book(ROOTKEY, 'Root')
+    tv = Book(SELLER, 'Farm')
+    tv.led.append(tv.led.next_entry(SELLER, message(SELLER, 'rotate', {'key': public(OTHER)}, at=tv.tick()),
+                                    at='2099-01-01T00:00:00Z'))
+    trid = tr.own('recover', {'ledger': tv.led.id, 'key': public(NEWKEY)})
+    tv.led.root = Ledger(tr.led.data, cache=False)
+    tv.led.append(tv.led.next_entry(NEWKEY, message(NEWKEY, 'recovered', {'root': tr.led.id, 'entry': trid},
+                                                    at=tv.tick()), at='2099-01-01T00:00:01Z'))
+    out['root-thief'] = (tr, None, None)
+    out['recovered-from-thief'] = (tv, 'root-thief', None)
 
     # the same offer and auction recorded twice: one each in the state, and the pages must still render
     from helpers import offer_body

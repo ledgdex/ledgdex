@@ -1,4 +1,51 @@
 {
+ "admitted-future-stamp": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 4 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 3, <code>sha256:c3e77d19a3300596978c1baeee28c3f0daa9a27d9012d7486910a8c8243381cd</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>, <a href='farmadmissions.html'>Farm admissions</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:01:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 1 dozen at INR 1,200.00 (120000) each <code>sha256:4f9b284334c5</code>",
+    "2. 2026-10-01T09:02:00Z admit by <code>ed25519:03a107bff3ce</code>: <code>ed25519:79b5562e8fe6</code> <code>sha256:edfd7c333e61</code>",
+    "3. 2030-01-01T00:00:00Z claim by <code>ed25519:79b5562e8fe6</code>: 1 of offer <code>sha256:4f9b284334c5</code> <code>sha256:c3e77d19a330</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 0 of 1 left, sold",
+    "ripe",
+    "Status: sold",
+    "Remaining: 0 of 1 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: keys admitted by this ledger",
+    "Offer id: <code>sha256:4f9b284334c5f15c050a2bf3b910273e76e8102774b75540239703fd717a6a4b</code>",
+    "Offer hash: <code>sha256:011f3a1da11627a1f312e7eb6483acd045f69203f440a31a130b566be4878e95</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:4f9b284334c5f15c050a2bf3b910273e76e8102774b75540239703fd717a6a4b --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>.",
+    "Claims:",
+    "<code>sha256:c3e77d19a330</code> by <code>ed25519:79b5562e8fe6</code>: 1 at INR 1,200.00 (120000), accepted"
+   ]
+  },
+  {
+   "title": "Farm admissions",
+   "body": [
+    "<!-- ledgdex -->1 keys admitted",
+    "2026-10-01T09:02:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: "
+   ]
+  }
+ ],
  "admitted-then": [
   {
    "title": "Farm ledger (ledgdex)",
@@ -814,6 +861,25 @@
    ]
   }
  ],
+ "recovered-from-thief": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 3 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:60da00e5e1cf877fa8d3219f5afab86d01a8669c85eff7bec1ed3092cd3a4ead</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 2, <code>sha256:e7ee771e54e206123d36d1e00442e8ba5c7c953157f960f15cff127a903520b2</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2099-01-01T00:00:00Z rotate by <code>ed25519:03a107bff3ce</code>: <code>ed25519:43cdc023d22d</code> <code>sha256:1093d21b3eda</code>",
+    "2. 2099-01-01T00:00:01Z recovered by <code>ed25519:60da00e5e1cf</code>: owner key recovered through the root, entry <code>sha256:9d400ab206e2</code> <code>sha256:e7ee771e54e2</code>"
+   ]
+  }
+ ],
  "replay": [
   {
    "title": "Farm ledger (ledgdex)",
@@ -911,6 +977,24 @@
     "2026-10-01T09:01:00Z admit <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: Asha",
     "2026-10-01T09:16:00Z revoke <code>ed25519:79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664</code>: left",
     "2026-10-01T09:17:00Z admit <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>: Other"
+   ]
+  }
+ ],
+ "root-thief": [
+  {
+   "title": "Root ledger",
+   "body": [
+    "<!-- ledgdex -->Root's ledger: 2 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:26181796188d57c2b11ce034884bb1b47d15c744d5abf65642c49e425dc8b344</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:9ac8643e37dbcda00e1432484c7625eef297953e4ce5e46b8d578da05c8d0551</code>",
+    "Head: seq 1, <code>sha256:9d400ab206e23cdaee15a1d6f7b433346739acf9c26bcd77b1a777617cc9f735</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:26181796188d</code>: opened the ledger <code>sha256:54a40c6dc62e</code>",
+    "1. 2026-10-01T09:01:00Z recover by <code>ed25519:26181796188d</code>: new key <code>ed25519:60da00e5e1cf</code> for ledger <code>sha256:5059e1acd1d7</code> <code>sha256:9d400ab206e2</code>"
    ]
   }
  ],

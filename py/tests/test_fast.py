@@ -110,6 +110,23 @@ class Cache(unittest.TestCase):
         os.chmod(verified, 0o700)
         self.assertEqual(Ledger(b.led.data).cached, 4)
 
+    def test_a_hostile_root_is_not_remembered(self):
+        # a "recovered" entry checked once against a hostile root must not be trusted later without it
+        from helpers import OTHER, SELLER, t
+        from ledgdex.core import message, public
+        victim = Book(SELLER, 'Victim')
+        victim.own('note', {'ref': victim.led.ids[0], 'text': 'mine'})
+        evil = Book(OTHER, 'Evil root')
+        rid = evil.own('recover', {'ledger': victim.led.id, 'key': public(OTHER)})
+        led = Ledger(victim.led.data, cache=False, root=Ledger(evil.led.data, cache=False))
+        led.append(led.next_entry(OTHER, message(OTHER, 'recovered', {'root': evil.led.id, 'entry': rid}, at=t(50)),
+                                  at=t(50)))
+        self.assertTrue(Ledger(led.data, root=Ledger(evil.led.data)).whole)
+        later = Ledger(led.data)
+        self.assertFalse(later.whole)
+        self.assertEqual(later.owner, public(SELLER))
+        self.assertEqual(Ledger(led.data, root=Ledger(evil.led.data)).cached, 2)   # only what needs no root
+
     def test_off_switches(self):
         b = self.book(2)
         Ledger(b.led.data)

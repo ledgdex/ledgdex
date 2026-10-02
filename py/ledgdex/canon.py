@@ -70,6 +70,13 @@ def _no_float(s):
     raise CanonError('floats are not allowed')
 
 
+def _int(s):
+    # refuse a long integer before converting it: converting a huge one takes quadratic time on older Pythons
+    if len(s.lstrip('-')) > 16:
+        raise CanonError('integer out of range')
+    return int(s)
+
+
 def _no_constant(s):
     raise CanonError(s + ' is not allowed')
 
@@ -80,7 +87,7 @@ def parse(data):
         data = data.encode('utf-8')
     try:
         v = json.loads(data.decode('utf-8'), object_pairs_hook=_pairs,
-                       parse_float=_no_float, parse_constant=_no_constant)
+                       parse_float=_no_float, parse_int=_int, parse_constant=_no_constant)
     except CanonError:
         raise
     except RecursionError:

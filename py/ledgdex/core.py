@@ -406,10 +406,16 @@ class Ledger:
         return 0
 
     def _cache_put(self):
+        """Only entries whose validity depends on nothing but their bytes are cached: the cache stops before the first
+        entry holding a "recovered" message (in the ledger, a receipt or a sent copy), whose validity depends on the
+        root it is checked with. Else one check against a hostile root would be remembered for every root."""
         if not self.use_cache:
             return
-        length = len(self.header_line) + 1 + sum(len(x) + 1 for x in self.lines)
-        c = {'entries': len(self.lines), 'length': length, 'sha256': hashlib.sha256(self.data[:length]).hexdigest()}
+        n = next((i for i, line in enumerate(self.lines) if b'"type":"recovered"' in line), len(self.lines))
+        if n == 0:
+            return
+        length = len(self.header_line) + 1 + sum(len(x) + 1 for x in self.lines[:n])
+        c = {'entries': n, 'length': length, 'sha256': hashlib.sha256(self.data[:length]).hexdigest()}
         try:
             os.makedirs(os.path.dirname(self._cache_path()), mode=0o700, exist_ok=True)
             tmp = self._cache_path() + '.' + str(os.getpid())

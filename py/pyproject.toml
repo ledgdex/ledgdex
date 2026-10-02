@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ledgdex"
-version = "1.0.2"
+version = "1.0.3"
 description = "A simple market on a dex: signed, append-only ledgers with triple-entry accounting"
 requires-python = ">=3.8"
 license = {text = "CC0-1.0"}

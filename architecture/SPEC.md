@@ -769,6 +769,8 @@ An implementation is correct only if all of these hold, and the test suite check
 19. `check` blames a ledger only with that ledger's own signatures: a receipt entry signed by a key the ledger did
     not have at that seq (a revoked device, a made-up key chain) is a warning (`receipt_bad_signer`), and a receipt
     address that never served the ledger is a warning (`receipt_url_mismatch`), not `ledger_changed`.
+20. The verification cache never stands in for the root: it covers only entries before the first one holding a
+    `recovered` message, so a ledger checked once against one root is checked again against the next.
 
 ### 9.1 Checks over time
 
@@ -976,6 +978,12 @@ signed by anyone, so a buyer could forge a receipt and `check` would report the 
 (invariant 18; vector `broken-forged-receipt`); a root device key could hand any ledger to a new key; and a root
 `recover` entry could be used again later by a key it once named (vector `broken-recovery-replay`). `check` now
 blames a ledger only with signatures valid in that ledger's own history (invariant 19).
+
+**v1.0.3** fixes what a fourth audit found in the verification cache: a ledger with a `recovered` entry checked once
+against a hostile root (`--root`, or a `config.json` naming it) was remembered as verified, and later read as whole
+with no root at all, owned by the attacker's key. The cache now stops before the first entry holding a `recovered`
+message (invariant 20). Long integers are refused before they are converted, so no Python version spends quadratic
+time on one.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

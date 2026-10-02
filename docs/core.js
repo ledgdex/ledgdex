@@ -173,7 +173,8 @@ export function checkReceipt(body, root = null) {
       throw new Invalid('receipt: keys may hold only rotate, device, device_revoke and recovered entries');
     }
     if (m.type === 'recovered') rootRecovers(root, body.ledger, k, body.keys.filter((x) => x.seq < k.seq));
-    const ok = m.type === 'recovered' || (keys.signedBy(k) !== null && keys.canAuthor(m.type, m.by));
+    const signer = m.type === 'recovered' ? null : keys.signedBy(k);
+    const ok = m.type === 'recovered' || (signer !== null && keys.canAuthor(m.type, m.by) && (!OWNER_ONLY.has(m.type) || signer === keys.owner));
     if (!ok) throw new Invalid('receipt: key entry ' + k.seq + ' does not verify');
     keys.apply(m);
     last = k.seq;
@@ -289,7 +290,12 @@ export class Ledger {
     checkMessage(e.msg, this.root);
     const m = e.msg;
     if (m.type === 'recovered') this.checkRecovery(e);
-    else if (this.keys.signedBy(e) === null) throw new Invalid('entry signature does not verify with a current signing key');
+    else {
+      const signer = this.keys.signedBy(e);
+      if (signer === null) throw new Invalid('entry signature does not verify with a current signing key');
+      // messages carry no ledger id: a device must not copy in an owner-only message signed for another ledger
+      if (OWNER_ONLY.has(m.type) && signer !== this.keys.owner) throw new Invalid(m.type + ' must be recorded by the owner key itself');
+    }
     if (seconds(e.time) < seconds(m.at) - SKEW) {
       throw new Invalid('message recorded more than ' + SKEW + ' seconds before it was signed');
     }

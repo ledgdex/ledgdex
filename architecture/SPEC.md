@@ -282,7 +282,9 @@ offer's arbiter decides which one stands.
 For a ledger owned by O:
 - **O-authored** types: `msg.by` MUST be O's owner key or one of O's active device keys, except the owner-only types
   (`open`, `rotate`, `device`, `device_revoke`, and `recover` in the root, which hands a ledger to a new key), which
-  MUST be authored by the owner key itself.
+  MUST be authored by the owner key itself, and recorded in an entry signed by the owner key itself. (A message names
+  no ledger: without the second rule a device could copy in an owner-only message its owner signed for another
+  ledger, such as a `device` naming a key meant only there.)
 - **Counterparty** types (`claim`, `paid`, `confirmed`, `dispute`, `ruling`, `bid`, `reveal`): `msg.by` is any key;
   O records them, and the state function (6.2) decides whether they count.
 - **Arbiter** types: `msg.by` MUST be the arbiter named by the offer concerned.
@@ -771,6 +773,8 @@ An implementation is correct only if all of these hold, and the test suite check
     address that never served the ledger is a warning (`receipt_url_mismatch`), not `ledger_changed`.
 20. The verification cache never stands in for the root: it covers only entries before the first one holding a
     `recovered` message, so a ledger checked once against one root is checked again against the next.
+21. An owner-only message (4) counts only in an entry the owner key itself signed, so a device cannot add devices,
+    rotate or revoke by copying such a message from another ledger of the same owner.
 
 ### 9.1 Checks over time
 
@@ -993,6 +997,11 @@ now match `[0-9]` only (vector `broken-fullwidth-time`), and the fuzzer tries lo
 used a linear scan, each claim hashed its offer again, and each offer's page scanned every claim; a hostile ledger
 with many offers and claims could stall `state`, rendering or the viewer. Entries are now indexed by id, an offer is
 hashed once, and claims are grouped by offer once.
+
+**v1.0.6** (eighth audit): an owner-only message must be recorded by the owner key itself (4, invariant 21). Messages
+name no ledger, so a device key could copy in a `device`, `rotate` or `device_revoke` its owner had signed for
+another ledger, granting a key signing power the owner never gave here (vector
+`broken-device-copies-owner-message`).
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

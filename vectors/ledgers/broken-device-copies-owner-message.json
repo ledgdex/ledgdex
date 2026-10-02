@@ -1,0 +1,9 @@
+{
+ "root": null,
+ "now": null,
+ "whole": false,
+ "broken_at": 2,
+ "entries": 2,
+ "state": "{\"admitted\":[],\"auctions\":{},\"broken_at\":2,\"claims\":{},\"devices\":[\"ed25519:50b29e9fa63888f812b1bbc9a8c684c57800d85f3e504b2e13468525a50d951e\"],\"disputes\":{},\"head\":{\"id\":\"sha256:e89807d847db037320f971ba87cb6cf9fe1d6f40afc9958937c3342d8a90209d\",\"seq\":1},\"ignored\":[],\"ledger\":\"sha256:2364c4ad7c6b4122afff75b1e90cf57102df4a40de9e50ea211bca0f3f1ea877\",\"listings\":{},\"offers\":{},\"owner\":\"ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8\",\"recoveries\":{}}",
+ "ledger": "broken-device-copies-owner-message"
+}

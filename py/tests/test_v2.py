@@ -91,6 +91,21 @@ class Keys(unittest.TestCase):
         self.assertRaises(Invalid, message, BUYER, 'receipt', dict(body, keys=keys[1:]))
 
 
+class OwnerOnlyEntries(unittest.TestCase):
+    def test_a_device_cannot_copy_in_an_owner_only_message(self):
+        # messages carry no ledger id: one the owner signed for another ledger must not be recorded here by a device
+        b = Book(SELLER, 'Shop B')
+        b.own('device', {'key': public(PHONE), 'name': 'phone'})
+        for type_, body in (('device', {'key': public(OTHER), 'name': 'terminal at A'}),
+                            ('rotate', {'key': public(OTHER)}),
+                            ('device_revoke', {'key': public(PHONE), 'reason': ''})):
+            m = message(SELLER, type_, body, at=b.tick())
+            with self.assertRaisesRegex(Invalid, 'recorded by the owner key itself'):
+                b.led.append(b.led.next_entry(PHONE, m, at=t(b.minute)))
+        b.own('device', {'key': public(OTHER), 'name': 'terminal'})   # the owner records it: fine
+        self.assertIn(public(OTHER), b.led.devices)
+
+
 class Recovery(unittest.TestCase):
     def setUp(self):
         self.root = Book(ROOTKEY, 'Root')

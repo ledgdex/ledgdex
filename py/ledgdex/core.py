@@ -283,7 +283,9 @@ def check_receipt(body, root=None):
             root_recovers(root, body['ledger'], k, [x for x in body['keys'] if x['seq'] < k['seq']])
             ok = True
         else:
-            ok = keys.signed_by(k) is not None and keys.can_author(m['type'], m['by'])
+            signer = keys.signed_by(k)
+            ok = signer is not None and keys.can_author(m['type'], m['by']) and (
+                m['type'] not in OWNER_ONLY or signer == keys.owner)
         if not ok:
             raise Invalid('receipt: key entry ' + str(k['seq']) + ' does not verify')
         keys.apply(m)
@@ -477,8 +479,13 @@ class Ledger:
         m = e['msg']
         if m['type'] == 'recovered':
             self.check_recovery(e)
-        elif self.keys.signed_by(e) is None:
-            raise Invalid('entry signature does not verify with a current signing key')
+        else:
+            signer = self.keys.signed_by(e)
+            if signer is None:
+                raise Invalid('entry signature does not verify with a current signing key')
+            if m['type'] in OWNER_ONLY and signer != self.keys.owner:
+                # messages carry no ledger id: a device must not copy in an owner-only message signed for another ledger
+                raise Invalid(m['type'] + ' must be recorded by the owner key itself')
         if seconds(e['time']) < seconds(m['at']) - SKEW:
             raise Invalid('message recorded more than ' + str(SKEW) + ' seconds before it was signed')
         if (n == 0) != (m['type'] == 'open'):

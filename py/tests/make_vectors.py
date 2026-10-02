@@ -265,6 +265,15 @@ def scenarios():
     fe['sig'] = sign(SELLER, {k: v for k, v in fe.items() if k != 'sig'})
     out['broken-fullwidth-time'] = (fw.led.header_line + b'\n' + canon(fe) + b'\n', None, None)
 
+    # a device copies in an owner-signed "device" message meant for another ledger of the same owner (before 1.0.6
+    # it was accepted, giving that key signing power here)
+    dc = Book(SELLER, 'Shop B')
+    dc.own('device', {'key': public(PHONE), 'name': 'phone'})
+    other_ledger_msg = message(SELLER, 'device', {'key': public(OTHER), 'name': 'terminal at A'}, at=dc.tick())
+    de = {'seq': len(dc.led.entries), 'prev': dc.led.ids[-1], 'time': t(dc.minute), 'msg': other_ledger_msg}
+    de['sig'] = sign(PHONE, de)
+    out['broken-device-copies-owner-message'] = (dc.led.data + canon(de) + b'\n', None, None)
+
     # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
     from ledgdex import ed25519
     from ledgdex.core import sha256 as id_of

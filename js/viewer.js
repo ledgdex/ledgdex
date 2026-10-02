@@ -309,4 +309,10 @@ function main() {
   showOwn();
 }
 
-if ($('url')) main();  // dexweb puts this script on every page; only the viewer page has its controls
+// Another site could put this page in a frame and lay its own picture over it to trick clicks (sign a claim, forget a
+// key). A <meta> Content-Security-Policy cannot forbid framing, and GitHub Pages sends no headers, so the page refuses
+// to run framed. (A frame that blocks scripts leaves the controls without handlers: nothing can be signed.)
+const framed = (() => { try { return window.top !== window.self; } catch (e) { return true; } })();
+if (framed) {
+  document.body.textContent = 'The ledgdex viewer does not run inside another page. Open it directly: ' + location.href;
+} else if ($('url')) main();  // dexweb puts this script on every page; only the viewer page has its controls

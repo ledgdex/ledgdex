@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.11. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.12. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -60,7 +60,9 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **The viewer's origin.** Pages on one web origin can read each other's browser storage. `matrixdex.github.io` is
   shared by every matrixdex repository's pages, so a sealed key there is safe only as long as the passphrase is
   strong. For production, serve the viewer from an address of its own (a custom domain). The viewer's pages carry
-  a Content-Security-Policy that allows scripts only from the viewer.
+  a Content-Security-Policy that allows scripts only from the viewer, and the viewer refuses to run inside another
+  page's frame (so no site can trick your clicks on it). Serving it with an `X-Frame-Options: DENY` or
+  `frame-ancestors 'none'` header, where your host allows headers, adds a second guard.
 - **Clocks.** Entry times are their owners' clocks, within 5 minutes of each other (SPEC 9.2).
 - **What is not protected by design** is listed in the spec, Part I: a seller who never records a claim, the order
   of claims that arrive together, delivery and payment outside the ledger, and fake identities (admission handles

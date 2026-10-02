@@ -58,6 +58,13 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 
 ## Trust you still need
 
+- **A device key's past.** Revoking a device stops it from signing *later* entries, but nothing can undo what it was
+  able to sign while it was active: a thief who takes a device key can sign entries that conflict with the ledger at
+  positions where that device was still active, and `check` reports them as `receipt_mismatch` or `equivocation`, as
+  it must (two signed histories by keys the ledger authorised). Without a trusted clock no system can tell a thief's
+  fork from the device's own; an arbiter weighs it with the date of the `device_revoke`. Give device keys only to
+  devices you would trust with the ledger, and revoke a lost one at once.
+
 - **The root.** Its owner admits who is in The Matrix, names new keys for lost ones, and is the default arbiter.
   Keep its owner key offline and run `ledgdex check` on it. A root that misbehaves does so in signed entries
   everyone can see, but it is trusted to admit and recover honestly.

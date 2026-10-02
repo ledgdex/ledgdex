@@ -395,6 +395,60 @@
    ]
   }
  ],
+ "duplicate-offer": [
+  {
+   "title": "Farm ledger (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->Farm's ledger: 5 entries, whole",
+    "about",
+    "Owner key: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Device keys: none",
+    "Ledger id: <code>sha256:5059e1acd1d76a5562826e65e9abdc1c670fafbcb15980537d501aec6f86f4bf</code>",
+    "Head: seq 4, <code>sha256:77a4c5036634709e1f9b6bdbbb003293dbac4d56b78231de2126c98bd927c29a</code>",
+    "Verification: whole",
+    "Download the ledger: <a href='ledgdex.jsonl'>ledgdex.jsonl</a>",
+    "Pages: <a href='mangoesledgdex.html'>Mangoes (ledgdex)</a>, <a href='oldmap.html'>Old map</a>",
+    "Entries:",
+    "0. 2026-10-01T09:00:00Z open by <code>ed25519:03a107bff3ce</code>: opened the ledger <code>sha256:c5813457c83f</code>",
+    "1. 2026-10-01T09:02:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:1adda31ab13b</code>",
+    "2. 2026-10-01T09:03:00Z offer by <code>ed25519:03a107bff3ce</code>: Mangoes, 2 dozen at INR 1,200.00 (120000) each <code>sha256:d6234af389ce</code>",
+    "3. 2026-10-01T09:05:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:86432f9f17fe</code>",
+    "4. 2026-10-01T09:06:00Z auction by <code>ed25519:03a107bff3ce</code>: Old map, bids until 2026-10-01T09:30:00Z <code>sha256:77a4c5036634</code>"
+   ]
+  },
+  {
+   "title": "Mangoes (ledgdex)",
+   "body": [
+    "<!-- ledgdex -->INR 1,200.00 (120000) per dozen, 2 of 2 left, open",
+    "ripe",
+    "Status: open",
+    "Remaining: 2 of 2 dozen",
+    "Price: INR 1,200.00 (120000) per dozen",
+    "Pay by upi: farm@bank",
+    "Arbiter: <code>ed25519:03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8</code>",
+    "Who may buy: anyone",
+    "Offer id: <code>sha256:1adda31ab13b4bd8eaf19af320d01c06ba4e6eb8fe625efb7a9a80d46e3487be</code>",
+    "Offer hash: <code>sha256:e13a06b2f0b0014145ea8624fb7638960ecd7a8648915782132971ce2a0ae55d</code>",
+    "To buy, with your own ledgdex: <code>ledgdex claim YOUR_DEX https://farm.example sha256:1adda31ab13b4bd8eaf19af320d01c06ba4e6eb8fe625efb7a9a80d46e3487be --quantity 1</code>",
+    "Then send the claim file to the seller, or publish your dex: the seller collects claims with <code>ledgdex record DEX --from YOUR_DEX_URL</code>."
+   ]
+  },
+  {
+   "title": "Old map",
+   "body": [
+    "<!-- ledgdex -->open, 0 sealed bids",
+    "sealed bids",
+    "Status: open",
+    "Bids close: 2026-10-01T09:30:00Z",
+    "Reveals until: 2026-10-01T10:00:00Z",
+    "Best bid: highest, reserve INR 1.00 (100)",
+    "Arbiter: <code>ed25519:43cdc023d22d5f9e107d1a0693457d35d1d10eb7d21c721192f56f5de40665d3</code>",
+    "Terms: as seen",
+    "Auction id: <code>sha256:86432f9f17fe1c3efefccdce4c517dceae9ea6168db746c53f55ec2512b04423</code>",
+    "To bid, with your own ledgdex: <code>ledgdex bid YOUR_DEX https://farm.example sha256:86432f9f17fe1c3efefccdce4c517dceae9ea6168db746c53f55ec2512b04423 --amount N</code>. After the close, reveal it with <code>ledgdex reveal YOUR_DEX https://farm.example sha256:86432f9f17fe1c3efefccdce4c517dceae9ea6168db746c53f55ec2512b04423</code>."
+   ]
+  }
+ ],
  "hostile-buyer": [
   {
    "title": "&lt;script&gt;x()&lt;/script&gt;&lt;img src=x onerror=y()&gt;&#x27;&quot;&amp;amp;&lt;a href=&quot;javascript:z()&quot;&gt; ledger",

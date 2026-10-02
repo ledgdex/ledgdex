@@ -117,9 +117,10 @@ def pages(led, author_titles):
         return t
 
     ledger_title = title_for(name + ' ledger')
-    offers = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'offer']
+    # the offers and auctions the state counts (a message recorded twice is one offer, spec 6.2)
+    offers = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'offer' and led.ids[n] in st['offers']]
     offer_titles = {id_: title_for(m['body']['item']['title'], id_) for id_, m in offers}
-    auctions = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'auction']
+    auctions = [(led.ids[n], e['msg']) for n, e in enumerate(led.entries) if e['msg']['type'] == 'auction' and led.ids[n] in st['auctions']]
     auction_titles = {id_: title_for(m['body']['item']['title'], id_) for id_, m in auctions}
     listings_title = title_for(name + ' listings') if st['listings'] else None
     sent_claims = [e for e in led.entries if e['msg']['type'] == 'sent' and e['msg']['body']['msg']['type'] == 'claim']

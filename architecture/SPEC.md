@@ -1043,6 +1043,11 @@ Content-Security-Policy cannot forbid framing and GitHub Pages sends no headers,
 viewer (with `?ledger=` set to its own offer) and lay its own picture over it to trick a click on "Sign": a claim
 kept as `sent` in the victim's own ledger, collected by the seller once the victim publishes.
 
+**v1.0.13** (fifteenth audit's fuzzing): a ledger that records the same `offer` or `auction` message twice (the second
+is `duplicate_message`, 6.2) crashed both renderers, which listed offers from the entries and then looked them up in
+the state. A seller could so make its ledger unviewable in the viewer, and `ledgdex render` failed on it. Pages now
+list the offers and auctions the state counts (vector `duplicate-offer`).
+
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.

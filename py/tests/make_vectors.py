@@ -289,6 +289,17 @@ def scenarios():
     out['root-later'] = (ra, None, None)
     out['admitted-then'] = (rs, 'root-later', None)
 
+    # the same offer and auction recorded twice: one each in the state, and the pages must still render
+    from helpers import offer_body
+    dup = Book()
+    dm = message(SELLER, 'offer', offer_body(), at=dup.tick())
+    dup.rec(dm)
+    dup.rec(dm)
+    da = message(SELLER, 'auction', auction_body(), at=dup.tick())
+    dup.rec(da)
+    dup.rec(da)
+    out['duplicate-offer'] = (dup, None, None)
+
     # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
     from ledgdex import ed25519
     from ledgdex.core import sha256 as id_of

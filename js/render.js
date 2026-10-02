@@ -87,7 +87,8 @@ export function pages(led, authorTitles = []) {
   }
   const of = (type) => led.entries.map((e, n) => [led.ids[n], e.msg]).filter(([, m]) => m.type === type);
   const ledgerTitle = titleFor(name + ' ledger');
-  const offers = of('offer'), auctions = of('auction');
+  // the offers and auctions the state counts (a message recorded twice is one offer, spec 6.2)
+  const offers = of('offer').filter(([id]) => id in st.offers), auctions = of('auction').filter(([id]) => id in st.auctions);
   const offerTitles = {}, auctionTitles = {};
   offers.forEach(([id, m]) => { offerTitles[id] = titleFor(m.body.item.title, id); });
   auctions.forEach(([id, m]) => { auctionTitles[id] = titleFor(m.body.item.title, id); });

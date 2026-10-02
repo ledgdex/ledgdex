@@ -97,6 +97,27 @@ class Commands(unittest.TestCase):
         self.assertTrue(fails('verify', 'shop/ledgdex.jsonl'))         # without the root it cannot verify
         self.assertEqual(self.st('shop', '--root', 'root')['owner'], new)
 
+    def test_the_root_is_pinned_by_id(self):
+        run('init', 'root', '--name', 'Root', '--key', 'rootkey')
+        self.offer()
+        with open('shop/config.json') as f:
+            cfg = json.load(f)
+        cfg['ledgdex'] = {'root': 'root'}
+        with open('shop/config.json', 'w') as f:
+            json.dump(cfg, f)
+        root_id = load('root').id
+        run('note', 'shop', 'sha256:' + '0' * 64, 'reads the root once')
+        with open('shop/config.json') as f:
+            self.assertEqual(json.load(f)['ledgdex']['root_id'], root_id)      # trusted on first use
+        shutil.move('root', 'real-root')
+        run('init', 'root', '--name', 'Not the root', '--key', 'impostor')     # the address now serves another ledger
+        self.assertTrue(fails('note', 'shop', 'sha256:' + '0' * 64, 'x'))
+        shutil.rmtree('root')
+        shutil.move('real-root', 'root')
+        with open('root/ledgdex.jsonl', 'ab') as f:
+            f.write(b'{"broken":1}\n')                                          # a broken root is refused too
+        self.assertTrue(fails('note', 'shop', 'sha256:' + '0' * 64, 'x'))
+
     def test_dispute_and_ruling(self):
         run('init', 'judge', '--name', 'Judge', '--key', 'judge')
         judge = load('judge').owner

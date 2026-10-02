@@ -423,7 +423,10 @@ Delisting a ledger that is not listed is ignored (`not_listed`). The state lists
 
 The root is a ledger whose `admit` and `revoke` entries define who is in The Matrix. A verifier MAY be given a root
 ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root's
-current state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>"}`.
+current state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
+The root is pinned by ledger id: a tool reading it without `root_id` writes the id it read (trust on first use), and
+refuses a root of another id or a broken root, since an address can come to serve another ledger (its hosting or
+DNS changes hands) and the root's owner is the default arbiter of new offers. Rotation and recovery keep the id.
 
 Key recovery (lost key): the root records `{"type": "recover", "body": {"ledger": ledger_id, "key": new_key}}`
 (authored by the root's owner key, never a device). The owner then appends an entry signed by `new_key` whose message is
@@ -1002,6 +1005,10 @@ hashed once, and claims are grouped by offer once.
 name no ledger, so a device key could copy in a `device`, `rotate` or `device_revoke` its owner had signed for
 another ledger, granting a key signing power the owner never gave here (vector
 `broken-device-copies-owner-message`).
+
+**v1.0.7** (ninth audit): the root is pinned by ledger id in `config.json` (`root_id`, trust on first use), and a
+broken root is refused. Before, the dex named its root by address only, so whoever controlled that address could
+serve another ledger as the root, and `ledgdex offer` would name its owner as the arbiter of every new offer.
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

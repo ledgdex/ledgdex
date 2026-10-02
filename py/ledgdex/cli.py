@@ -322,7 +322,7 @@ def c_recovered(a):
         raise Invalid('the root has no recover entry for this ledger and key ' + public(new))
     cfg_path = os.path.join(a.dex, 'config.json')
     cfg = read_json(cfg_path)
-    cfg.setdefault('ledgdex', {})['root'] = a.root   # every later read of this ledger needs the root
+    cfg.setdefault('ledgdex', {}).update(root=a.root, root_id=root.id)   # every later read needs this root
     write_json(cfg_path, cfg)
     record(a.dex, [message(new, 'recovered', {'root': root.id, 'entry': rid})], secret=new)
     render(a.dex)

@@ -133,6 +133,9 @@ ledgdex list root https://THEIR_DEX --note "Shop 12"                            
 ```
 
 Every dex that trades in The Matrix names the root in its `config.json`, as `"ledgdex": {"root": "https://ROOT_ADDRESS"}`.
+The first time ledgdex reads it, it adds `"root_id"`, the root's ledger id, and from then on refuses any other ledger
+at that address (or a broken one): whoever controls the address cannot swap in a root of their own. Set `root_id`
+yourself, from a source you trust, to pin it before the first read.
 Its "admitted" offers then need admission by the root too, and its offers and auctions default to the root's owner as
 arbiter. Rulings are signed with the owner key, since that is the arbiter key offers name:
 

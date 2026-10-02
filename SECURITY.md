@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.6. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.7. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -29,6 +29,9 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **Only the owner key changes a ledger's keys.** `device`, `device_revoke`, `rotate` (and the root's `recover`) must
   be authored *and* recorded by the owner key, so a device cannot copy in such a message its owner signed for
   another ledger. (1.0.5 and earlier allowed it.)
+- **The root cannot be swapped at its address.** A dex pins its root by ledger id (`root_id` in `config.json`, set
+  the first time it is read) and refuses another ledger or a broken one there, so taking over the root's hosting
+  does not make you the default arbiter.
 - **A signed message counts once.** Recording the same message twice is ignored (`duplicate_message`), so a claim
   cannot be counted twice and a revoked device cannot be brought back by replaying its old `device` message.
 - **Hostile ledgers are only data.** A ledger cannot crash a verifier (nesting is limited to 32 levels), cannot put

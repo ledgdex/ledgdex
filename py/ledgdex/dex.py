@@ -153,15 +153,41 @@ def write(dex, data):
 # ---------- other ledgers ----------
 
 def load_root(dex):
-    """The root ledger named in config.json ("ledgdex": {"root": SOURCE}), or None."""
+    """The root ledger named in config.json ("ledgdex": {"root": SOURCE, "root_id": ID}), or None.
+
+    An address can start serving another ledger (its hosting or DNS changes hands), so the root is pinned by ledger
+    id: the first time it is read, its id is written to "root_id" (trust on first use), and from then on a root of
+    another id, or a broken one, is refused. A root that rotates or recovers its key keeps its id."""
     import json
     p = os.path.join(dex, 'config.json')
     try:
         with open(p) as f:
-            src = json.load(f).get('ledgdex', {}).get('root')
+            cfg = json.load(f)
+        lc = cfg.get('ledgdex')
+        src = lc.get('root') if isinstance(lc, dict) else None
     except (OSError, ValueError, AttributeError):
         return None
-    return fetch(src)[0] if src else None
+    if not src:
+        return None
+    try:
+        root = fetch(src)[0]
+    except Invalid:
+        raise
+    except Exception as e:  # unreachable, missing
+        raise Invalid('cannot read the root at ' + src + ': ' + str(e))
+    if not root.whole:
+        raise Invalid('the root at ' + src + ' is broken: ' + str(root.error))
+    pinned = lc.get('root_id')
+    if pinned is None:
+        lc['root_id'] = root.id
+        tmp = p + '.tmp'
+        with open(tmp, 'w') as f:
+            f.write(json.dumps(cfg, indent=4))
+        os.replace(tmp, p)
+    elif pinned != root.id:
+        raise Invalid('the root at ' + src + ' is ledger ' + root.id + ', not the root this dex trusts (' + str(pinned) +
+                      ' in config.json "root_id"): that address may now serve another ledger')
+    return root
 
 
 MAX_BYTES = int(os.environ.get('LEDGDEX_MAX_BYTES') or 64 << 20)   # the most read from any one address

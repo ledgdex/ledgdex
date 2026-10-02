@@ -1,6 +1,3 @@
-"""Extending ledgdex: your own tools on the state, and your own pages in the dex. A ledgdex is a dex first: its
-data.json holds your pages and the pages ledgdex generates from the ledger (those start with <!-- ledgdex -->).
-ledgdex only ever rewrites its own pages, so anything you add stays."""
 # expect: sales.csv
 # expect: Mango Farm sales
 # expect: your page kept: True
@@ -10,7 +7,7 @@ from ledgdex.dex import load
 from ledgdex.render import MARKER, render
 from ledgdex.state import state
 
-
+# `ledgdex(...)` runs one ledgdex command in this program and returns what it printed.
 def ledgdex(*args):
     out = io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
@@ -18,7 +15,7 @@ def ledgdex(*args):
     return out.getvalue()
 
 
-# A shop with a few sales (as in the first trade example).
+# A shop with three sales, made as in the first trade example.
 ledgdex('init', 'shop', '--name', 'Mango Farm', '--key', 'farm')
 with open('offer.json', 'w') as f:
     json.dump({'item': {'title': 'Alphonso mangoes'}, 'quantity': 50, 'unit': 'dozen', 'currency': 'INR',
@@ -29,7 +26,7 @@ for buyer, qty in (('asha', 2), ('ravi', 5), ('meena', 1)):
     ledgdex('claim', buyer, 'shop', offer, '--quantity', qty, '--output', buyer + '.json')
     ledgdex('record', 'shop', '--from', buyer)
 
-# 1. A tool on the state: a CSV of sales, from the verified ledger alone.
+# Your own tool: a spreadsheet (CSV) of sales, worked out from the verified ledger alone.
 led = load('shop')
 st = state(led)
 with open('sales.csv', 'w', newline='') as f:
@@ -40,7 +37,7 @@ with open('sales.csv', 'w', newline='') as f:
 total = sum(c['quantity'] * c['price'] for c in st['claims'].values() if c['status'] != 'rejected')
 print('sales.csv written:', len(st['claims']), 'claims, INR', total / 100)
 
-# 2. A page of your own in the dex: add it to data.json like any dex page, then render.
+# Your own page: a ledgdex is a dex, so add a page to `data.json` like any dex page, then render the site.
 with open('shop/data.json') as f:
     pages = json.load(f)
 pages.append({'title': 'Sales report', 'body': [
@@ -51,7 +48,7 @@ with open('shop/data.json', 'w') as f:
 render('shop')
 print(open('shop/gen/salesreport.html').read().split('<p>')[1].split('</p>')[0])
 
-# 3. ledgdex keeps it: more ledger entries rewrite only the generated pages.
+# A new ledger entry rewrites only the pages ledgdex made itself (they start with `<!-- ledgdex -->`). Your page stays.
 ledgdex('note', 'shop', offer, 'restocked')
 with open('shop/data.json') as f:
     kept = [p for p in json.load(f) if p['title'] == 'Sales report' and not p['body'][0].startswith(MARKER)]

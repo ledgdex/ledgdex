@@ -26,7 +26,7 @@ HEAD = ("<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n<meta name='viewport'
         "<link rel='stylesheet' href='styles.css'>\n")
 CONFIG = {   # dexweb's templates, as the dexweb docs use them: "LEDGDEX DOCS" and "BACK TO LEDGDEX DOCS"
     'dexname': NAME,
-    'author': 'Dexgen',
+    'author': 'Noorul Ali',
     'index_template': HEAD + "<title>{} Dex</title>\n</head>\n<body>\n<br><h1>{}</h1><br>\n{}\n<br><br><br><br><br><br><br>"
                              "\n<h3><a href='index.html'>{}</a></h3>\n</body>\n</html>",
     'page_template': HEAD + "<title>{} - {} Dex</title>\n</head>\n<body>\n<br>\n<h1>{}</h1>\n<br>\n{}\n<br><br><br><br><br>"
@@ -34,22 +34,19 @@ CONFIG = {   # dexweb's templates, as the dexweb docs use them: "LEDGDEX DOCS" a
     'page_javascript': CSP,
     'index_javascript': CSP,
     'index_list_type_para': False,
-    'index_list_no_page_link_only': False,
+    'index_list_no_page_link_only': True,
     'publish': {'method': 'folder', 'path': '../../docs/docs', 'append_only': [LEDGER]},
 }
 STYLES = '''
-pre {
-  background-color: rgb(20, 20, 20); border-left: 3px solid #00ff41; padding: 12px 16px; overflow-x: auto;
-  font-family: monospace; font-size: 15px; letter-spacing: 0; line-height: 1.45; white-space: pre;
-}
 code {
-  font-family: monospace; color: rgb(170, 255, 190); letter-spacing: 0; overflow-wrap: anywhere;
+  font-family: monospace; font-size: 0.8em; color: rgb(150, 150, 150); letter-spacing: 0; overflow-wrap: anywhere;
 }
 pre {
-  max-width: 100%; box-sizing: border-box;
+  background-color: rgb(18, 18, 18); border-left: 3px solid rgb(60, 60, 60); padding: 12px 16px; overflow-x: auto;
+  max-width: 100%; box-sizing: border-box; line-height: 1.45; white-space: pre;
 }
 pre code {
-  color: rgb(230, 230, 230);
+  overflow-wrap: normal;
 }
 '''
 

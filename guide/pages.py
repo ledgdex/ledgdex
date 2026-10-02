@@ -40,9 +40,26 @@ def example_text(name):
 
 
 def example(name):
-    """An example file as it is, with where it lives and that it is tested."""
-    return ['File ' + ext(REPO + '/blob/main/guide/examples/' + name, c('guide/examples/' + name)) +
-            ', run as it is on every push (' + c('py/tests/test_guide.py') + '):', code(example_text(name))]
+    """An example file as a page: each comment line above a block of code becomes the paragraph before it, so the
+    code itself is shown without comments. The expect: lines are for the tests and are left out."""
+    mark = '//' if name.endswith('.mjs') else '#'
+    out, block = [], []
+
+    def flush():
+        if ''.join(block).strip():
+            out.append(code('\n'.join(block)))
+        block.clear()
+    for line in example_text(name).split('\n'):
+        if re.match(re.escape(mark) + r' expect:', line):
+            continue
+        if line.startswith(mark + ' '):
+            flush()
+            out.append(re.sub(r'`([^`]+)`', lambda m: c(m.group(1)), html.escape(line[len(mark) + 1:], quote=False)))
+        else:
+            block.append(line)
+    flush()
+    return out + ['The whole file: ' + ext(REPO + '/blob/main/guide/examples/' + name, c('guide/examples/' + name)) +
+                  ', run as it is on every push (' + c('py/tests/test_guide.py') + ').']
 
 
 def steps(*items):
@@ -669,9 +686,10 @@ def pages():
                '.mjs': lambda n: 'From the repository root (or with ' + c('LEDGDEX_JS') + ' set to the folder or URL '
                                  'of the JavaScript core): ' + c('node guide/examples/' + n)}
     rows = []
-    for name, (title, who, about) in EXAMPLE_PAGES.items():
-        rows.append(link(title) + ' (' + who + '): ' + about)
-        page(title, about + ' For ' + who + '. ' + run_how[os.path.splitext(name)[1]](name) + '.', example(name))
+    for name, (title, goal) in EXAMPLE_PAGES.items():
+        rows.append(link(title) + ': ' + goal)
+        page(title, goal, '<b>Run it:</b> ' + run_how[os.path.splitext(name)[1]](name) + '.', example(name),
+             *EXAMPLE_AFTER.get(name, []))
     page('Examples',
          'Every example below is a file in ' + ext(REPO + '/tree/main/guide/examples', c('guide/examples/')) + ', run '
          'as it is on every push: each must exit without error and print what its ' + c('expect:') + ' lines name. '
@@ -701,37 +719,45 @@ def pages():
     return P
 
 
-# example file -> (page title, who it is for, what it shows)
+
+
+# example file -> (page title, what it achieves)
 EXAMPLE_PAGES = {
-    '01-first-trade.sh': ('Example: First Trade', 'everyone',
-                          'A whole trade between a seller and a buyer on one machine: offer, claim, receipt, payment, '
-                          'delivery and confirmation, then verification.'),
-    '02-marketplace.sh': ('Example: Marketplace', 'market operators',
-                          'An operator\'s root and index, two shops selling to admitted members, a buyer choosing the '
-                          'cheapest offer through the index, and a stranger turned away.'),
-    '03-auction.sh': ('Example: Auction', 'sellers and bidders',
-                      'A sealed-bid auction with two bidders, their reveals, and the winner by rule.'),
-    '04-disputes.sh': ('Example: Disputes', 'buyers, sellers and arbiters',
-                       'A dispute ruled by the arbiter the offer names, and a seller\'s own ruling ignored.'),
-    '05-keys.sh': ('Example: Keys', 'everyone',
-                   'A phone with a device key, revoking it, rotating the owner key, and recovering a lost key through '
-                   'the root.'),
-    '06-publish.sh': ('Example: Publish', 'sellers',
-                      'Publishing to a git repository from two devices, with the second catching up automatically.'),
-    '07-check.sh': ('Example: Check', 'everyone',
-                    'A seller rewriting its ledger to erase a sale, caught by ledgdex check with signed proof, and the '
-                    'GitHub workflow that runs the check daily.'),
-    '08-python-api.py': ('Example: Python API', 'developers',
-                         'The core API without a dex: a ledger in memory, signed messages, verification, state, and a '
-                         'one-byte change caught.'),
-    '09-bots.py': ('Example: Bots', 'bots and developers',
-                   'A seller bot and two buyer bots trading through an index to closed deals, with no person involved.'),
-    '10-robot-cleaning.py': ('Example: Robot Cleaning', 'bots and machine operators',
-                             'Robots of two operators paid per clean by the shops of a mall, one robot going offline '
-                             'mid-day, and the day\'s totals from the ledgers.'),
-    '11-extending.py': ('Example: Extending', 'developers',
-                        'A sales report from the state, added to the dex as a page that ledgdex keeps.'),
-    '12-javascript.mjs': ('Example: JavaScript', 'developers',
-                          'The JavaScript core in Node (and the browser): a ledger made, read back from its bytes, and '
-                          'its state.'),
+    '01-first-trade.sh': ('Example: First Trade',
+        'One shop sells mangoes to one buyer, from start to finish, on your own computer.'),
+    '02-marketplace.sh': ('Example: Marketplace',
+        'A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.'),
+    '03-auction.sh': ('Example: Auction',
+        'A gallery auctions an old map with secret bids, and the highest bid wins.'),
+    '04-disputes.sh': ('Example: Disputes',
+        'A buyer pays but gets nothing, complains, and an independent judge orders a refund.'),
+    '05-keys.sh': ('Example: Keys',
+        'Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.'),
+    '06-publish.sh': ('Example: Publish',
+        'Putting a ledgdex online from two devices without the two ever disagreeing.'),
+    '07-check.sh': ('Example: Check',
+        'Catching a cheat: a shop secretly rewrites its records, and a check proves it.'),
+    '08-python-api.py': ('Example: Python API',
+        'For developers: using ledgdex from Python directly, with no files or website.'),
+    '09-bots.py': ('Example: Bots',
+        'Programs trading with each other, with no person involved: two buyer bots buy software licences from the '
+        'cheaper of two seller bots.'),
+    '10-robot-cleaning.py': ('Example: Robot Cleaning',
+        'Cleaning robots paid per clean by the shops of a mall, for one day.'),
+    '11-extending.py': ('Example: Extending',
+        'For developers: building your own report from a ledger, and adding it to your website.'),
+    '12-javascript.mjs': ('Example: JavaScript',
+        'For developers: the same ledger code in JavaScript, for Node or a web page.'),
+}
+
+# shown after an example's code
+EXAMPLE_AFTER = {
+    '12-javascript.mjs': [
+        'In a web page, load the same core as a module and read any published ledger:',
+        code("<script type='module'>\n"
+             "  import { Ledger } from 'https://matrixdex.github.io/ledgdex/core.js';\n"
+             "  const res = await fetch('https://farm.example/ledgdex.jsonl');\n"
+             "  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n"
+             "  console.log(led.whole, led.entries.length, led.error);\n"
+             "</script>")],
 }

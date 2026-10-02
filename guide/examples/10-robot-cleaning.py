@@ -1,7 +1,3 @@
-"""Robots paid per clean (spec section 10, with the features built today). Two operators' robots each offer the
-day's cleans; shops on the floor claim a clean when they need one; the robot records the clean with its photo as
-evidence; shops confirm and pay for the day's cleans. One robot goes offline mid-day: it withdraws its offer and the
-shops claim from the other robot. Each robot signs with its own device key; its operator keeps the owner key."""
 # expect: robot offline: hoover
 # expect: day total
 # expect: paid per clean: True
@@ -9,9 +5,8 @@ import contextlib, hashlib, io, json, os
 from ledgdex.cli import main
 HOME = os.environ.get('LEDGDEX_HOME') or os.path.join(os.path.expanduser('~'), '.ledgdex')
 
-
+# `ledgdex(...)` runs one ledgdex command. `keys` picks the folder of keys to sign with: a robot's own, or by default its company's.
 def ledgdex(*args, keys=None):
-    """One ledgdex command. keys: the key store to sign from (a robot's own, or an operator's)."""
     os.environ['LEDGDEX_HOME'] = keys or HOME
     out = io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
@@ -23,14 +18,14 @@ def state(src):
     return json.loads(ledgdex('state', src))
 
 
-# Two operators, one robot each. The robot gets a device key; the operator's owner key never leaves the operator.
+# Two companies, one robot each. The company holds the main key; the robot gets its own device key and signs with it. Each robot offers today's 10 cleans at USD 4.00 each. Three shops join.
 robots = {'roomba': 'CleanCo', 'hoover': 'Brightfloor'}
 for robot, operator in robots.items():
     ledgdex('init', robot, '--name', robot.title() + ' (' + operator + ')', '--key', operator.lower())
     robot_keys = os.path.join(os.getcwd(), robot + '-keys')
     device = ledgdex('keygen', robot, keys=robot_keys).strip()
     ledgdex('device', 'add', robot, device, '--name', robot)
-    with open(robot + '-offer.json', 'w') as f:      # today's cleans: 10 at USD 4.00 each, until midnight
+    with open(robot + '-offer.json', 'w') as f:
         json.dump({'item': {'title': 'Floor clean, 2026-10-01'}, 'quantity': 10, 'unit': 'clean',
                    'currency': 'USD', 'price': 400, 'expires': '2099-01-01T00:00:00Z'}, f)
     ledgdex('offer', robot, robot + '-offer.json', keys=robot_keys)
@@ -39,16 +34,16 @@ for shop in shops:
     ledgdex('init', shop, '--name', shop.title(), '--key', shop)
 
 
+# One clean: the shop orders it from the robot's open offer; the robot records the order, cleans, and records a photo as proof (its address and hash; here a made-up hash); the shop confirms.
 def open_offer(robot):
     return next((i for i, o in state(robot)['offers'].items() if o['status'] == 'open' and o['remaining']), None)
 
 
 def clean(shop, robot):
-    """The shop claims one clean; the robot records it, cleans, and records the photo as evidence."""
     keys = os.path.join(os.getcwd(), robot + '-keys')
     ledgdex('claim', shop, robot, open_offer(robot), '--output', shop + '-claim.json')
     claim = ledgdex('record', robot, '--from', shop, keys=keys).split('claim recorded: ')[1].split()[0]
-    photo = hashlib.sha256((robot + claim).encode()).hexdigest()          # stands in for the photo's real hash
+    photo = hashlib.sha256((robot + claim).encode()).hexdigest()
     ledgdex('delivered', robot, claim, '--note', 'photo https://photos.example/' + photo + '.jpg sha256:' + photo,
             keys=keys)
     ledgdex('confirm', shop, robot, claim, '--output', shop + '-confirmed.json')
@@ -56,13 +51,13 @@ def clean(shop, robot):
     return claim
 
 
-# Morning: the shops spread their cleans over both robots. Midday the hoover's battery fails: it withdraws its offer.
+# In the morning each shop gets a clean from each robot. At midday the hoover's battery fails, so it withdraws its offer; in the afternoon every shop uses the roomba.
 done = [(shop, robot, clean(shop, robot)) for shop in shops for robot in robots]
 ledgdex('withdraw', 'hoover', open_offer('hoover'), keys=os.path.join(os.getcwd(), 'hoover-keys'))
 print('robot offline: hoover; open offers:', {r: open_offer(r) is not None for r in robots})
-done += [(shop, 'roomba', clean(shop, 'roomba')) for shop in shops]  # afternoon: everyone uses the roomba
+done += [(shop, 'roomba', clean(shop, 'roomba')) for shop in shops]
 
-# Evening: each shop pays each robot for the day's confirmed cleans, and each robot records the money.
+# In the evening each shop pays for each of the day's cleans, and each robot records the money it received.
 for shop, robot, claim in done:
     ledgdex('pay', shop, robot, claim, '--method', 'card', '--ref', 'DAY-2026-10-01', '--output', shop + '-paid.json')
 for robot in robots:
@@ -72,7 +67,7 @@ for robot in robots:
         if 'paid' in c and 'received' not in c:
             ledgdex('received', robot, cid, c['price'], keys=keys)
 
-# The day's report, from the ledgers alone: anyone can recompute it.
+# The day's report, worked out from the ledgers alone, so anyone can check it.
 for robot in robots:
     claims = state(robot)['claims'].values()
     print(robot, 'day total: USD', sum(c['price'] for c in claims if c['status'] == 'closed') / 100,

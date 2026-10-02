@@ -10,62 +10,33 @@
 <br>
 <h1>EXAMPLE: MARKETPLACE</h1>
 <br>
-<p>An operator's root and index, two shops selling to admitted members, a buyer choosing the cheapest offer through the index, and a stranger turned away. For market operators. In an empty folder: <code>sh 02-marketplace.sh</code>.</p><p>File <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/02-marketplace.sh'><code>guide/examples/02-marketplace.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>):</p><p><pre><code>#!/bin/sh
-# A marketplace: one operator ledger is both the root (who is admitted) and the index (which shops are listed).
-# Two shops sell to admitted buyers only; a buyer finds offers through the index and buys the cheapest.
-# expect: Kesar mangoes INR 90000 per dozen
-# expect: (accepted)
-# expect: (rejected, not_allowed)
-set -eu
-
-# 1. The operator's ledgdex. Its owner key admits members and is the default arbiter of every shop's offers.
-ledgdex init market --name "Ratnagiri Market" --about "Fruit sellers of Ratnagiri" --key market
-
-# 2. Two shops, both trading under the market as their root (pinned by its ledger id).
+<p>A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.</p><p><b>Run it:</b> In an empty folder: <code>sh 02-marketplace.sh</code>.</p><p><pre><code>#!/bin/sh
+set -eu</code></pre></p><p>The organiser makes the market's ledgdex. Its ledger is both the member list (the root) and the list of shops (the index). Two shops join, naming the market they trade in.</p><p><pre><code>ledgdex init market --name "Ratnagiri Market" --about "Fruit sellers of Ratnagiri" --key market
 ledgdex init farm --name "Mango Farm" --key farm --root market
-ledgdex init orchard --name "Hill Orchard" --key orchard --root market
-
-# 3. Members. The market admits the shops' keys and a buyer's; each shop admits the buyer too.
-#    (A key is given as a public key, ed25519:..., or by its name in ~/.ledgdex on this machine.)
-ASHA=$(ledgdex keygen asha)
+ledgdex init orchard --name "Hill Orchard" --key orchard --root market</code></pre></p><p>The organiser lets in both shops and one buyer, and each shop lets the buyer in too. Keys are named here as they are on this computer; normally you would paste the key text (<code>ed25519:...</code>).</p><p><pre><code>ASHA=$(ledgdex keygen asha)
 ledgdex admit market farm --name "Mango Farm"
 ledgdex admit market orchard --name "Hill Orchard"
 ledgdex admit market "$ASHA" --name "Asha"
 ledgdex admit farm "$ASHA" --name "Asha"
-ledgdex admit orchard "$ASHA" --name "Asha"
-
-# 4. The market lists both shops: it is now an index anyone can read.
-ledgdex list market farm --note "mangoes"
-ledgdex list market orchard --note "mangoes, cheaper"
-
-# 5. The shops offer to admitted keys only. The arbiter defaults to the market's owner.
-printf '%s' '{"item": {"title": "Alphonso mangoes"}, "quantity": 20, "unit": "dozen", "currency": "INR", "price": 120000, "allow": "admitted"}' &gt; farm-offer.json
+ledgdex admit orchard "$ASHA" --name "Asha"</code></pre></p><p>The organiser lists both shops, so buyers can find them.</p><p><pre><code>ledgdex list market farm --note "mangoes"
+ledgdex list market orchard --note "mangoes, cheaper"</code></pre></p><p>Both shops offer mangoes at different prices. <code>"allow": "admitted"</code> means only members may buy.</p><p><pre><code>printf '%s' '{"item": {"title": "Alphonso mangoes"}, "quantity": 20, "unit": "dozen", "currency": "INR", "price": 120000, "allow": "admitted"}' &gt; farm-offer.json
 printf '%s' '{"item": {"title": "Kesar mangoes"}, "quantity": 20, "unit": "dozen", "currency": "INR", "price": 90000, "allow": "admitted"}' &gt; orchard-offer.json
 ledgdex offer farm farm-offer.json
-ledgdex offer orchard orchard-offer.json
-
-# 6. The buyer reads the index: every listed ledger, and what each sells.
-ledgdex init me --name "Asha" --key asha --root market
+ledgdex offer orchard orchard-offer.json</code></pre></p><p>The buyer makes a ledgdex and looks through the market's list of shops and what each sells.</p><p><pre><code>ledgdex init me --name "Asha" --key asha --root market
 ledgdex discover market --offers --json &gt; found.json
 python3 -c '
 import json
 for l in json.load(open("found.json")):
     for o in l["offers"]:
-        print(l["note"], "|", o["title"], o["currency"], o["price"], "per", o["unit"], "|", o["remaining"], "left")' 
-
-# 7. The buyer picks the cheapest open offer and claims it; that shop records the claim.
-set -- $(python3 -c '
+        print(l["note"], "|", o["title"], o["currency"], o["price"], "per", o["unit"], "|", o["remaining"], "left")' </code></pre></p><p>The buyer orders the cheapest mangoes, and that shop accepts the order. <code>$1</code> is the shop and <code>$2</code> the offer.</p><p><pre><code>set -- $(python3 -c '
 import json
 found = json.load(open("found.json"))
 best = min(((o["price"], l["url"], o["id"]) for l in found for o in l["offers"]), key=lambda x: x[0])
 print(best[1], best[2])')
 ledgdex claim me "$1" "$2" --output claim.json
-ledgdex record "$1" --from me
-
-# 8. Someone the market never admitted is turned away by the same rule.
-ledgdex init stranger --name "Stranger" --key stranger
+ledgdex record "$1" --from me</code></pre></p><p>Someone who is not a member tries the same and is turned away: the order is rejected as <code>not_allowed</code>.</p><p><pre><code>ledgdex init stranger --name "Stranger" --key stranger
 ledgdex claim stranger "$1" "$2" --output stranger-claim.json
-ledgdex record "$1" --from stranger</code></pre></p>
+ledgdex record "$1" --from stranger</code></pre></p><p>The whole file: <a href='https://github.com/matrixdex/ledgdex/blob/main/guide/examples/02-marketplace.sh'><code>guide/examples/02-marketplace.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).</p>
 <br><br><br><br><br><br><br>
 <h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
 </body>

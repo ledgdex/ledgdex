@@ -1016,6 +1016,11 @@ shared origin could reach the viewer's stored data. `ledgdex init` and the viewe
 `<`, `>`, `&`, `"`, `'` and control characters from the dex name (`render.dex_name`, `dexName`; vectors
 `dexnames.json` and `dex/hostile-text/`).
 
+**v1.0.9** (thirteenth audit, availability): `ledgdex record --from` collected every source's messages into one
+batch, so a single counterparty's message signed in the future (validly signed, but not recordable for now), or a
+single unreachable source, stopped the seller from recording anyone's. Each source and each message is now taken on
+its own: what cannot be read or recorded yet is reported and skipped, the rest is recorded.
+
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.

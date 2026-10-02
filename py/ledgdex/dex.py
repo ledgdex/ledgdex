@@ -123,16 +123,22 @@ def locked(dex):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
-def record(dex, msgs, at=None, secret=None, root=None):
+def record(dex, msgs, at=None, secret=None, root=None, skipped=None):
     """Record messages in this dex's ledger. Only appends. Returns the entry ids. Signed with secret, or with the
-    key signer() picks."""
+    key signer() picks. skipped: a list to collect (message, reason) for messages that cannot be recorded (one
+    counterparty's message signed in the future must not stop the rest); without it, the first one raises."""
     with locked(dex):
         led = load(dex, root=root)
         start = len(led.lines)
         ids = []
         for m in msgs:
             key = secret or signer(led)
-            ids.append(led.append(led.next_entry(key, m, at=at)))
+            try:
+                ids.append(led.append(led.next_entry(key, m, at=at)))
+            except Invalid as e:
+                if skipped is None:
+                    raise
+                skipped.append((m, str(e)))
         with open(ledger_path(dex), 'ab') as f:
             f.write(b''.join(line + b'\n' for line in led.lines[start:]))
             f.flush()

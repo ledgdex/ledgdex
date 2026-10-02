@@ -192,6 +192,27 @@ class Dex(unittest.TestCase):
         with open('shop/' + LEDGER, 'rb') as f:
             self.assertEqual(f.read(), self.published())
 
+    def test_one_bad_counterparty_does_not_stop_recording(self):
+        from ledgdex.canon import hash_
+        from ledgdex.core import message
+        from ledgdex.dex import load_key, record
+        self.shop()
+        oid = list(self.state('shop')['offers'])[0]
+        offer = load('shop').entries[1]['msg']
+        run('init', 'honest', '--name', 'Asha', '--key', 'asha')
+        with contextlib.redirect_stdout(io.StringIO()):
+            run('claim', 'honest', 'shop', oid, '-o', 'c.json')
+        run('init', 'evil', '--name', 'Mallory', '--key', 'mal')
+        late = message(load_key('mal'), 'claim', {'offer': oid, 'offer_hash': hash_(offer), 'quantity': 1,
+                                                  'price': offer['body']['price']}, at='2099-01-01T00:00:00Z')
+        record('evil', [message(load_key('mal'), 'sent', {'to': load('shop').owner, 'msg': late})])
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            out = run('record', 'shop', '--from', 'honest', '--from', 'evil', '--from', 'nowhere')
+        self.assertIn('claim recorded', out)
+        self.assertIn('signed more than 300 seconds in the future', err.getvalue())
+        self.assertIn('skipped nowhere', err.getvalue())
+        self.assertEqual(1, len([c for c in self.state('shop')['claims'].values() if c['status'] == 'accepted']))
+
     def test_keys_readable_by_others_are_refused(self):
         self.shop()
         key = os.path.join(os.environ['LEDGDEX_HOME'], 'farm.key')

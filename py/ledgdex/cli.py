@@ -163,7 +163,11 @@ def c_record(a):
     led = load(a.dex)
     msgs = [read_json(p) for p in a.files]
     for src in a.sources or []:
-        o, _ = fetch(src)
+        try:
+            o, _ = fetch(src)
+        except Exception as e:  # one unreachable buyer must not stop collecting from the others
+            print('skipped ' + src + ': ' + str(e), file=sys.stderr)
+            continue
         msgs += [e['msg']['body']['msg'] for e in o.entries
                  if e['msg']['type'] == 'sent' and e['msg']['body']['to'] in led.key_history
                  and e['msg']['body']['msg']['by'] in o.key_history]
@@ -175,7 +179,13 @@ def c_record(a):
     if not new:
         print('nothing new to record')
         return
-    ids = record(a.dex, new)
+    skipped = []
+    ids = record(a.dex, new, skipped=skipped)
+    for m, why in skipped:
+        print('not recorded: ' + m['type'] + ' ' + hash_(m) + ': ' + why, file=sys.stderr)
+    new = [m for m in new if all(m is not s for s, _ in skipped)]
+    if not ids:
+        return
     render(a.dex)
     claims = state(load(a.dex))['claims']
     for m, i in zip(new, ids):

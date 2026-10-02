@@ -1169,6 +1169,12 @@ Hardening that is not built yet:
    next day's settlement, as a `settle` from the robot to the shop listing that claim; proof of cleaning is a photo:
    `delivered.evidence` MUST hold at least one image (linked by address and hash), and the buyer's agent confirms
    only after fetching it and checking its hash.
+6. **A conflicting entry signed by a since-revoked device is an error.** Two entries at one `seq`, each signed by a
+   key the ledger authorised at that `seq`, are reported by `check` as `receipt_mismatch` or `equivocation` even when
+   that key is a device revoked later. Without a trusted clock a thief's fork with a stolen device and the seller's
+   own device signing two histories look the same; the author chose the stricter reading, so that revoking a device
+   afterwards never downgrades proof of equivocation. An honest seller whose stolen device was used points the
+   arbiter to the `device_revoke` (SECURITY.md, "A device key's past").
 
 ---
 

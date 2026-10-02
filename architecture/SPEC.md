@@ -237,8 +237,9 @@ A verifier processes entries in order. Entry `n` is structurally valid when:
 3. `prev` equals the id of entry `n-1` (or the ledger id for `n == 0`);
 4. `time` is well formed and `time >= time of entry n-1`;
 5. `msg` is a valid message;
-6. `sig` verifies with one of the current signing keys: the owner key or an active device key (5.1). Exception: a
-   `recovered` entry (5.7) is signed by the recovered key;
+6. `sig` verifies with one of the current signing keys: the owner key or an active device key (5.1); for an
+   owner-only type (4), with the owner key itself. Exception: a `recovered` entry (5.7) is signed by the recovered
+   key, checked against the root;
 7. `time >= msg.at - 300 seconds` (a message cannot be recorded more than 5 minutes before it was signed);
 8. `msg.type` may be recorded in this ledger by this author (section 5, "recorded by").
 
@@ -422,8 +423,10 @@ An index is a ledger whose owner lists other ledgers:
 Delisting a ledger that is not listed is ignored (`not_listed`). The state lists what is listed now (6.3).
 
 The root is a ledger whose `admit` and `revoke` entries define who is in The Matrix. A verifier MAY be given a root
-ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root's
-current state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
+ledger; then `"allow": "admitted"` (offers and auctions) means admitted in the seller's ledger AND in the root at
+the time of the claim or bid: the root's `admit` and `revoke` entries with `time` at or before the entry's `time`
+(the last one for that key decides; a message recorded twice counts once). A later `revoke` or `admit` in the root
+never changes a past claim, so everyone holding any later copy of the root computes the same state. A dex names its root in `config.json` as `"ledgdex": {"root": "<dex, file or URL>", "root_id": id}`.
 The root is pinned by ledger id: a tool reading it without `root_id` writes the id it read (trust on first use), and
 refuses a root of another id or a broken root, since an address can come to serve another ledger (its hosting or
 DNS changes hands) and the root's owner is the default arbiter of new offers. Rotation and recovery keep the id.
@@ -1028,6 +1031,12 @@ A dex now keeps the last root it read (`.ledgdex-root.jsonl` in the dex folder, 
 it when the address is down, never goes back to an older copy, and refuses one that disagrees (two histories of
 the root). `check` reports an unreachable root and a ledger that needs it as warnings (`needs_root`), and a worker
 survives a failed round.
+
+**v1.0.11** (sixteenth audit): `"allow": "admitted"` checked the root's current admissions, not those in force when
+the claim was recorded, so a later `revoke` or `admit` in the root rewrote past claims in every seller's ledger (a
+paid and delivered sale could move to another buyer), and holders of different root copies computed different
+states. The root's admissions are now judged at the claim's or bid's time (5.7; vectors `root-later` and
+`admitted-then`).
 
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and

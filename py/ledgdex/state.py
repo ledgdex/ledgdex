@@ -5,12 +5,34 @@ from .core import Keys
 OUTCOME = {'release': 'released', 'refund': 'refunded', 'split': 'split'}
 
 
+def admissions(root):
+    """The root's admit and revoke entries in order, as {key: [(time, admitted)]} (a message recorded twice counts
+    once, as in 6.2). A claim is judged by the root's admissions at its own time, never by later ones (spec 5.7)."""
+    out, seen = {}, set()
+    for e in root.entries:
+        m = e['msg']
+        if m['type'] in ('admit', 'revoke') and hash_(m) not in seen:
+            out.setdefault(m['body']['key'], []).append((e['time'], m['type'] == 'admit'))
+        seen.add(hash_(m))
+    return out
+
+
+def admitted_at(admits, key, t):
+    """Whether the root had admitted key at time t."""
+    now = False
+    for time, admitted in admits.get(key, []):
+        if time > t:
+            break
+        now = admitted
+    return now
+
+
 def state(led, root=None, now=None):
     """Replay a parsed Ledger. root: the root Ledger, for "allow": "admitted" (spec 5.7). now: the time auction
     statuses are judged at (default: the time of the last entry)."""
     keys = Keys(led.header['owner']) if led.header else None
     admitted = set()
-    root_admitted = set(state(root)['admitted']) if root is not None and root.header else None
+    root_admits = admissions(root) if root is not None and root.header else None
     offers, claims, auctions, disputes, listings, recoveries, ignored = {}, {}, {}, {}, {}, {}, []
     sellers = {}    # deal id -> the offer or auction body (for its arbiter)
     offer_hash = {}  # offer id -> hash of its message
@@ -22,11 +44,11 @@ def state(led, root=None, now=None):
     def mine(key):
         return key == keys.owner or key in keys.devices
 
-    def may(allow, key):
+    def may(allow, key, t):
         if allow == 'any':
             return True
         if allow == 'admitted':
-            return key in admitted and (root_admitted is None or key in root_admitted)
+            return key in admitted and (root_admits is None or admitted_at(root_admits, key, t))
         return key in allow
 
     def award(aid, t):
@@ -107,7 +129,7 @@ def state(led, root=None, now=None):
                 reason = 'expired'
             elif mine(m['by']):
                 reason = 'self_claim'  # a self never buys from its own ledger
-            elif not may(ob['allow'], m['by']):
+            elif not may(ob['allow'], m['by'], at):
                 reason = 'not_allowed'
             elif b['quantity'] < 1 or b['quantity'] > o['remaining']:
                 reason = 'bad_quantity'
@@ -176,7 +198,7 @@ def state(led, root=None, now=None):
                 ignore(n, 'late_bid')
             elif mine(m['by']):
                 ignore(n, 'self_bid')
-            elif not may(h['body']['allow'], m['by']):
+            elif not may(h['body']['allow'], m['by'], at):
                 ignore(n, 'not_allowed')
             elif m['by'] in h['bids']:
                 ignore(n, 'duplicate_bid')

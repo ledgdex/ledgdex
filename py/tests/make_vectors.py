@@ -274,6 +274,21 @@ def scenarios():
     de['sig'] = sign(PHONE, de)
     out['broken-device-copies-owner-message'] = (dc.led.data + canon(de) + b'\n', None, None)
 
+    # the root's admissions are judged at the claim's time: a later revoke or admit does not rewrite past claims
+    ra = Book(ROOTKEY, 'Root')
+    ra.own('admit', {'key': public(BUYER), 'name': 'Asha', 'note': ''})
+    rs = Book(SELLER, 'Farm')
+    ro, roh = rs.offer(quantity=1, allow='admitted')
+    rs.own('admit', {'key': public(BUYER), 'name': '', 'note': ''})
+    rs.own('admit', {'key': public(OTHER), 'name': '', 'note': ''})
+    rs.claim(ro, roh)
+    rs.claim(ro, roh, secret=OTHER)
+    ra.minute = max(ra.minute, rs.minute) + 10                      # months later, in the root's own time
+    ra.own('revoke', {'key': public(BUYER), 'reason': 'left'})
+    ra.own('admit', {'key': public(OTHER), 'name': 'Other', 'note': ''})
+    out['root-later'] = (ra, None, None)
+    out['admitted-then'] = (rs, 'root-later', None)
+
     # a small-order owner key: before 1.0 one forged signature (R = B, S = 1) verified for every message
     from ledgdex import ed25519
     from ledgdex.core import sha256 as id_of

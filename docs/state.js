@@ -4,20 +4,45 @@ import { Keys, has } from './core.js';
 
 const OUTCOME = { release: 'released', refund: 'refunded', split: 'split' };
 
+/** The root's admit and revoke entries in order, as Map key -> [[time, admitted]] (a message recorded twice counts
+ * once, as in 6.2). A claim is judged by the root's admissions at its own time, never by later ones (spec 5.7). */
+export function admissions(root) {
+  const out = new Map(), seen = new Set();
+  for (const e of root.entries) {
+    const m = e.msg, id = hash(m);
+    if ((m.type === 'admit' || m.type === 'revoke') && !seen.has(id)) {
+      if (!out.has(m.body.key)) out.set(m.body.key, []);
+      out.get(m.body.key).push([e.time, m.type === 'admit']);
+    }
+    seen.add(id);
+  }
+  return out;
+}
+
+/** Whether the root had admitted key at time t. */
+export function admittedAt(admits, key, t) {
+  let now = false;
+  for (const [time, admitted] of admits.get(key) || []) {
+    if (time > t) break;
+    now = admitted;
+  }
+  return now;
+}
+
 /** root: the root Ledger, for "allow": "admitted" (spec 5.7). now: when auction statuses are judged (default: the
  * time of the last entry). */
 export function state(led, root = null, now = null) {
   const keys = led.header ? new Keys(led.header.owner) : null;
   const admitted = new Set();
-  const rootAdmitted = root && root.header ? new Set(state(root).admitted) : null;
+  const rootAdmits = root && root.header ? admissions(root) : null;
   const offers = {}, claims = {}, auctions = {}, disputes = {}, listings = {}, recoveries = {}, ignored = [];
   const sellers = {}, hidden = {}, offerHash = {};  // offerHash: offer id -> hash of its message, computed once
 
   const ignore = (n, reason) => ignored.push({ seq: n, reason });
   const mine = (key) => key === keys.owner || keys.devices.has(key);
-  const may = (allow, key) => {
+  const may = (allow, key, t) => {
     if (allow === 'any') return true;
-    if (allow === 'admitted') return admitted.has(key) && (rootAdmitted === null || rootAdmitted.has(key));
+    if (allow === 'admitted') return admitted.has(key) && (rootAdmits === null || admittedAt(rootAdmits, key, t));
     return allow.includes(key);
   };
 
@@ -81,7 +106,7 @@ export function state(led, root = null, now = null) {
       else if (o.status === 'withdrawn') reason = 'withdrawn';
       else if (has(ob, 'expires') && at >= ob.expires) reason = 'expired';
       else if (mine(m.by)) reason = 'self_claim';
-      else if (!may(ob.allow, m.by)) reason = 'not_allowed';
+      else if (!may(ob.allow, m.by, at)) reason = 'not_allowed';
       else if (b.quantity < 1 || b.quantity > o.remaining) reason = 'bad_quantity';
       else if (b.price !== ob.price) reason = 'price_mismatch';
       if (reason) { c.status = 'rejected'; c.reason = reason; } else {
@@ -131,7 +156,7 @@ export function state(led, root = null, now = null) {
       if (h === null) ignore(n, 'unknown_auction');
       else if (at >= h.body.close) ignore(n, 'late_bid');
       else if (mine(m.by)) ignore(n, 'self_bid');
-      else if (!may(h.body.allow, m.by)) ignore(n, 'not_allowed');
+      else if (!may(h.body.allow, m.by, at)) ignore(n, 'not_allowed');
       else if (has(h.bids, m.by)) ignore(n, 'duplicate_bid');
       else { h.bids[m.by] = { commit: b.commit, seq: n }; auctions[b.auction].bids += 1; }
     } else if (t === 'reveal') {

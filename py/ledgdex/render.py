@@ -99,6 +99,9 @@ def pages(led, author_titles):
     """The generated pages (spec 7.2) for a whole ledger, as dex page objects."""
     st = state(led)
     name = led.header['name']
+    by_offer = {}   # offer id -> its claims, grouped once (not one pass over all claims per offer)
+    for cid, c in st['claims'].items():
+        by_offer.setdefault(c['offer'], []).append((cid, c))
     taken = set(html_title(t) for t in author_titles) | {'index'}
     own = set(taken)
 
@@ -174,7 +177,7 @@ def pages(led, author_titles):
                                                           ' ' + id_ + ' --quantity 1'),
                  'Then send the claim file to the seller, or publish your dex: the seller collects claims with ' +
                  code('ledgdex record DEX --from YOUR_DEX_URL') + '.']
-        mine = [(cid, c) for cid, c in st['claims'].items() if c['offer'] == id_]
+        mine = by_offer.get(id_, [])
         if mine:
             body.append('Claims:')
             for cid, c in mine:

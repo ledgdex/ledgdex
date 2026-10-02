@@ -11,7 +11,7 @@ export function state(led, root = null, now = null) {
   const admitted = new Set();
   const rootAdmitted = root && root.header ? new Set(state(root).admitted) : null;
   const offers = {}, claims = {}, auctions = {}, disputes = {}, listings = {}, recoveries = {}, ignored = [];
-  const sellers = {}, hidden = {};
+  const sellers = {}, hidden = {}, offerHash = {};  // offerHash: offer id -> hash of its message, computed once
 
   const ignore = (n, reason) => ignored.push({ seq: n, reason });
   const mine = (key) => key === keys.owner || keys.devices.has(key);
@@ -63,6 +63,7 @@ export function state(led, root = null, now = null) {
     recorded.add(mid);
     if (t === 'offer') {
       offers[id] = { title: b.item.title, remaining: b.quantity, status: 'open' };
+      offerHash[id] = mid;
       sellers[id] = b;
     } else if (t === 'withdraw') {
       const o = has(offers, b.offer) ? offers[b.offer] : null;
@@ -76,7 +77,7 @@ export function state(led, root = null, now = null) {
       const o = has(offers, b.offer) ? offers[b.offer] : null, ob = o ? sellers[b.offer] : null;
       let reason = null;
       if (o === null) reason = 'unknown_offer';
-      else if (b.offer_hash !== hash(led.entries[led.find(b.offer)].msg)) reason = 'offer_changed';
+      else if (b.offer_hash !== offerHash[b.offer]) reason = 'offer_changed';
       else if (o.status === 'withdrawn') reason = 'withdrawn';
       else if (has(ob, 'expires') && at >= ob.expires) reason = 'expired';
       else if (mine(m.by)) reason = 'self_claim';

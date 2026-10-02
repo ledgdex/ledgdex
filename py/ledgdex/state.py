@@ -13,6 +13,7 @@ def state(led, root=None, now=None):
     root_admitted = set(state(root)['admitted']) if root is not None and root.header else None
     offers, claims, auctions, disputes, listings, recoveries, ignored = {}, {}, {}, {}, {}, {}, []
     sellers = {}    # deal id -> the offer or auction body (for its arbiter)
+    offer_hash = {}  # offer id -> hash of its message
     hidden = {}     # auction id -> bids, reveals, body (not in the output)
 
     def ignore(n, reason):
@@ -80,6 +81,7 @@ def state(led, root=None, now=None):
         recorded.add(mid)
         if t == 'offer':
             offers[id_] = {'title': b['item']['title'], 'remaining': b['quantity'], 'status': 'open'}
+            offer_hash[id_] = mid   # hashed once, not again for every claim
             sellers[id_] = b
         elif t == 'withdraw':
             o = offers.get(b['offer'])
@@ -97,7 +99,7 @@ def state(led, root=None, now=None):
             o, ob = offers.get(b['offer']), sellers.get(b['offer'])
             if o is None:
                 reason = 'unknown_offer'
-            elif b['offer_hash'] != hash_(led.entries[led.find(b['offer'])]['msg']):
+            elif b['offer_hash'] != offer_hash[b['offer']]:
                 reason = 'offer_changed'
             elif o['status'] == 'withdrawn':
                 reason = 'withdrawn'  # a sold offer falls through to bad_quantity

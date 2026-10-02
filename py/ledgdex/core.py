@@ -332,6 +332,7 @@ class Ledger:
         self.id = None
         self.entries = []   # valid entries, in order
         self.ids = []       # their entry ids
+        self.index = {}     # entry id -> position (find in constant time: no quadratic state)
         self.lines = []     # their lines, without the newline
         self.broken_at = None
         self.error = None
@@ -427,6 +428,7 @@ class Ledger:
 
     def _add(self, e, line):
         self.entries.append(e)
+        self.index.setdefault(sha256(line), len(self.ids))
         self.ids.append(sha256(line))
         self.lines.append(line)
         mid = hash_(e['msg'])
@@ -514,10 +516,7 @@ class Ledger:
 
     def find(self, id_):
         """Index of the entry with this entry id, or None."""
-        try:
-            return self.ids.index(id_)
-        except ValueError:
-            return None
+        return self.index.get(id_)
 
 
 def new_ledger(secret, name, about, dex_url, at=None):

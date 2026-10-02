@@ -71,6 +71,8 @@ const flags = (c) => {
 /** The generated pages (spec 7.2) for a whole ledger, as dex page objects. */
 export function pages(led, authorTitles = []) {
   const st = state(led), name = led.header.name;
+  const byOffer = new Map();  // offer id -> its claims, grouped once (not one pass over all claims per offer)
+  for (const [cid, c] of Object.entries(st.claims)) { if (!byOffer.has(c.offer)) byOffer.set(c.offer, []); byOffer.get(c.offer).push([cid, c]); }
   const taken = new Set(authorTitles.map(htmlTitle).concat(['index'])), own = new Set(taken);
   function titleFor(t, id) {
     t = esc(t.split(SPACE).filter((x) => x).join(' '));  // dexweb writes titles into the page as they are
@@ -130,7 +132,7 @@ export function pages(led, authorTitles = []) {
       'To buy, with your own ledgdex: ' + code('ledgdex claim YOUR_DEX ' + dex + ' ' + id + ' --quantity 1'),
       'Then send the claim file to the seller, or publish your dex: the seller collects claims with ' +
       code('ledgdex record DEX --from YOUR_DEX_URL') + '.');
-    const mine = Object.entries(st.claims).filter(([, c]) => c.offer === id);
+    const mine = byOffer.get(id) || [];
     if (mine.length) {
       body.push('Claims:');
       for (const [cid, c] of mine) {

@@ -989,6 +989,11 @@ time on one.
 `２026-…` (a full-width 2) as a time where JavaScript did not, and string order no longer matched time order; times
 now match `[0-9]` only (vector `broken-fullwidth-time`), and the fuzzer tries look-alike digits.
 
+**v1.0.5** (sixth audit, low severity): no work grows with the square of a ledger's size. Finding an entry by id
+used a linear scan, each claim hashed its offer again, and each offer's page scanned every claim; a hostile ledger
+with many offers and claims could stall `state`, rendering or the viewer. Entries are now indexed by id, an offer is
+hashed once, and claims are grouped by offer once.
+
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.

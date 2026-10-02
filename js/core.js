@@ -215,7 +215,7 @@ export class Ledger {
     this.data = typeof data === 'string' ? enc.encode(data) : data;
     this.root = root;
     this.header = null; this.id = null; this.headerLine = null;
-    this.entries = []; this.ids = []; this.lines = [];
+    this.entries = []; this.ids = []; this.lines = []; this.index = new Map();  // id -> position: no quadratic state
     this.broken_at = null; this.error = null;
     this.keys = null; this.keyHistory = new Set(); this.msgIds = new Set();
     this._load();
@@ -254,7 +254,9 @@ export class Ledger {
   }
 
   _add(e, line) {
-    this.entries.push(e); this.ids.push(sha256id(line)); this.lines.push(line);
+    const id = sha256id(line);
+    if (!this.index.has(id)) this.index.set(id, this.ids.length);
+    this.entries.push(e); this.ids.push(id); this.lines.push(line);
     const mid = hash(e.msg), duplicate = this.msgIds.has(mid);  // a message recorded again changes nothing (6.2)
     this.msgIds.add(mid);
     if (KEY_TYPES.has(e.msg.type) && !duplicate) {
@@ -270,7 +272,7 @@ export class Ledger {
   get dex() { return this.entries.length ? this.entries[0].msg.body.dex : ''; }
   get whole() { return this.header !== null && this.broken_at === null && this.error === null; }
   head() { return this.entries.length ? { seq: this.entries.length - 1, id: this.ids[this.ids.length - 1] } : null; }
-  find(id) { const i = this.ids.indexOf(id); return i < 0 ? null : i; }
+  find(id) { const i = this.index.get(id); return i === undefined ? null : i; }
 
   checkEntry(n, e) {
     if (!exact(e, ['seq', 'prev', 'time', 'msg', 'sig'])) {

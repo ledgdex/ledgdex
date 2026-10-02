@@ -198,10 +198,10 @@ def c_claim(a):
     seller, _ = other(a.seller)
     if seller.id == load(a.dex).id:
         raise Invalid('you cannot buy from your own ledger')
-    n = seller.find(a.offer)
-    if n is None or seller.entries[n]['msg']['type'] != 'offer':
+    n, o = seller.find(a.offer), state(seller)['offers'].get(a.offer)
+    if n is None or o is None:   # not an offer, or an offer recorded again (the first one counts)
         raise Invalid('no offer ' + a.offer + ' in that ledger')
-    o, m = state(seller)['offers'][a.offer], seller.entries[n]['msg']
+    m = seller.entries[n]['msg']
     if o['status'] != 'open' or a.quantity > o['remaining']:
         raise Invalid('the offer is ' + o['status'] + ' with ' + str(o['remaining']) + ' left')
     send(a.dex, seller.owner, 'claim', {'offer': a.offer, 'offer_hash': hash_(m), 'quantity': a.quantity,

@@ -38,15 +38,21 @@ CONFIG = {   # dexweb's templates, as the dexweb docs use them: "LEDGDEX DOCS" a
     'publish': {'method': 'folder', 'path': '../../docs/docs', 'append_only': [LEDGER]},
 }
 STYLES = '''
+pre {
+  background-color: rgb(20, 20, 20); border-left: 3px solid #00ff41; padding: 12px 16px; overflow-x: auto;
+  font-family: monospace; font-size: 15px; letter-spacing: 0; line-height: 1.45; white-space: pre;
+}
 code {
-  font-family: monospace; font-size: 0.8em; color: rgb(150, 150, 150); letter-spacing: 0; overflow-wrap: anywhere;
+  font-family: monospace; letter-spacing: 0; overflow-wrap: anywhere;
+}
+:not(pre) > code {
+  font-size: 0.8em; color: rgb(203, 203, 203);
 }
 pre {
-  background-color: rgb(18, 18, 18); border-left: 3px solid rgb(60, 60, 60); padding: 12px 16px; overflow-x: auto;
-  max-width: 100%; box-sizing: border-box; line-height: 1.45; white-space: pre;
+  max-width: 100%; box-sizing: border-box;
 }
 pre code {
-  overflow-wrap: normal;
+  color: rgb(230, 230, 230);
 }
 '''
 

@@ -54,6 +54,9 @@ pre {
 pre code {
   color: rgb(230, 230, 230);
 }
+p code {
+  font-size: 18px;
+}
 '''
 
 

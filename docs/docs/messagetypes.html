@@ -10,10 +10,10 @@
 <br>
 <h1>MESSAGE TYPES</h1>
 <br>
-<p>Every message is <code>{"v": 1, "type": ..., "by": key, "at": time, "body": {...}, "sig": ...}</code>, signed by <code>by</code>. The body of each type, with every field (optional ones: <code>expires</code> in an offer; <code>keys</code> in a receipt), as the code accepts it:</p><p><b>open</b>: signed by owner (owner key only); recorded by the owner, as entry 0.</p><p><pre><code>{
+<p>Every message is <code>{"v": 1, "type": ..., "by": key, "at": time, "body": {...}, "sig": ...}</code>, signed by <code>by</code>. The body of each type, with every field (optional ones: <code>expires</code> in an offer; <code>keys</code> in a receipt), as the code accepts it:</p><p>open: signed by owner (owner key only); recorded by the owner, as entry 0.</p><p><pre><code>{
  "about": "Alphonso mangoes from Ratnagiri",
  "dex": "https://farm.example"
-}</code></pre></p><p><b>offer</b>: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>offer: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
  "item": {
   "title": "Alphonso mangoes",
   "text": "One dozen, ripe.",
@@ -41,37 +41,37 @@
  },
  "terms": "Delivered in Ratnagiri within 2 days.",
  "expires": "2026-12-31T23:59:59Z"
-}</code></pre></p><p><b>withdraw</b>: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>withdraw: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
  "offer": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
-}</code></pre></p><p><b>claim</b>: signed by the buyer (its owner key); recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>claim: signed by the buyer (its owner key); recorded by the seller.</p><p><pre><code>{
  "offer": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "offer_hash": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "quantity": 2,
  "price": 120000
-}</code></pre></p><p><b>paid</b>: signed by the buyer; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>paid: signed by the buyer; recorded by the seller.</p><p><pre><code>{
  "claim": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "method": "upi",
  "ref": "UTR123"
-}</code></pre></p><p><b>received</b>: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>received: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
  "claim": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "amount": 240000
-}</code></pre></p><p><b>delivered</b>: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>delivered: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
  "claim": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "note": "by courier, tracking 42"
-}</code></pre></p><p><b>confirmed</b>: signed by the buyer; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>confirmed: signed by the buyer; recorded by the seller.</p><p><pre><code>{
  "claim": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
-}</code></pre></p><p><b>dispute</b>: signed by the buyer or the seller; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>dispute: signed by the buyer or the seller; recorded by the seller.</p><p><pre><code>{
  "claim": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "text": "Nothing arrived.",
  "evidence": [
   "UTR123",
   "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
  ]
-}</code></pre></p><p><b>ruling</b>: signed by the offer's arbiter; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>ruling: signed by the offer's arbiter; recorded by the seller.</p><p><pre><code>{
  "dispute": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "outcome": "refund",
  "text": "No proof of delivery."
-}</code></pre></p><p><b>auction</b>: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>auction: signed by owner or a device; recorded by the seller.</p><p><pre><code>{
  "item": {
   "title": "Map of Bombay, 1893",
   "text": "",
@@ -88,46 +88,46 @@
   "url": ""
  },
  "terms": ""
-}</code></pre></p><p><b>bid</b>: signed by the bidder; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>bid: signed by the bidder; recorded by the seller.</p><p><pre><code>{
  "auction": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "commit": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
-}</code></pre></p><p><b>reveal</b>: signed by the bidder; recorded by the seller.</p><p><pre><code>{
+}</code></pre></p><p>reveal: signed by the bidder; recorded by the seller.</p><p><pre><code>{
  "auction": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "amount": 650000,
  "nonce": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
-}</code></pre></p><p><b>admit</b>: signed by owner or a device; recorded by the admitting ledger (a shop, or the root).</p><p><pre><code>{
+}</code></pre></p><p>admit: signed by owner or a device; recorded by the admitting ledger (a shop, or the root).</p><p><pre><code>{
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
  "name": "Asha",
  "note": ""
-}</code></pre></p><p><b>revoke</b>: signed by owner or a device; recorded by the admitting ledger.</p><p><pre><code>{
+}</code></pre></p><p>revoke: signed by owner or a device; recorded by the admitting ledger.</p><p><pre><code>{
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
  "reason": "left the market"
-}</code></pre></p><p><b>list</b>: signed by owner or a device; recorded by an index.</p><p><pre><code>{
+}</code></pre></p><p>list: signed by owner or a device; recorded by an index.</p><p><pre><code>{
  "ledger": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "url": "https://farm.example",
  "owner": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
  "note": "mangoes"
-}</code></pre></p><p><b>delist</b>: signed by owner or a device; recorded by an index.</p><p><pre><code>{
+}</code></pre></p><p>delist: signed by owner or a device; recorded by an index.</p><p><pre><code>{
  "ledger": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "reason": "closed"
-}</code></pre></p><p><b>note</b>: signed by owner or a device; recorded by any ledger, about its own entries.</p><p><pre><code>{
+}</code></pre></p><p>note: signed by owner or a device; recorded by any ledger, about its own entries.</p><p><pre><code>{
  "ref": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "text": "restocked"
-}</code></pre></p><p><b>device</b>: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
+}</code></pre></p><p>device: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
  "name": "shop phone"
-}</code></pre></p><p><b>device_revoke</b>: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
+}</code></pre></p><p>device_revoke: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
  "reason": "lost"
-}</code></pre></p><p><b>rotate</b>: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
+}</code></pre></p><p>rotate: signed by owner (owner key only); recorded by the ledger.</p><p><pre><code>{
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
-}</code></pre></p><p><b>recover</b>: signed by the root's owner key; recorded by the root.</p><p><pre><code>{
+}</code></pre></p><p>recover: signed by the root's owner key; recorded by the root.</p><p><pre><code>{
  "ledger": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "key": "ed25519:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
-}</code></pre></p><p><b>recovered</b>: signed by the new key the root named; recorded by the recovered ledger.</p><p><pre><code>{
+}</code></pre></p><p>recovered: signed by the new key the root named; recorded by the recovered ledger.</p><p><pre><code>{
  "root": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
  "entry": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
-}</code></pre></p><p><b>sent</b> and <b>receipt</b> (owner or a device, in its own ledger) hold whole messages and entries: <code>{"to": key, "msg": message}</code> keeps a copy of a message sent to another ledger; <code>{"ledger": id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}</code> keeps another ledger's entry about one of this self's messages, which verifies on its own (<a href='ledgerfileformat.html'>Ledger File Format</a>).</p>
+}</code></pre></p><p>sent and receipt (owner or a device, in its own ledger) hold whole messages and entries: <code>{"to": key, "msg": message}</code> keeps a copy of a message sent to another ledger; <code>{"ledger": id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}</code> keeps another ledger's entry about one of this self's messages, which verifies on its own (<a href='ledgerfileformat.html'>Ledger File Format</a>).</p>
 <br><br><br><br><br><br><br>
 <h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
 </body>

@@ -91,6 +91,7 @@ class DocsPages(unittest.TestCase):
                 ids[f] = fh.read()
         for f, text in ids.items():
             self.assertNotIn('<script', text, f)              # the docs run no scripts (and a CSP says so)
+            self.assertIsNone(re.search(r'<(b|strong)[ >]', text), f)   # no bold text
             for h in re.findall(r"href=['\"]?([^'\" >]+)", text):
                 if h.startswith(('http://', 'https://')):
                     continue

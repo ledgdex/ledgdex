@@ -10,7 +10,7 @@
 <br>
 <h1>EXAMPLE: KEYS</h1>
 <br>
-<p>Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.</p><p><b>Run it:</b> In an empty folder: <code>sh 05-keys.sh</code>.</p><p><pre><code>#!/bin/sh
+<p>Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.</p><p>Run it: In an empty folder: <code>sh 05-keys.sh</code>.</p><p><pre><code>#!/bin/sh
 set -eu
 KEYS=${LEDGDEX_HOME:-$HOME/.ledgdex}</code></pre></p><p>A market (the root) that can name a new key for a member who lost theirs, and a shop in it.</p><p><pre><code>ledgdex init root --name "Ratnagiri Market" --key market
 ledgdex init shop --name "Mango Farm" --key farm --root root</code></pre></p><p>The phone gets its own key, never the shop's main key, and the shop allows it to sign. <code>LEDGDEX_HOME</code> picks the folder of keys, so <code>phone-keys</code> plays the phone.</p><p><pre><code>PHONE=$(LEDGDEX_HOME="$PWD/phone-keys" ledgdex keygen phone)

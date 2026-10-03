@@ -10,7 +10,7 @@
 <br>
 <h1>EXAMPLE: JAVASCRIPT</h1>
 <br>
-<p>For developers: the same ledger code in JavaScript, for Node or a web page.</p><p><b>Run it:</b> From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/12-javascript.mjs</code>.</p><p><pre><code>import { pathToFileURL } from 'url';</code></pre></p><p>Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.</p><p><pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;
+<p>For developers: the same ledger code in JavaScript, for Node or a web page.</p><p>Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/12-javascript.mjs</code>.</p><p><pre><code>import { pathToFileURL } from 'url';</code></pre></p><p>Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.</p><p><pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;
 const base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;
 const { Ledger, message, newLedger, newSecret, publicKey } = await import(new URL('core.js', base));
 const { state } = await import(new URL('state.js', base));

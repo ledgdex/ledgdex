@@ -77,7 +77,7 @@ def cli_pages():
     out = []
     for name, sp in sub.choices.items():
         sp.prog = 'ledgdex ' + name
-        out += ["<b id='" + name + "'>ledgdex " + name + '</b>', code(sp.format_help())]
+        out += ["<span id='" + name + "'>ledgdex " + name + '</span>', code(sp.format_help())]
     return sub.choices, out
 
 
@@ -122,7 +122,7 @@ def python_api():
     out = []
     for mod_name, about, names in API:
         mod = importlib.import_module(mod_name)
-        out += ["<b id='" + mod_name + "'>" + mod_name + '</b>: ' + about]
+        out += ["<span id='" + mod_name + "'>" + mod_name + '</span>: ' + about]
         for name in names:
             owner, attr = (mod, name) if '.' not in name else (getattr(mod, name.split('.')[0]), name.split('.')[1])
             obj = getattr(owner, attr)
@@ -165,7 +165,7 @@ def js_api():
                 sigs.append(name + '(' + m.group(4) + ')')
             else:
                 sigs.append(name)
-        out += ["<b>" + f + '</b>: ' + html.escape(about, quote=False), code('\n'.join(sigs))]
+        out += ["" + f + ': ' + html.escape(about, quote=False), code('\n'.join(sigs))]
     return out
 
 
@@ -213,9 +213,9 @@ def message_types():
            ', signed by ' + c('by') + '. The body of each type, with every field (optional ones: ' + c('expires') +
            ' in an offer; ' + c('keys') + ' in a receipt), as the code accepts it:']
     for t, author, recorder, body in MESSAGE_TYPES:
-        out += ['<b>' + t + '</b>: signed by ' + author + '; recorded by ' + recorder + '.',
+        out += ['' + t + ': signed by ' + author + '; recorded by ' + recorder + '.',
                 code(json.dumps(body, indent=1, ensure_ascii=False))]
-    out += ['<b>sent</b> and <b>receipt</b> (owner or a device, in its own ledger) hold whole messages and entries: ' +
+    out += ['sent and receipt (owner or a device, in its own ledger) hold whole messages and entries: ' +
             c('{"to": key, "msg": message}') + ' keeps a copy of a message sent to another ledger; ' +
             c('{"ledger": id, "url": str, "header": header, "entry": entry, "keys": [entry, ...]}') + ' keeps another '
             "ledger's entry about one of this self's messages, which verifies on its own (" +
@@ -269,12 +269,12 @@ def pages():
          link('Examples') + '.')
 
     page('Dex and Ledgdex',
-         '<b>The dex is the core.</b> A dex is a website dexweb builds from a folder: ' + c('data.json') + ' (its pages), '
+         'The dex is the core. A dex is a website dexweb builds from a folder: ' + c('data.json') + ' (its pages), '
          + c('config.json') + ' (its look and where it is published), ' + c('to_add/') + ' (files to turn into pages) '
          'and ' + c('gen/') + ' (the site). A dex works on its own, is freely shared, is readable by people and bots, '
          'and is hosted anywhere static files are (' + ext('https://matrixdex.github.io/dexweb/dexhosting.html',
                                                                'dex hosting') + ').',
-         '<b>Dex + ledger = ledgdex.</b> A ledgdex is a dex with one more file, ' + c('ledgdex.jsonl') + ': a ledger '
+         'Dex + ledger = ledgdex. A ledgdex is a dex with one more file, ' + c('ledgdex.jsonl') + ': a ledger '
          'signed by its owner, entry by entry, each entry chained to the one before by its hash. ledgdex reads the '
          'ledger, replays it into a state (offers, claims, payments, disputes, auctions, admissions, listings) and '
          'writes pages for it into the same ' + c('data.json') + ', next to your own pages; dexweb builds the site as '
@@ -332,8 +332,8 @@ def pages():
 
     page('Set Up a Marketplace',
          'A market for a place, a trade or a community, with no platform in the middle: every member keeps their own '
-         'ledgdex, and one operator keeps a ledger that is both the <b>index</b> (which shops are listed) and the '
-         '<b>root</b> (who is admitted). Shops sell to admitted members; buyers find offers through the index; the '
+         'ledgdex, and one operator keeps a ledger that is both the index (which shops are listed) and the '
+         'root (who is admitted). Shops sell to admitted members; buyers find offers through the index; the '
          'operator is the default arbiter of disputes. ' + link('Example: Marketplace') + ' does all of this on one '
          'machine.',
          steps('The operator makes the market\'s ledgdex and publishes it (' + link('Publishing a Ledgdex Online') +
@@ -378,12 +378,12 @@ def pages():
                                                                       'ledgdex delivered shop CLAIM_ID --note "by courier"'),
                'Stop selling: ' + code('ledgdex withdraw shop OFFER_ID'),
                'Publish after each step others need to see: ' + code('ledgdex publish shop')),
-         '<b>Rules the state enforces</b> (anyone recomputes them): a claim must name the offer by id and by hash (the '
+         'Rules the state enforces (anyone recomputes them): a claim must name the offer by id and by hash (the '
          'offer cannot change under it), pay the offer\'s price, ask for 1 to the remaining quantity, come from '
          'someone ' + c('allow') + ' admits, arrive before ' + c('expires') + ', and not come from the seller itself; '
          'otherwise it is kept and marked rejected with the reason. Two claims for the last unit: the first recorded '
          'wins.',
-         '<b>Media</b> are linked, never embedded: a URL and the SHA-256 of the file, so a picture cannot change '
+         'Media are linked, never embedded: a URL and the SHA-256 of the file, so a picture cannot change '
          'after a sale without ' + c('ledgdex check --media') + ' noticing.',
          'Prices are integers in the smallest unit: INR and USD in paise and cents (2 digits), JPY in yen, BTC in '
          'satoshi. Any currency code works; pages format the ones they know. See ' + link('A Trade, Step by Step') +
@@ -470,14 +470,14 @@ def pages():
          'A self is its owner key: an Ed25519 key in ' + c('~/.ledgdex/NAME.key') + ' (mode 600; ledgdex refuses a key '
          'file others can read). The owner key signs messages to other ledgers and the owner-only types: ' +
          c('device') + ', ' + c('device_revoke') + ', ' + c('rotate') + ' (and ' + c('recover') + ' in a root).',
-         '<b>Device keys</b> let a phone, a till or a robot sign everyday entries (offers, records, deliveries) '
+         'Device keys let a phone, a till or a robot sign everyday entries (offers, records, deliveries) '
          'without the owner key: ' + code('PUB=$(ledgdex keygen phone)        # on the phone\n'
                                           'ledgdex device add shop "$PUB" --name "shop phone"   # with the owner key\n'
                                           'ledgdex device revoke shop "$PUB" --reason lost'),
          'A revoked device signs nothing more; what it signed before stays valid. Give device keys only to devices '
          'you trust with the ledger: revoking cannot undo what a stolen device could sign while it was active.',
-         '<b>Rotation</b> replaces the owner key, signed by the old one: ' + c('ledgdex rotate shop --key farm-2027') + '.',
-         '<b>Recovery</b>, when the owner key is lost: the root names a new key, after checking who the owner is, and '
+         'Rotation replaces the owner key, signed by the old one: ' + c('ledgdex rotate shop --key farm-2027') + '.',
+         'Recovery, when the owner key is lost: the root names a new key, after checking who the owner is, and '
          'the owner takes the ledger back with it. A recovery removes every device key. ' +
          code('NEW=$(ledgdex keygen farm-new)                         # owner, on a new machine\n'
               'ledgdex recover root https://farm.example "$NEW"      # root operator, with the root\'s owner key\n'
@@ -550,9 +550,9 @@ def pages():
          'keeps your own ledger, signs claims, payments, confirmations, disputes, bids and reveals, collects your '
          'receipts, and downloads your ledger as a complete dex to publish. Nothing is uploaded.',
          steps('Open a ledger: ' + c(VIEWER + '?ledger=https://farm.example') + '.',
-               '<b>New key</b>, then <b>Keep, sealed</b> with a passphrase (the key is stored only encrypted), and '
-               '<b>Download key backup</b>.',
-               'Create your ledger, sign a claim to the loaded ledger, and <b>Download your dex</b>: publish it like '
+               'New key, then Keep, sealed with a passphrase (the key is stored only encrypted), and '
+               'Download key backup.',
+               'Create your ledger, sign a claim to the loaded ledger, and Download your dex: publish it like '
                'any dex; the seller collects your claim from it.'),
          'The viewer signs with the browser\'s Web Crypto Ed25519 when it has one, refuses to run inside another '
          'site\'s frame, and loads nothing from elsewhere. For production, serve it from its own address.')
@@ -572,9 +572,9 @@ def pages():
          'the code. Start with ' + link('Example: Python API') + ', ' + link('Example: JavaScript') + ' and ' +
          link('Extending Ledgdex') + '; the format is in ' + link('Ledger File Format') + ' and the ' +
          ext(REPO + '/blob/main/architecture/SPEC.md', 'specification') + '.',
-         '<b>Python</b>: ' + ', '.join("<a href='#" + m + "'>" + m + '</a>' for m, _, _ in API) + '.',
+         'Python: ' + ', '.join("<a href='#" + m + "'>" + m + '</a>' for m, _, _ in API) + '.',
          python_api(),
-         '<b>JavaScript</b> (ES modules, no dependencies; served next to the viewer, e.g. ' +
+         'JavaScript (ES modules, no dependencies; served next to the viewer, e.g. ' +
          c('https://matrixdex.github.io/ledgdex/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
          c('newLedgerA') + ', ' + c('nextEntryA') + ') take a signer from ' + c('sig.js') + ' (Web Crypto).',
          js_api())
@@ -605,7 +605,7 @@ def pages():
          c('publish') + ': where dexweb publishes (' + ext('https://matrixdex.github.io/dexweb/publishingdexonline.html',
                                                           'dexweb docs') + '); ' + c('append_only') + ' must list ' +
          c('ledgdex.jsonl') + '. ' + c('ledgdex') + ': the root this dex trades under, pinned by its id.',
-         '<b>Environment variables</b>:',
+         'Environment variables:',
          code('LEDGDEX_HOME       where keys live (default ~/.ledgdex)\n'
               'LEDGDEX_CACHE      the verification cache (default ~/.cache/ledgdex)\n'
               'LEDGDEX_NO_CACHE   1: verify every entry every time\n'
@@ -614,16 +614,16 @@ def pages():
 
     page('Extending Ledgdex',
          'Ways to build on ledgdex, from the simplest:',
-         steps('<b>Your own pages</b>: a ledgdex is a dex, so add pages to ' + c('data.json') + ' or files to ' +
+         steps('Your own pages: a ledgdex is a dex, so add pages to ' + c('data.json') + ' or files to ' +
                c('to_add/') + '; ledgdex rewrites only its own pages (those starting with ' + c('<!-- ledgdex -->') +
                ').',
-               '<b>Tools on the state</b>: ' + c('state(Ledger(...))') + ' is plain JSON of offers, claims, auctions, '
+               'Tools on the state: ' + c('state(Ledger(...))') + ' is plain JSON of offers, claims, auctions, '
                'disputes, admissions and listings. Reports, exports, dashboards and alerts read it; nothing they do '
                'can change a ledger.',
-               '<b>Agents</b>: programs that sign and record by rule (' + link('Bots and Agents') + '). Call the '
+               'Agents: programs that sign and record by rule (' + link('Bots and Agents') + '). Call the '
                'commands from Python with ' + c('ledgdex.cli.main([...])') + ', or the library underneath.',
-               '<b>In the browser</b>: the same core in ' + c('js/') + ' (' + link('Example: JavaScript') + ').',
-               '<b>New message types</b>: a change to the format, so to the ' +
+               'In the browser: the same core in ' + c('js/') + ' (' + link('Example: JavaScript') + ').',
+               'New message types: a change to the format, so to the ' +
                ext(REPO + '/blob/main/architecture/SPEC.md', 'specification') + ' first: the body\'s fields in ' +
                c('BODIES') + ' (core.py and core.js), who may author and record it, its rule in both state '
                'functions, a line for the ledger page in both renderers, then shared vectors (' +
@@ -637,12 +637,12 @@ def pages():
          'for one self by rules, on a timer: it reads ledgers, signs messages, records what is addressed to it, and '
          'publishes. Every action is an ordinary signed entry, so a person can audit it and ' + c('ledgdex check') +
          ' catches an agent that misbehaves.',
-         '<b>A seller agent</b> each round: ' + c('record --from') + ' every buyer it serves, deliver what is paid ('
+         'A seller agent each round: ' + c('record --from') + ' every buyer it serves, deliver what is paid ('
          + c('received') + ', ' + c('delivered') + '), withdraw or offer as stock changes, publish.',
-         '<b>A buyer agent</b> each round: ' + c('discover --offers --json') + ' on an index, choose by its rule '
+         'A buyer agent each round: ' + c('discover --offers --json') + ' on an index, choose by its rule '
          '(cheapest, nearest, trusted), ' + c('claim') + ', keep ' + c('receipt') + 's, ' + c('pay') + ' when '
          'accepted, ' + c('confirm') + ' when delivered, ' + c('dispute') + ' when not.',
-         '<b>A market maker</b> combines both: it buys where cheap and offers where wanted, with its own ledger as the '
+         'A market maker combines both: it buys where cheap and offers where wanted, with its own ledger as the '
          'record of every position.',
          'Practical points: give each machine a device key (the owner key stays with the operator); run ' +
          c('record --from') + ' with many sources (an unreachable or misbehaving one is skipped and reported, the rest '
@@ -688,7 +688,7 @@ def pages():
     rows = []
     for name, (title, goal) in EXAMPLE_PAGES.items():
         rows.append(link(title) + ': ' + goal)
-        page(title, goal, '<b>Run it:</b> ' + run_how[os.path.splitext(name)[1]](name) + '.', example(name),
+        page(title, goal, 'Run it: ' + run_how[os.path.splitext(name)[1]](name) + '.', example(name),
              *EXAMPLE_AFTER.get(name, []))
     page('Examples',
          'Every example below is a file in ' + ext(REPO + '/tree/main/guide/examples', c('guide/examples/')) + ', run '

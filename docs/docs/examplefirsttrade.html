@@ -10,7 +10,7 @@
 <br>
 <h1>EXAMPLE: FIRST TRADE</h1>
 <br>
-<p>One shop sells mangoes to one buyer, from start to finish, on your own computer.</p><p><b>Run it:</b> In an empty folder: <code>sh 01-first-trade.sh</code>.</p><p><pre><code>#!/bin/sh
+<p>One shop sells mangoes to one buyer, from start to finish, on your own computer.</p><p>Run it: In an empty folder: <code>sh 01-first-trade.sh</code>.</p><p><pre><code>#!/bin/sh
 set -eu</code></pre></p><p>The shop makes its ledgdex: a website (dex) with a signed record book (ledger) in it. Your keys are kept in <code>~/.ledgdex</code>.</p><p><pre><code>ledgdex init shop --name "Mango Farm" --about "Alphonso mangoes from Ratnagiri" --key farm</code></pre></p><p>The shop offers 10 dozen mangoes. Prices are in the smallest unit of the currency: 120000 paise is INR 1,200.00. The last command prints the new offer's id, which is kept in <code>$OFFER</code>.</p><p><pre><code>cat &gt; offer.json &lt;&lt;'JSON'
 {"item": {"title": "Alphonso mangoes", "text": "One dozen, ripe."},
  "quantity": 10, "unit": "dozen", "currency": "INR", "price": 120000,

@@ -103,6 +103,9 @@ viewer/                the viewer dex (data.json, config.json, styles.css, run.p
 guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 tested examples), pages.py
                        (generated pages), build.py (optional refresher), make_demo_ledger.py
 .github/workflows/tests.yml   CI
+.claude/skills/asd-ste100/    project skill (user-added): ASD-STE100 Simplified Technical English rewrites, with a
+                              stdlib-only linter (scripts/ste-lint.py). From github.com/danyuchn/asd-ste100-skill at
+                              32511c6 (v0.4.0, MIT). To update, copy a newer release over it and rerun --selftest.
 ```
 
 ## 4. The design, in short (details in SPEC)

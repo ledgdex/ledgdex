@@ -74,7 +74,10 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
    rest from `js/`); `py/tests/page.mjs` runs a web page's module script in node with a stand-in DOM. In `.html`
    examples, `<!-- ... -->` lines (and `// ` lines in the script) become paragraphs. Published on the docs site
    (`b9cea5e` in `ledgdex.github.io`).
-4. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
+4. Done: the 25 hand-written docs pages follow ASD-STE100 (`712c3cb`, the user's patch). `ste-lint.py` finds 0
+   problems in them. The generated pages and the ledger pages did not change. The user published the docs
+   (`990b50d` in `ledgdex.github.io`). New text in hand-written pages must also pass `ste-lint.py`.
+5. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
 
 ## 3. Repository layout
 

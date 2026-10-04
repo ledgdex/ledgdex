@@ -38,7 +38,7 @@ about you is evidence", humans and bots equal, every ledgdex is a dex.
 | Website: home, viewer, live markets, about | https://ledgdex.github.io, repo `ledgdex/ledgdex.github.io` (root) |
 | Docs | https://ledgdex.github.io/docs/ (same repo, `docs/`) |
 | Live test market | `matrixdex/ledgdex-live`, served at `matrixdex.github.io/ledgdex-live/seller` and `/buyer` |
-| New, empty | `ledgdex/ledgdex-live-demo` (README: "Live demo of ledgdex market with buyer and seller"; nothing built yet) |
+| Unused | `ledgdex/ledgdex-live-demo` (README only). The user decided the live demo stays in the matrixdex org (`matrixdex/ledgdex-live`); never turn on Pages here (it would share the viewer's origin) |
 | dexweb (the dex builder, separate project) | `matrixdex/dexweb`, docs at matrixdex.github.io/dexweb; ledgdex uses dexweb 4.2.5 |
 
 The viewer moved off `matrixdex.github.io/ledgdex` because the viewer keeps sealed keys in browser storage and every
@@ -60,10 +60,11 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 1. Done: `docs/` (the old `matrixdex.github.io/ledgdex` site) is deleted (`8fcad48`); it must never be served from
    this repo again. Done: SECURITY.md "The viewer's origin" no longer mentions the old viewer.
-2. Update `ledgdex-live`'s `.github/workflows/ledgdex-check.yml` line
-   `pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py"` to
-   `git+https://github.com/ledgdex/ledgdex@v1.0.17`, push, and confirm its run passes (it runs on push, daily at
-   06:17 UTC, and by hand). Commit message style there: "ledgdex check workflow: install ledgdex v1.0.17".
+2. Done: `ledgdex-live`'s check workflow installs `git+https://github.com/ledgdex/ledgdex@v1.0.17` (`1b33ec4` in
+   `matrixdex/ledgdex-live`). On each release, update that line the same way, push, and confirm its run passes (it runs
+   on push, daily at 06:17 UTC, and by hand). Commit message style there: "ledgdex check workflow: install ledgdex
+   vX.Y.Z". Run locally, its check reports 3 warnings and 0 errors: two older seller snapshots that the buyer's
+   receipts point to are only behind, and the sandbox can't reach matrixdex.github.io.
 3. Backlog (asked for, deferred by the user): a **"JavaScript Core" docs page** (where it runs: modern browsers and
    Node 18+, no npm, no build; Deno/Bun untested so don't claim them; what it is for; when Python is better: CLI,
    publish, check, keys on disk; loading from `https://ledgdex.github.io/core.js` vs pinning your own copy; CORS;

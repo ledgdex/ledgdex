@@ -38,6 +38,7 @@ about you is evidence", humans and bots equal, every ledgdex is a dex.
 | Website: home, viewer, live markets, about | https://ledgdex.github.io, repo `ledgdex/ledgdex.github.io` (root) |
 | Docs | https://ledgdex.github.io/docs/ (same repo, `docs/`) |
 | Live test market | `matrixdex/ledgdex-live`, served at `matrixdex.github.io/ledgdex-live/seller` and `/buyer` |
+| New, empty | `ledgdex/ledgdex-live-demo` (README: "Live demo of ledgdex market with buyer and seller"; nothing built yet) |
 | dexweb (the dex builder, separate project) | `matrixdex/dexweb`, docs at matrixdex.github.io/dexweb; ledgdex uses dexweb 4.2.5 |
 
 The viewer moved off `matrixdex.github.io/ledgdex` because the viewer keeps sealed keys in browser storage and every
@@ -48,8 +49,8 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 ### State at handoff (October 2026)
 
 - Version **1.0.17** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json`). The **tag `v1.0.17` does not exist yet**: the user creates tags (sessions cannot
-  push tags; pushes of tags return 403). Until it exists the docs' install commands point at a missing tag.
+  commands in `guide/dex/data.json`). The tag `v1.0.17` exists (at `8fcad48`); the user creates tags (sessions cannot
+  push tags; pushes of tags return 403). Pages is off on `ledgdex/ledgdex` (confirmed by the user).
 - Last commits: `535e8c1` (move to ledgdex.github.io and ledgdex/ledgdex, 1.0.17), `4f786ad` (old-site notices;
   CI passed), `8fcad48` (the user deleted `docs/`, the old matrixdex.github.io/ledgdex site), then this file.
 - The site at ledgdex.github.io is published and was verified (viewer loads and verifies the docs ledger; all pages
@@ -59,12 +60,11 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 1. Done: `docs/` (the old `matrixdex.github.io/ledgdex` site) is deleted (`8fcad48`); it must never be served from
    this repo again. Done: SECURITY.md "The viewer's origin" no longer mentions the old viewer.
-2. Ask the user to confirm Pages is off on `ledgdex/ledgdex`, and to tag `v1.0.17`.
-3. After the tag exists: update `ledgdex-live`'s `.github/workflows/ledgdex-check.yml` line
+2. Update `ledgdex-live`'s `.github/workflows/ledgdex-check.yml` line
    `pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@v1.0.16#subdirectory=py"` to
    `git+https://github.com/ledgdex/ledgdex@v1.0.17`, push, and confirm its run passes (it runs on push, daily at
    06:17 UTC, and by hand). Commit message style there: "ledgdex check workflow: install ledgdex v1.0.17".
-4. Backlog (asked for, deferred by the user): a **"JavaScript Core" docs page** (where it runs: modern browsers and
+3. Backlog (asked for, deferred by the user): a **"JavaScript Core" docs page** (where it runs: modern browsers and
    Node 18+, no npm, no build; Deno/Bun untested so don't claim them; what it is for; when Python is better: CLI,
    publish, check, keys on disk; loading from `https://ledgdex.github.io/core.js` vs pinning your own copy; CORS;
    sealed browser keys) with **three new tested examples**: `13-js-verify.mjs` (Node: verify a published ledger from a
@@ -73,7 +73,7 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
    the module script and running it in Node with a stub `document`/`fetch`, rewriting the core URL to the local
    `js/`), and signing an order in the browser (`newSecret`, `sealKey`/`openKey`, `signer()`, `messageA`, a buyer ledger
    with a `sent` claim, recorded by the Python CLI). The user said "do the js core addition later".
-5. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
+4. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
 
 ## 3. Repository layout
 

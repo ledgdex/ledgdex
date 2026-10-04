@@ -280,6 +280,10 @@ simplest secure design (nothing is implemented; build only when the user says so
 
 ## 10. Conventions and the user's preferences
 
+- Write in ASD-STE100 Simplified Technical English (the user's standing instruction). This applies to every chat
+  message to the user and to all text you write in the ledgdex documentation. Use the skill in
+  `.claude/skills/asd-ste100/`. Use its Strict mode for procedures, instructions, error messages and command help.
+  Use its STE-flavored mode for explanatory prose. Run `scripts/ste-lint.py` on new documentation text before you push.
 - Commit as author `alinoorul <noorulali78@gmail.com>`; in cloud sessions make the committer
   `Claude <noreply@anthropic.com>` (`GIT_COMMITTER_NAME=Claude GIT_COMMITTER_EMAIL=noreply@anthropic.com`), which
   the session's stop hook requires. Write messages to a file and `git commit -F`. End every commit

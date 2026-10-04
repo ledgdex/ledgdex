@@ -76,9 +76,7 @@ ledger or steps that show the problem. Please do not open a public issue for a w
   it to as few people as possible. The docs there (`/docs`) run no scripts. The viewer's pages carry a
   Content-Security-Policy that allows scripts only from the viewer, and the viewer refuses to run inside another
   page's frame (so no site can trick your clicks on it). A custom domain behind a host that sends an
-  `X-Frame-Options: DENY` or `frame-ancestors 'none'` header adds a second guard. The viewer used to be served from
-  `matrixdex.github.io/ledgdex`, an origin shared with other matrixdex sites: if you kept a key there, open that
-  viewer, download a key backup, and load it in the new one.
+  `X-Frame-Options: DENY` or `frame-ancestors 'none'` header adds a second guard.
 - **Clocks.** Entry times are their owners' clocks, within 5 minutes of each other (SPEC 9.2).
 - **What is not protected by design** is listed in the spec, Part I: a seller who never records a claim, the order
   of claims that arrive together, delivery and payment outside the ledger, and fake identities (admission handles

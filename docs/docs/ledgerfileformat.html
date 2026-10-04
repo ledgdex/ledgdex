@@ -1,33 +1,15 @@
+<!DOCTYPE html>
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name='referrer' content='no-referrer'>
+<meta http-equiv='refresh' content='0; url=https://ledgdex.github.io/docs/ledgerfileformat.html'>
 <link rel='stylesheet' href='styles.css'>
-<title>Ledger File Format - Ledgdex Docs Dex</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<title>Moved</title>
+</head>
 <body>
-<br>
-<h1>LEDGER FILE FORMAT</h1>
-<br>
-<p>A ledger is UTF-8 text, one canonical JSON value per line, each ending with a newline: a header, then entries. Canonical JSON: keys sorted, no spaces, integers only (no floats), at most 32 levels deep, one spelling for each value (<a href='https://github.com/matrixdex/ledgdex/blob/main/architecture/SPEC.md'>spec 1.2</a>). The ledger id is the SHA-256 of the header line; an entry's id is the SHA-256 of its line.</p><p>The header: <code>{"ledger": 1, "name": str, "owner": key}</code>. Each entry: <code>{"seq": n, "prev": id of the previous entry (or the ledger id), "time": time, "msg": message, "sig": ...}</code>, signed by a current signing key (the owner, or an active device key). The first entry records <code>open</code>.</p><p>The first lines of this dex's own ledger:</p><p><pre><code>{"ledger":1,"name":"Ledgdex Docs","owner":"ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5"}</code></pre></p><p><pre><code>{
- "msg": {
-  "at": "2026-10-02T09:00:00Z",
-  "body": {
-   "about": "The ledger of the ledgdex docs: a demonstration. Its key was destroyed after signing, so nothing can be added to it, and nobody may buy from it.",
-   "dex": "https://matrixdex.github.io/ledgdex/docs"
-  },
-  "by": "ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5",
-  "sig": "cae268a3b595ac4dfa085b4f3f600c4ac474bf8114c7985f422d7320d3a222c508e609a7c4048fdd3547068f91ebd7756e9b2d2ee38aa982887f967d91966c0e",
-  "type": "open",
-  "v": 1
- },
- "prev": "sha256:cdd491a9613fb888083768346cfe0a1183f9fbfb755882d66501678682de67b9",
- "seq": 0,
- "sig": "7bdfde90d636fe05ba4241ba0b82e41432a6c6243f12d80751fe01e8046c4a90582662c98c3e68b674c80f61455c933dedc6e307f546b00dc336d78e3ae9d60c",
- "time": "2026-10-02T09:00:00Z"
-}</code></pre></p><p><pre><code>{"msg":{"at":"2026-10-02T09:00:01Z","body":{"allow":[],"arbiter":{"key":"ed25519:f22b25d5578c0adb57f530fafa3d4275d2d6a3c2d50d85d8c222ff212bef25b5","url":""},"cu ...</code></pre></p><p>A ledger is whole when every line verifies in order: the hash chain, the signatures, the times, and who may record what. Change one byte and verification breaks at that line. <pre><code>ledgdex verify https://matrixdex.github.io/ledgdex/docs</code></pre></p><p>A receipt (<code>{"ledger", "url", "header", "entry", "keys"}</code>) verifies on its own: the other ledger's header and its signed entry, with the key entries that lead to the key that signed it.</p>
-<br><br><br><br><br><br><br>
-<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+<p>This page has moved to <a href='https://ledgdex.github.io/docs/ledgerfileformat.html'>https://ledgdex.github.io/docs/ledgerfileformat.html</a>.</p>
 </body>
 </html>

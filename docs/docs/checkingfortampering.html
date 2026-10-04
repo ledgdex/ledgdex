@@ -1,20 +1,15 @@
+<!DOCTYPE html>
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name='referrer' content='no-referrer'>
+<meta http-equiv='refresh' content='0; url=https://ledgdex.github.io/docs/checkingfortampering.html'>
 <link rel='stylesheet' href='styles.css'>
-<title>Checking for Tampering - Ledgdex Docs Dex</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<title>Moved</title>
+</head>
 <body>
-<br>
-<h1>CHECKING FOR TAMPERING</h1>
-<br>
-<p>A ledger that verifies is consistent and signed by its owner; it is not necessarily the history shown before: an owner can re-sign every entry from some point on. <code>ledgdex check</code> closes that gap with the copies it has seen and the receipts other selves hold.</p><p><pre><code>ledgdex check shop me https://farm.example         # once; exit code 1 on tampering
-ledgdex check shop --every 3600                     # as a worker
-17 6 * * * cd /srv &amp;&amp; ledgdex check shop --json report.json   # from cron
-ledgdex workflow shop/ledgdex.jsonl &gt; .github/workflows/ledgdex-check.yml   # daily on GitHub</code></pre></p><p>Errors come with signed proof in <code>.ledgdex-check/proofs/</code>: <code>equivocation</code> (a ledger differs from the copy seen before), <code>receipt_mismatch</code> (a copy has another entry where a receipt holds a signed one), <code>ledger_changed</code> (an address serves another ledger), <code>broken</code>, <code>media_changed</code>, <code>published_differs</code>. Warnings mean something could not be checked: <code>stale</code>, <code>unreachable</code>, <code>needs_root</code>, <code>receipt_bad_signer</code>, <code>receipt_url_mismatch</code>, <code>future_time</code>, <code>media_unavailable</code>, <code>behind</code>.</p><p>Check the ledgers you trade with, daily. <a href='examplecheck.html'>Example: Check</a> shows a rewrite caught.</p>
-<br><br><br><br><br><br><br>
-<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+<p>This page has moved to <a href='https://ledgdex.github.io/docs/checkingfortampering.html'>https://ledgdex.github.io/docs/checkingfortampering.html</a>.</p>
 </body>
 </html>

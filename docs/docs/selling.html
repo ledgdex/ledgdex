@@ -1,23 +1,15 @@
+<!DOCTYPE html>
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name='referrer' content='no-referrer'>
+<meta http-equiv='refresh' content='0; url=https://ledgdex.github.io/docs/selling.html'>
 <link rel='stylesheet' href='styles.css'>
-<title>Selling - Ledgdex Docs Dex</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<title>Moved</title>
+</head>
 <body>
-<br>
-<h1>SELLING</h1>
-<br>
-<p>A seller signs offers into its own ledger, records the claims that come in, and records payment and delivery.</p><p>1. Write the offer as JSON. Required: <code>item.title</code>, <code>quantity</code>, <code>currency</code>, <code>price</code>. The rest has defaults: <code>unit</code> "unit", <code>allow</code> "any", <code>pay</code> [], <code>terms</code> "", <code>item.text</code> "", <code>item.media</code> [], and the arbiter is the root's owner, or the seller when the dex names no root. <pre><code>{"item": {"title": "Alphonso mangoes", "text": "One dozen, ripe.",
-          "media": [{"url": "https://farm.example/mango.jpg", "hash": "sha256:..."}]},
- "quantity": 10, "unit": "dozen", "currency": "INR", "price": 120000,
- "allow": "any", "pay": [{"method": "upi", "to": "farm@bank"}],
- "terms": "Delivered in Ratnagiri within 2 days.", "expires": "2026-12-31T23:59:59Z"}</code></pre></p><p>2. Sign and record it: <pre><code>ledgdex offer shop offer.json</code></pre></p><p>3. Collect claims: from each buyer's published dex, or from files buyers send you. <pre><code>ledgdex record shop --from https://asha.example --from https://ravi.example
-ledgdex record shop claim-1a2b3c4d5e6f.json</code></pre></p><p>4. When the money arrives, and when you deliver: <pre><code>ledgdex received shop CLAIM_ID 240000
-ledgdex delivered shop CLAIM_ID --note "by courier"</code></pre></p><p>5. Stop selling: <pre><code>ledgdex withdraw shop OFFER_ID</code></pre></p><p>6. Publish after each step others need to see: <pre><code>ledgdex publish shop</code></pre></p><p>Rules the state enforces (anyone recomputes them): a claim must name the offer by id and by hash (the offer cannot change under it), pay the offer's price, ask for 1 to the remaining quantity, come from someone <code>allow</code> admits, arrive before <code>expires</code>, and not come from the seller itself; otherwise it is kept and marked rejected with the reason. Two claims for the last unit: the first recorded wins.</p><p>Media are linked, never embedded: a URL and the SHA-256 of the file, so a picture cannot change after a sale without <code>ledgdex check --media</code> noticing.</p><p>Prices are integers in the smallest unit: INR and USD in paise and cents (2 digits), JPY in yen, BTC in satoshi. Any currency code works; pages format the ones they know. See <a href='atradestepbystep.html'>A Trade, Step by Step</a> and <a href='examplefirsttrade.html'>Example: First Trade</a>.</p>
-<br><br><br><br><br><br><br>
-<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+<p>This page has moved to <a href='https://ledgdex.github.io/docs/selling.html'>https://ledgdex.github.io/docs/selling.html</a>.</p>
 </body>
 </html>

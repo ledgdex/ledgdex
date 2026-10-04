@@ -1,18 +1,15 @@
+<!DOCTYPE html>
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name='referrer' content='no-referrer'>
+<meta http-equiv='refresh' content='0; url=https://ledgdex.github.io/docs/therootandadmission.html'>
 <link rel='stylesheet' href='styles.css'>
-<title>The Root and Admission - Ledgdex Docs Dex</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<title>Moved</title>
+</head>
 <body>
-<br>
-<h1>THE ROOT AND ADMISSION</h1>
-<br>
-<p>The root is a ledger whose <code>admit</code> and <code>revoke</code> entries say who is in a market, whose <code>recover</code> entries name new keys for lost ones, and whose owner is the default arbiter. A dex names it once: <code>ledgdex init ... --root https://market.example</code> (or <code>"ledgdex": {"root": ...}</code> in <code>config.json</code>).</p><p>The root is pinned by its ledger id (<code>root_id</code>, written the first time it is read): another ledger at that address, or a broken one, is refused. The last copy read is kept (<code>.ledgdex-root.jsonl</code>), so the market keeps working when the root's site is down, and an older copy is never taken.</p><p><code>"allow": "admitted"</code> means admitted by the seller's own ledger and by the root, at the time the claim was made: a later revoke never undoes a past sale. Admit and revoke: <pre><code>ledgdex admit market ed25519:KEY --name "Asha" --note "member since 2026"
-ledgdex revoke market ed25519:KEY --reason "left the market"</code></pre></p><p>A root can be a market's, a city's or The Matrix's. Running one: the README's <a href='https://github.com/matrixdex/ledgdex#running-the-root'>Running the root</a>.</p>
-<br><br><br><br><br><br><br>
-<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+<p>This page has moved to <a href='https://ledgdex.github.io/docs/therootandadmission.html'>https://ledgdex.github.io/docs/therootandadmission.html</a>.</p>
 </body>
 </html>

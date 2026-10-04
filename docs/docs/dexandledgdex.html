@@ -1,19 +1,15 @@
+<!DOCTYPE html>
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<link rel='shortcut icon' type='image/x-icon' href='assets/favicon.ico'>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name='referrer' content='no-referrer'>
+<meta http-equiv='refresh' content='0; url=https://ledgdex.github.io/docs/dexandledgdex.html'>
 <link rel='stylesheet' href='styles.css'>
-<title>Dex and Ledgdex - Ledgdex Docs Dex</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"></head>
+<title>Moved</title>
+</head>
 <body>
-<br>
-<h1>DEX AND LEDGDEX</h1>
-<br>
-<p>The dex is the core. A dex is a website dexweb builds from a folder: <code>data.json</code> (its pages), <code>config.json</code> (its look and where it is published), <code>to_add/</code> (files to turn into pages) and <code>gen/</code> (the site). A dex works on its own, is freely shared, is readable by people and bots, and is hosted anywhere static files are (<a href='https://matrixdex.github.io/dexweb/dexhosting.html'>dex hosting</a>).</p><p>Dex + ledger = ledgdex. A ledgdex is a dex with one more file, <code>ledgdex.jsonl</code>: a ledger signed by its owner, entry by entry, each entry chained to the one before by its hash. ledgdex reads the ledger, replays it into a state (offers, claims, payments, disputes, auctions, admissions, listings) and writes pages for it into the same <code>data.json</code>, next to your own pages; dexweb builds the site as always. Nothing else changes: same folder, same build, same hosting.</p><p><pre><code>dex          = data.json + config.json + to_add/        -&gt;  gen/ (website)
-ledgdex      = dex + ledgdex.jsonl (signed ledger)      -&gt;  gen/ (website + ledger pages + ledger)
-a market     = many ledgdexes that read each other's ledgers</code></pre></p><p>So everything you know about dexes holds: <a href='https://matrixdex.github.io/dexweb/gettingstarted.html'>dexweb's getting started</a>, its styles and themes, publishing with <code>python run.py</code>. ledgdex adds the commands that sign and record (<a href='commandlineoptions.html'>Command Line Options</a>), and refuses to publish a ledger that does not extend the one already published (<code>"append_only": ["ledgdex.jsonl"]</code> in <code>config.json</code>).</p><p>Which to use: a dex when you publish (documents, a shop window, a journal); a ledgdex when what you publish must be trusted later: offers people buy from, records of who bought what, admissions to a market. A dex can become a ledgdex at any time: <code>ledgdex init</code> on an existing dex folder keeps its pages and <code>config.json</code> and adds a ledger.</p><p>This documentation is both: a dex (the written pages) and a ledgdex (<a href='ledgdexdocsledger.html'>Ledgdex Docs ledger</a>, <a href='exampleofferalphonsomangoes.html'>Example offer: Alphonso mangoes</a> and <a href='exampleauctionmapofbombay1893.html'>Example auction: Map of Bombay, 1893</a> are generated from <a href='https://matrixdex.github.io/ledgdex/docs/ledgdex.jsonl'>its ledger</a>). Load that ledger in the <a href='https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://matrixdex.github.io/ledgdex/docs'>viewer</a>, or check it: <pre><code>ledgdex verify https://matrixdex.github.io/ledgdex/docs</code></pre></p>
-<br><br><br><br><br><br><br>
-<h3><a href='index.html'>BACK TO LEDGDEX DOCS</a></h3>
+<p>This page has moved to <a href='https://ledgdex.github.io/docs/dexandledgdex.html'>https://ledgdex.github.io/docs/dexandledgdex.html</a>.</p>
 </body>
 </html>

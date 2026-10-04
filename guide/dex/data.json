@@ -31,7 +31,7 @@
             "2. With fast, constant-time signing (recommended on every machine that signs; ledgdex warns without it): <pre><code>pip install \"ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.17#subdirectory=py\"</code></pre>",
             "3. From a clone, to develop: <pre><code>git clone https://github.com/ledgdex/ledgdex\ncd ledgdex\npip install -e \"py[fast]\"\ncd py &amp;&amp; python -m unittest discover -s tests</code></pre>",
             "4. Check: <pre><code>ledgdex --help\nledgdex verify https://ledgdex.github.io/docs</code></pre>",
-            "The JavaScript core needs no install: it is plain ES modules in <code>js/</code>, also served next to the <a href='https://ledgdex.github.io/viewer.html'>viewer</a> (<a href='apireference.html'>API Reference</a>).",
+            "The JavaScript core needs no install (<a href='javascriptcore.html'>JavaScript Core</a>): it is plain ES modules in <code>js/</code>, also served next to the <a href='https://ledgdex.github.io/viewer.html'>viewer</a> (<a href='apireference.html'>API Reference</a>).",
             "Where things live: keys in <code>~/.ledgdex</code> (or <code>$LEDGDEX_HOME</code>), the verification cache in <code>~/.cache/ledgdex</code> (or <code>$LEDGDEX_CACHE</code>); see <a href='configuration.html'>Configuration</a>."
         ]
     },
@@ -390,7 +390,7 @@
             "The built-in Ed25519 (name \"pure\"), always available. Not constant time when signing.",
             "<pre><code>ledgdex.sig.sign(secret, msg)</code></pre>",
             "Sign with the chosen backend. The vendored code is not constant time: say so once, unless asked for.",
-            "JavaScript (ES modules, no dependencies; served next to the viewer, e.g. <code>https://ledgdex.github.io/core.js</code>). Asynchronous twins (<code>messageA</code>, <code>newLedgerA</code>, <code>nextEntryA</code>) take a signer from <code>sig.js</code> (Web Crypto).",
+            "JavaScript (ES modules, no dependencies; where it runs and what it is for: <a href='javascriptcore.html'>JavaScript Core</a>; served next to the viewer, e.g. <code>https://ledgdex.github.io/core.js</code>). Asynchronous twins (<code>messageA</code>, <code>newLedgerA</code>, <code>nextEntryA</code>) take a signer from <code>sig.js</code> (Web Crypto).",
             "core.js: Keys, messages, entries and ledger verification (spec 1-5). Mirrors py/ledgdex/core.py.",
             "<pre><code>SKEW\nclass Invalid\nnewSecret()\npublicKey(secret)\nsign(secret, obj)\nverify(key, obj, sig)\nisKey(v)\nisId(v)\nisTime(v)\nseconds(t)\nutc(s)\nnow()\nhas(o, k)\nBODIES\nCOUNTERPARTY\nOWNER_ONLY\nKEY_TYPES\nclass Keys\ncheckBody(type, body, root = null)\ncheckMessage(m, root = null)\nrootRecovers(root, ledgerId, e, prior = [])\ncheckReceipt(body, root = null)\nunsigned(obj)\nmessage(secret, type, body, at, root = null)\nsignA(signer, obj)\nmessageA(signer, type, body, at, root = null)\nclass Ledger\nnewLedger(secret, name, about, dex, at)\nnewLedgerA(signer, name, about, dex, at)</code></pre>",
             "canon.js: Canonical JSON (spec 1.2): the exact bytes that are hashed and signed.",
@@ -496,6 +496,28 @@
             "5. New message types: a change to the format, so to the <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a> first: the body's fields in <code>BODIES</code> (core.py and core.js), who may author and record it, its rule in both state functions, a line for the ledger page in both renderers, then shared vectors (<code>py/tests/make_vectors.py</code>) and fuzzing so both languages agree byte for byte.",
             "Things not to do: change a ledger file by hand (it breaks, or it is a rewrite every receipt exposes), keep keys in a dex, or trust a ledger without verifying it (<code>Ledger(data).whole</code>).",
             "<a href='exampleextending.html'>Example: Extending</a> builds a sales report and adds it to the dex as a page."
+        ]
+    },
+    {
+        "title": "JavaScript Core",
+        "body": [
+            "The JavaScript core is ledgdex in plain JavaScript: the same rules as the Python package, in ES modules in <a href='https://github.com/ledgdex/ledgdex/tree/main/js'><code>js/</code></a> with no dependencies, no npm and no build step. It makes the same bytes, ids, signatures, states and pages as Python: both are checked against shared test vectors and against each other with differential fuzzing on every push. The <a href='https://ledgdex.github.io/viewer.html'>viewer</a> is built on it.",
+            "Where it runs: any current web browser, and Node 20 or later (the tests use Node 22). Other JavaScript runtimes are not tested.",
+            "What is in it:",
+            "<pre><code>core.js      keys, messages, entries, Ledger (verify a ledger, add entries), newLedger\nstate.js     state(ledger): offers, claims, auctions, disputes, admissions, ...\ncanon.js     canonical JSON and hashes: canon, canonString, hash, parse\nrender.js    the pages a ledgdex shows, and helpers such as amount and esc\nsig.js       signer(secret): Web Crypto Ed25519 when there is one, else the built-in code\nkeystore.js  sealKey and openKey: a key sealed with a passphrase\ned25519.js   sha.js   dexweb.js   zip.js   the parts underneath</code></pre>",
+            "Every function, with its arguments, is in the <a href='apireference.html'>API Reference</a>.",
+            "Load it in a web page from the ledgdex site, as a module:",
+            "<pre><code>&lt;script type='module'&gt;\n  import { Ledger } from 'https://ledgdex.github.io/core.js';\n  import { state } from 'https://ledgdex.github.io/state.js';\n&lt;/script&gt;</code></pre>",
+            "That always gives the latest published core. For a site of your own, copy <code>js/</code> from a release (for example the <code>v1.0.17</code> tag) onto your site and load it from there: a script loaded from another site can change without you knowing, and it runs with your page's rights. In Node, import the files from a copy of <code>js/</code>, as the examples below do.",
+            "What it is good for:",
+            "1. Checking ledgers in the reader's own browser, so nobody has to trust your server. <a href='exampleshopwebpage.html'>Example: Shop Web Page</a> shows a shop's offers on its own website, read from its ledger.",
+            "2. Buying with nothing to install: a buyer keeps a key sealed in the browser, signs orders and keeps a ledger of its own, as the viewer does. <a href='examplesigninthebrowser.html'>Example: Sign in the Browser</a>.",
+            "3. Programs and bots written in JavaScript: read, check and follow ledgers from Node. <a href='exampleverifyinnode.html'>Example: Verify in Node</a>.",
+            "4. Making ledgers and messages in code, the same way the Python library does. <a href='examplejavascript.html'>Example: JavaScript</a>.",
+            "When to use Python instead: for the command line and everything it does over time. Publishing a dex with dexweb, <code>ledgdex check</code> with its kept copies and receipts, collecting messages from many dexes with <code>record --from</code>, keys kept on disk, and the daily check workflow are in Python only. The JavaScript core has no command line and does not publish.",
+            "Reading ledgers from other sites: a page can always read files from its own site. To read another site's <code>ledgdex.jsonl</code>, that site must allow it (CORS). GitHub Pages does, for every site it serves. If a host does not, download the file and open it, as the viewer lets you.",
+            "Keys in a browser: never store a secret key as it is. <code>sealKey(secret, passphrase, publicKey)</code> returns a sealed box you can store (PBKDF2-SHA-256 with 600,000 rounds, then AES-256-GCM; the passphrase has at least 12 characters), and <code>openKey(box, passphrase)</code> opens it. Every page on one site can read what that site stores, so keep keys on a site that serves nothing else you do not control. <code>signer(secret)</code> signs with the browser's own constant-time Ed25519 (Web Crypto) when it has one; verifying always uses the built-in code, so every browser judges a ledger the same way.",
+            "Things to keep in mind: everything in a ledger is data from someone else. Put its text on a page with <code>textContent</code>, or through <code>esc</code> from <code>render.js</code>, never as raw HTML; and check <code>whole</code> before you trust anything in a ledger."
         ]
     },
     {
@@ -783,6 +805,9 @@
             "<a href='examplerobotcleaning.html'>Example: Robot Cleaning</a>: Cleaning robots paid per clean by the shops of a mall, for one day.",
             "<a href='exampleextending.html'>Example: Extending</a>: For developers: building your own report from a ledger, and adding it to your website.",
             "<a href='examplejavascript.html'>Example: JavaScript</a>: For developers: the same ledger code in JavaScript, for Node or a web page.",
+            "<a href='exampleverifyinnode.html'>Example: Verify in Node</a>: For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
+            "<a href='exampleshopwebpage.html'>Example: Shop Web Page</a>: A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
+            "<a href='examplesigninthebrowser.html'>Example: Sign in the Browser</a>: A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
             "Smaller examples are on each topic page: <a href='selling.html'>Selling</a>, <a href='buying.html'>Buying</a>, <a href='setupamarketplace.html'>Set Up a Marketplace</a>, <a href='checkingfortampering.html'>Checking for Tampering</a>."
         ]
     },
@@ -799,6 +824,65 @@
         "body": [
             "Report issues at <a href='https://github.com/ledgdex/ledgdex/issues'>https://github.com/ledgdex/ledgdex/issues</a> (security problems: privately, as <a href='https://github.com/ledgdex/ledgdex/blob/main/SECURITY.md'>SECURITY.md</a> says).",
             "Planned (<a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>, \"Future improvements\" and milestone 11): encrypted key files on disk, robots paid per clean with deadlines and a clearing ledger, delegated admission, publishing on PyPI, browser tests in CI, and an independent third verifier."
+        ]
+    },
+    {
+        "title": "Example: Verify in Node",
+        "body": [
+            "<!-- generated by build.py. use build.py to generate page if there are changes -->For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
+            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/13-js-verify.mjs</code>.",
+            "<pre><code>import { readFile } from 'fs/promises';\nimport { pathToFileURL } from 'url';</code></pre>",
+            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.",
+            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { amount } = await import(new URL('render.js', base));</code></pre>",
+            "Read a ledger from a dex address, a <code>ledgdex.jsonl</code> address or a file, given as the first argument. Without one, this reads the ledger of these docs.",
+            "<pre><code>const source = process.argv[2] || 'https://ledgdex.github.io/docs';\nasync function read(src) {\n  if (!/^https?:\\/\\//.test(src)) return new Uint8Array(await readFile(src));\n  const url = src.endsWith('.jsonl') ? src : src.replace(/\\/+$/, '') + '/ledgdex.jsonl';\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(url + ': HTTP ' + res.status);\n  return new Uint8Array(await res.arrayBuffer());\n}\nconst bytes = await read(source);</code></pre>",
+            "Check every hash and signature. <code>whole</code> is true only if every entry checks out; otherwise <code>broken_at</code> and <code>error</code> say where and why.",
+            "<pre><code>const led = new Ledger(bytes);\nconsole.log(led.header.name + ': ' + (led.whole ? 'whole' : 'BROKEN at entry ' + led.broken_at + ', ' + led.error) +\n  ', ' + led.entries.length + ' entries');</code></pre>",
+            "The state says which offers are open and how many are left. The price and unit are in the signed offer itself, found by its id.",
+            "<pre><code>const st = state(led);\nfor (const [id, o] of Object.entries(st.offers)) {\n  if (o.status !== 'open') continue;\n  const offer = led.entries[led.index.get(id)].msg.body;\n  console.log(o.title, '|', amount(offer.currency, offer.price), 'per', offer.unit, '|', o.remaining, 'left');\n}</code></pre>",
+            "Change one letter of the offer's title and read the ledger again: it is no longer whole, and it says where.",
+            "<pre><code>const changed = bytes.slice();\nchanged[Buffer.from(changed).indexOf('Alphonso')] = 'B'.charCodeAt(0);\nconst bad = new Ledger(changed);\nconsole.log('one changed letter breaks it at entry', bad.broken_at + ':', bad.error);</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/13-js-verify.mjs'><code>guide/examples/13-js-verify.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
+        ]
+    },
+    {
+        "title": "Example: Shop Web Page",
+        "body": [
+            "<!-- generated by build.py. use build.py to generate page if there are changes -->A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
+            "Run it: Save it as a file and open it in a browser, or put it on your website.",
+            "<pre><code>&lt;!DOCTYPE html&gt;\n&lt;html lang='en'&gt;\n&lt;head&gt;\n&lt;meta charset='utf-8'&gt;\n&lt;meta name='viewport' content='width=device-width, initial-scale=1'&gt;\n&lt;title&gt;Mango Farm: today's offers&lt;/title&gt;\n&lt;/head&gt;</code></pre>",
+            "The page shows a line while it works, and a list that the script fills in.",
+            "<pre><code>&lt;body&gt;\n&lt;h1&gt;Today's offers&lt;/h1&gt;\n&lt;p id='status'&gt;Checking the shop's ledger...&lt;/p&gt;\n&lt;ul id='offers'&gt;&lt;/ul&gt;\n&lt;script type='module'&gt;</code></pre>",
+            "Load the JavaScript core from the ledgdex site. For a real shop, copy <code>js/</code> from a release onto your own site and load it from there.",
+            "<pre><code>import { Ledger } from 'https://ledgdex.github.io/core.js';\nimport { state } from 'https://ledgdex.github.io/state.js';\nimport { amount } from 'https://ledgdex.github.io/render.js';</code></pre>",
+            "Read the shop's ledger. This one is the ledger of these docs: put your shop's address here. The site that serves it must let other sites read it; GitHub Pages does.",
+            "<pre><code>const SHOP = 'https://ledgdex.github.io/docs/ledgdex.jsonl';\nconst res = await fetch(SHOP);\nconst led = new Ledger(new Uint8Array(await res.arrayBuffer()));</code></pre>",
+            "Check every hash and signature in the reader's own browser, then list the open offers. Text from a ledger goes in with <code>textContent</code>, never as HTML, so nothing written in a ledger can run on your page.",
+            "<pre><code>const status = document.getElementById('status');\nif (!led.whole) {\n  status.textContent = 'This ledger is broken at entry ' + led.broken_at + ': ' + led.error;\n} else {\n  status.textContent = led.header.name + ': whole, ' + led.entries.length + ' entries';\n  const list = document.getElementById('offers');\n  for (const [id, o] of Object.entries(state(led).offers)) {\n    if (o.status !== 'open') continue;\n    const offer = led.entries[led.index.get(id)].msg.body;\n    const item = document.createElement('li');\n    item.textContent = o.title + ': ' + amount(offer.currency, offer.price) + ' per ' + offer.unit + ', ' + o.remaining + ' left';\n    list.append(item);\n  }\n}\n&lt;/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/14-js-web-page.html'><code>guide/examples/14-js-web-page.html</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
+        ]
+    },
+    {
+        "title": "Example: Sign in the Browser",
+        "body": [
+            "<!-- generated by build.py. use build.py to generate page if there are changes -->A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
+            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/15-js-sign.mjs</code>.",
+            "<pre><code>import { execFileSync } from 'child_process';\nimport { mkdirSync, readFileSync, writeFileSync } from 'fs';\nimport { pathToFileURL } from 'url';</code></pre>",
+            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository. The same modules run in a browser.",
+            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger, messageA, newLedgerA, newSecret, publicKey } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { hash } = await import(new URL('canon.js', base));\nconst { sealKey, openKey } = await import(new URL('keystore.js', base));\nconst { signer } = await import(new URL('sig.js', base));</code></pre>",
+            "The shop uses the command line, as in the first trade example: it makes its ledgdex and offers 10 dozen mangoes.",
+            "<pre><code>const ledgdex = (...args) =&gt; execFileSync('ledgdex', args, { encoding: 'utf8' });\nledgdex('init', 'shop', '--name', 'Mango Farm', '--key', 'farm');\nwriteFileSync('offer.json', JSON.stringify({ item: { title: 'Alphonso mangoes' }, quantity: 10, unit: 'dozen',\n  currency: 'INR', price: 120000 }));\nconst offerId = ledgdex('offer', 'shop', 'offer.json').trim().split(' ').pop();</code></pre>",
+            "The buyer has only a browser. It makes a key and keeps it sealed with a passphrase, as the viewer does: the sealed box can be stored (in a browser, in <code>localStorage</code>), and only the passphrase opens it.",
+            "<pre><code>const secret = newSecret();\nconst box = await sealKey(secret, 'a long passphrase only Asha knows', publicKey(secret));\nconsole.log('key sealed with a passphrase:', box.kdf + ',', box.rounds, 'rounds');\nconst opened = await openKey(box, 'a long passphrase only Asha knows');</code></pre>",
+            "<code>signer</code> signs with Web Crypto's Ed25519 when the browser (or Node) has it, and with ledgdex's own code when it does not.",
+            "<pre><code>const sgn = await signer(opened);\nconsole.log('signed with', sgn.name);</code></pre>",
+            "The buyer reads the shop's ledger, finds the offer, and signs a claim for 2 dozen that names the offer by its id and its hash.",
+            "<pre><code>const shop = new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl')));\nconst offer = shop.entries[shop.index.get(offerId)].msg;\nconst claim = await messageA(sgn, 'claim', { offer: offerId, offer_hash: hash(offer), quantity: 2, price: offer.body.price });</code></pre>",
+            "The buyer keeps the claim as \"sent\" in a ledger of its own, and publishes it: here, a folder with its <code>ledgdex.jsonl</code>. In the viewer, Download your dex does this.",
+            "<pre><code>const mine = await newLedgerA(sgn, 'Asha', 'A buyer with a browser', '');\nmine.append(await mine.nextEntryA(sgn, await messageA(sgn, 'sent', { to: shop.header.owner, msg: claim })));\nmkdirSync('me');\nwriteFileSync('me/ledgdex.jsonl', mine.data);</code></pre>",
+            "The shop collects the claim from the buyer's dex with the command line, and the order is accepted.",
+            "<pre><code>console.log(ledgdex('record', 'shop', '--from', 'me').trim());\nconst after = state(new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl'))));\nconsole.log('the shop accepted the order:', Object.values(after.claims).map((c) =&gt; c.status).join(', '));</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/15-js-sign.mjs'><code>guide/examples/15-js-sign.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
         ]
     },
     {

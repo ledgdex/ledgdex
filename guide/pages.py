@@ -38,8 +38,10 @@ def example_text(name):
 
 def example(name):
     """An example file as a page: each comment line above a block of code becomes the paragraph before it, so the
-    code itself is shown without comments. The expect: lines are for the tests and are left out."""
-    mark = '//' if name.endswith('.mjs') else '#'
+    code itself is shown without comments. The expect: lines are for the tests and are left out. Comment lines start
+    at the line's start: "# " in shell and Python, "// " in JavaScript, and in a web page "<!-- ... -->" or, inside
+    its script, "// "."""
+    marks = {'.mjs': ['//'], '.html': ['<!--', '//']}.get(os.path.splitext(name)[1], ['#'])
     out, block = [], []
 
     def flush():
@@ -47,13 +49,17 @@ def example(name):
             out.append(code('\n'.join(block)))
         block.clear()
     for line in example_text(name).split('\n'):
-        if re.match(re.escape(mark) + r' expect:', line):
-            continue
-        if line.startswith(mark + ' '):
-            flush()
-            out.append(re.sub(r'`([^`]+)`', lambda m: c(m.group(1)), html.escape(line[len(mark) + 1:], quote=False)))
-        else:
+        mark = next((m for m in marks if line.startswith(m + ' ')), None)
+        if mark is None:
             block.append(line)
+            continue
+        text = line[len(mark) + 1:]
+        if mark == '<!--':
+            text = text[:-4] if text.endswith(' -->') else text
+        if text.startswith('expect:'):
+            continue
+        flush()
+        out.append(re.sub(r'`([^`]+)`', lambda m: c(m.group(1)), html.escape(text, quote=False)))
     flush()
     return out + ['The whole file: ' + ext(REPO + '/blob/main/guide/examples/' + name, c('guide/examples/' + name)) +
                   ', run as it is on every push (' + c('py/tests/test_guide.py') + ').']
@@ -249,7 +255,8 @@ def generated():
          ext(REPO + '/blob/main/architecture/SPEC.md', 'specification') + '.',
          'Python: ' + ', '.join("<a href='#" + m + "'>" + m + '</a>' for m, _, _ in API) + '.',
          python_api(),
-         'JavaScript (ES modules, no dependencies; served next to the viewer, e.g. ' +
+         'JavaScript (ES modules, no dependencies; where it runs and what it is for: ' + link('JavaScript Core') +
+         '; served next to the viewer, e.g. ' +
          c('https://ledgdex.github.io/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
          c('newLedgerA') + ', ' + c('nextEntryA') + ') take a signer from ' + c('sig.js') + ' (Web Crypto).',
          js_api())
@@ -258,6 +265,7 @@ def generated():
 
     run_how = {'.sh': lambda n: 'In an empty folder: ' + c('sh ' + n),
                '.py': lambda n: 'In an empty folder: ' + c('python3 ' + n),
+               '.html': lambda n: 'Save it as a file and open it in a browser, or put it on your website',
                '.mjs': lambda n: 'From the repository root (or with ' + c('LEDGDEX_JS') + ' set to the folder or URL '
                                  'of the JavaScript core): ' + c('node guide/examples/' + n)}
     rows = []
@@ -305,6 +313,12 @@ EXAMPLE_PAGES = {
         'For developers: building your own report from a ledger, and adding it to your website.'),
     '12-javascript.mjs': ('Example: JavaScript',
         'For developers: the same ledger code in JavaScript, for Node or a web page.'),
+    '13-js-verify.mjs': ('Example: Verify in Node',
+        'For developers: a Node program that reads a published ledger, checks it and lists what it sells.'),
+    '14-js-web-page.html': ('Example: Shop Web Page',
+        'A web page that shows a shop\'s offers, read from its ledger and checked in the reader\'s own browser.'),
+    '15-js-sign.mjs': ('Example: Sign in the Browser',
+        'A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.'),
 }
 
 # shown after an example's code

@@ -72,8 +72,8 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
    or later (tests use Node 22); other runtimes untested. JS examples run offline in tests: `py/tests/offline.mjs`
    (loaded with `node --import`) serves `https://ledgdex.github.io/` from this repo (`docs/` from `guide/dex/`, the
    rest from `js/`); `py/tests/page.mjs` runs a web page's module script in node with a stand-in DOM. In `.html`
-   examples, `<!-- ... -->` lines (and `// ` lines in the script) become paragraphs. The docs site has not been
-   republished with these pages yet (`cd guide/dex && ledgdex publish .`); ask the user before publishing.
+   examples, `<!-- ... -->` lines (and `// ` lines in the script) become paragraphs. Published on the docs site
+   (`b9cea5e` in `ledgdex.github.io`).
 4. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
 
 ## 3. Repository layout

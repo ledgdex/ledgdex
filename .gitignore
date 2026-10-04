@@ -11,3 +11,7 @@ guide/dex/to_add/
 guide/dex/.ledgdex.lock
 guide/dex/.publish/
 viewer/.publish/
+home/gen/
+home/backup/
+home/to_add/
+home/.publish/

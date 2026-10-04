@@ -20,8 +20,10 @@ jobs:
       - run: pip install -e "py[fast]"
       - name: The docs build, and their generated and ledger pages are current (published to ledgdex.github.io/docs)
         run: python guide/build.py --check --gen && git diff --exit-code guide && test -z "$(git status --porcelain guide)"
-      - name: The viewer builds (published to ledgdex.github.io with "cd viewer && python run.py")
+      - name: The viewer builds (published to ledgdex.github.io/viewer/ with "cd viewer && python run.py")
         run: cd viewer && python run.py --build-only && git diff --exit-code . && test -z "$(git status --porcelain .)"
+      - name: The home pages build (published to ledgdex.github.io with "cd home && python run.py")
+        run: cd home && python run.py --build-only && git diff --exit-code . && test -z "$(git status --porcelain .)"
       - name: Python (cryptography backend)
         run: cd py && python -m unittest discover -s tests -v
       - name: Python (pure Ed25519, no verification cache)

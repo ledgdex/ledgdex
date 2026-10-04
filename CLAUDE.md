@@ -35,7 +35,8 @@ about you is evidence", humans and bots equal, every ledgdex is a dex.
 | What | Where |
 |---|---|
 | Code, spec, docs source, viewer source | `ledgdex/ledgdex` (this repo) |
-| Website: home, viewer, live markets, about | https://ledgdex.github.io, repo `ledgdex/ledgdex.github.io` (root) |
+| Website: home, Live Markets, About | https://ledgdex.github.io, repo `ledgdex/ledgdex.github.io` (root), source `home/` |
+| Viewer and JavaScript modules | https://ledgdex.github.io/viewer/index.html (same repo, `viewer/`), source `viewer/` |
 | Docs | https://ledgdex.github.io/docs/ (same repo, `docs/`) |
 | Live test market | `matrixdex/ledgdex-live`, served at `matrixdex.github.io/ledgdex-live/seller` and `/buyer` |
 | Unused | `ledgdex/ledgdex-live-demo` (README only). The user decided the live demo stays in the matrixdex org (`matrixdex/ledgdex-live`); never turn on Pages here (it would share the viewer's origin) |
@@ -101,7 +102,8 @@ js/                    the same core in plain ES modules (no npm, no dependencie
                        (dexweb's build in JS), zip.js, viewer.js; test.mjs (vectors), fuzz.mjs (fuzz partner)
 vectors/               shared test vectors, byte-exact for both languages: canon, ed25519, signatures, ledgers/,
                        pages, dexnames, dex/ (whole dexes dexweb built). Regenerate: python py/tests/make_vectors.py
-viewer/                the viewer dex (data.json, config.json, styles.css, run.py) -> ledgdex.github.io root
+home/                  the home dex (home page, Live Markets, About; no scripts) -> ledgdex.github.io root
+viewer/                the viewer dex (data.json, config.json, styles.css, run.py) -> ledgdex.github.io/viewer/
 guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 tested examples), pages.py
                        (generated pages), build.py (optional refresher), make_demo_ledger.py
 .github/workflows/tests.yml   CI
@@ -248,11 +250,18 @@ loophole each audit finds.* 23 audits were run:
   Docs style mirrors the dexweb docs (config/templates "LEDGDEX DOCS", "BACK TO LEDGDEX DOCS").
 - Hand-written pages carry the version in install commands (`@v1.0.17#subdirectory=py`); a test enforces it.
 
-### Viewer and home (`viewer/`)
-- The viewer dex: pages Viewer, Live Markets, About; a nav (Docs · Viewer · Live Markets · About) in the index and
-  page templates. `cd viewer && python run.py` builds (dexgen, copies `js/*.js` and `.nojekyll` into gen/) and
-  publishes with the git method to the root of `ledgdex/ledgdex.github.io`; `--build-only` skips publishing.
-- Viewer URL params: `viewer.html?ledger=ADDRESS[&root=ADDRESS]`.
+### Home (`home/`) and viewer (`viewer/`)
+- The home dex has the pages Live Markets and About. Its index lists Viewer and Docs too. It runs no scripts (its CSP
+  has `script-src 'none'`). `cd home && python run.py` builds it and publishes it to the root of
+  `ledgdex/ledgdex.github.io`.
+- The viewer dex has only the Viewer page. `cd viewer && python run.py` builds it (dexgen, then a copy of `js/*.js`,
+  `dexweb-template.json` and `.nojekyll` into gen/), copies `viewer.html` to `index.html`, and publishes it to
+  `viewer/` (`site_path: viewer`). So the viewer is at https://ledgdex.github.io/viewer/index.html, and the modules at
+  https://ledgdex.github.io/viewer/core.js and so on.
+- Each page has a nav: Docs · Viewer · Live Markets · About. `--build-only` builds `gen/` and does not publish.
+- Viewer URL params: `viewer/index.html?ledger=ADDRESS[&root=ADDRESS]`. The root `viewer.html` of the site is a
+  redirect to `viewer/index.html` that keeps the query.
+- The viewer moved from the root to `viewer/` on one origin, so keys that browsers keep for it stay available.
 - dexweb's git publish **never deletes files** at the destination: remove stale pages there by hand.
 - Publishing from a sandbox: configs use `git@github.com:...`; with only HTTPS available, map it per command with
   `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0='url.https://github.com/.insteadOf' GIT_CONFIG_VALUE_0='git@github.com:'`.

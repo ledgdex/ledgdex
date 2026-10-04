@@ -257,7 +257,7 @@ def generated():
          python_api(),
          'JavaScript (ES modules, no dependencies; where it runs and what it is for: ' + link('JavaScript Core') +
          '; served next to the viewer, e.g. ' +
-         c('https://ledgdex.github.io/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
+         c('https://ledgdex.github.io/viewer/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
          c('newLedgerA') + ', ' + c('nextEntryA') + ') take a signer from ' + c('sig.js') + ' (Web Crypto).',
          js_api())
 
@@ -326,7 +326,7 @@ EXAMPLE_AFTER = {
     '12-javascript.mjs': [
         'In a web page, load the same core as a module and read any published ledger:',
         code("<script type='module'>\n"
-             "  import { Ledger } from 'https://ledgdex.github.io/core.js';\n"
+             "  import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\n"
              "  const res = await fetch('https://farm.example/ledgdex.jsonl');\n"
              "  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n"
              "  console.log(led.whole, led.entries.length, led.error);\n"

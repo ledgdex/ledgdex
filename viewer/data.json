@@ -2,7 +2,7 @@
     {
         "title": "Viewer",
         "body": [
-            "Load any ledgdex ledger and check every signature and hash in your browser. Keep your own ledger here too, sign messages to sellers, collect their receipts, and download your ledger as a complete dex. Nothing is uploaded: your key stays in this browser, and is stored only sealed with your passphrase.",
+            "Load any ledgdex ledger, and verify each signature and hash in your browser. Keep your own ledger here too. Sign messages to sellers, collect their receipts, and download your ledger as a complete dex. The viewer uploads nothing. Your key stays in this browser, and the viewer stores it only sealed with your passphrase.",
             "Your key: <code id=\"pub\">none</code> <button id=\"gen\">New key</button> <input id=\"secret\" type=\"password\" placeholder=\"or paste a secret key (64 hex)\" aria-label=\"Secret key\"> <button id=\"import\">Use this key</button> <button id=\"forget\">Forget key</button> <button id=\"backup\">Download key backup</button>",
             "Keep it here: <input id=\"pass\" type=\"password\" placeholder=\"passphrase (12+ characters)\" aria-label=\"Passphrase\" autocomplete=\"new-password\"> <button id=\"keep\">Keep, sealed</button> <button id=\"unlock\">Unlock</button> <span id=\"keystate\"></span>",
             "Your ledger: <span id=\"own\">none open</span>",
@@ -15,24 +15,6 @@
             "<span id=\"signed\"></span> <button id=\"download\" hidden>Download</button> <button id=\"copy\" hidden>Copy</button>",
             "<code id=\"msg\"></code>",
             "<span id=\"err\" role=\"alert\"></span>"
-        ]
-    },
-    {
-        "title": "Live Markets",
-        "body": [
-            "Ledgdexes trading in public. Each is an ordinary dex with its ledger in it: read its pages, or load its ledger in the viewer to check every signature and hash yourself.",
-            "<a href='https://matrixdex.github.io/ledgdex-live/seller'>Live Farm</a>: a test seller run by the ledgdex project: an open offer, and one sale taken from order to payment, delivery and confirmation. <a href='viewer.html?ledger=https://matrixdex.github.io/ledgdex-live/seller'>Verify it in the viewer</a>.",
-            "<a href='https://matrixdex.github.io/ledgdex-live/buyer'>Live Buyer</a>: a test buyer that bought from Live Farm and keeps its signed messages and the receipts for them. <a href='viewer.html?ledger=https://matrixdex.github.io/ledgdex-live/buyer'>Verify it in the viewer</a>.",
-            "<a href='https://ledgdex.github.io/docs'>Ledgdex Docs</a>: the ledger of these docs, signed once with a key that was then destroyed: a demonstration nobody can add to or buy from. <a href='viewer.html?ledger=https://ledgdex.github.io/docs'>Verify it in the viewer</a>.",
-            "To list your own market here, publish your ledgdex and open an issue at <a href='https://github.com/ledgdex/ledgdex/issues'>github.com/ledgdex/ledgdex</a> with its address."
-        ]
-    },
-    {
-        "title": "About",
-        "body": [
-            "Ledgdex is a simple market on a dex. Every self keeps a signed, append-only ledger in its own dex, and a trade exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record.",
-            "<a href=\"viewer.html\">The viewer</a> verifies ledgers and keeps yours, in this browser. Its own pages, and the dex it downloads for you, are built the way dexweb builds them.",
-            "<a href=\"docs/index.html\">Docs</a> · <a href=\"https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md\">Specification</a> · <a href=\"https://github.com/ledgdex/ledgdex\">Code</a> · <a href=\"https://matrixdex.github.io/dexweb\">dexweb</a>"
         ]
     }
 ]

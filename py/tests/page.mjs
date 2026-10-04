@@ -8,7 +8,7 @@ const html = readFileSync(process.argv[2], 'utf8');
 const script = html.match(/<script type='module'>\n([\s\S]*?)<\/script>/);
 if (!script) throw new Error('no <script type=\'module\'> in ' + process.argv[2]);
 const core = pathToFileURL(process.env.LEDGDEX_JS).href.replace(/\/?$/, '/');
-const code = script[1].replace(/^(import .* from ')https:\/\/ledgdex\.github\.io\//gm, '$1' + core);
+const code = script[1].replace(/^(import .* from ')https:\/\/ledgdex\.github\.io\/viewer\//gm, '$1' + core);
 
 const element = () => ({ textContent: '', children: [], append(child) { this.children.push(child); } });
 const elements = {};

@@ -1,0 +1,24 @@
+[
+    {
+        "title": "Live Markets",
+        "body": [
+            "These ledgdexes trade in public. Each one is an ordinary dex with its ledger in it. Read its pages, or load its ledger in the viewer and verify each signature and hash yourself.",
+            "<a href='https://matrixdex.github.io/ledgdex-live/seller'>Live Farm</a>: a test seller that the ledgdex project runs. It has an open offer, and one sale from order to payment, delivery and confirmation. <a href='viewer/index.html?ledger=https://matrixdex.github.io/ledgdex-live/seller'>Verify it in the viewer</a>.",
+            "<a href='https://matrixdex.github.io/ledgdex-live/buyer'>Live Buyer</a>: a test buyer that bought from Live Farm. It keeps its signed messages and the receipts for them. <a href='viewer/index.html?ledger=https://matrixdex.github.io/ledgdex-live/buyer'>Verify it in the viewer</a>.",
+            "<a href='https://ledgdex.github.io/docs'>Ledgdex Docs</a>: the ledger of the docs, as a demonstration. Its owner signed it one time and then destroyed the key. So nobody can add entries to it or buy from it. <a href='viewer/index.html?ledger=https://ledgdex.github.io/docs'>Verify it in the viewer</a>.",
+            "To show your market on this page, publish your ledgdex. Then open an issue at <a href='https://github.com/ledgdex/ledgdex/issues'>github.com/ledgdex/ledgdex</a> with its address."
+        ]
+    },
+    {
+        "title": "About",
+        "body": [
+            "Ledgdex is a simple market on a dex. Each self keeps a signed ledger that only grows, in its own dex.",
+            "A trade has three records:",
+            "- the claim that the buyer signs",
+            "- the record of the claim that the seller signs",
+            "- the copy of that record that the buyer keeps",
+            "<a href='viewer/index.html'>The viewer</a> verifies ledgers and keeps your ledger in this browser. It builds its own pages, and the dex that it downloads for you, in the same way as dexweb.",
+            "<a href='docs/index.html'>Docs</a> · <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>Specification</a> · <a href='https://github.com/ledgdex/ledgdex'>Code</a> · <a href='https://matrixdex.github.io/dexweb'>dexweb</a>"
+        ]
+    }
+]

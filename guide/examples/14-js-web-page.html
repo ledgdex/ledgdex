@@ -12,9 +12,9 @@
 <ul id='offers'></ul>
 <script type='module'>
 // Load the JavaScript core from the ledgdex site. For a real shop, copy `js/` from a release onto your own site and load it from there.
-import { Ledger } from 'https://ledgdex.github.io/core.js';
-import { state } from 'https://ledgdex.github.io/state.js';
-import { amount } from 'https://ledgdex.github.io/render.js';
+import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';
+import { state } from 'https://ledgdex.github.io/viewer/state.js';
+import { amount } from 'https://ledgdex.github.io/viewer/render.js';
 
 // Read the shop's ledger. This one is the ledger of these docs: put your shop's address here. The site that serves it must let other sites read it; GitHub Pages does.
 const SHOP = 'https://ledgdex.github.io/docs/ledgdex.jsonl';

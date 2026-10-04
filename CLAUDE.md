@@ -77,7 +77,6 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 4. Done: the 25 hand-written docs pages follow ASD-STE100 (`712c3cb`, the user's patch). `ste-lint.py` finds 0
    problems in them. The generated pages and the ledger pages did not change. The user published the docs
    (`990b50d` in `ledgdex.github.io`). New text in hand-written pages must also pass `ste-lint.py`.
-5. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
 
 ## 3. Repository layout
 
@@ -261,7 +260,10 @@ loophole each audit finds.* 23 audits were run:
   and Playwright (Chromium at /opt/pw-browsers; playwright module at /opt/node22/lib/node_modules/playwright), and
   check the "pages build and deployment" run via `gh api repos/ledgdex/ledgdex.github.io/actions/runs`.
 
-## 9. Planned, not built: payment-agnostic ledgdex
+## 9. Ideation only: payment-agnostic ledgdex
+
+This design is only an idea. It is not an open item. Do not mention it to the user. Use it only when the user asks
+for it.
 
 The user asked how ledgdex could accept any payment method (UPI, cards, PayPal, stablecoins, Bitcoin), sellers
 choosing methods and the root allowing or rejecting them, extensible without breaking compatibility. The agreed

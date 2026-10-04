@@ -26,8 +26,8 @@ jobs:
         run: node js/test.mjs
       - name: The viewer dex in docs/ is built from viewer/ and js/ (rebuild with "cd viewer && python run.py")
         run: cd viewer && python run.py && git diff --exit-code ../docs && test -z "$(git status --porcelain ../docs)"
-      - name: The docs dex in docs/docs/ is built from guide/ (rebuild with "python guide/build.py")
-        run: python guide/build.py && git diff --exit-code docs/docs guide && test -z "$(git status --porcelain docs/docs guide)"
+      - name: The docs are current (generated pages "python guide/build.py", then "cd guide/dex && ledgdex publish .")
+        run: python guide/build.py --check && (cd guide/dex && ledgdex publish .) && git diff --exit-code docs/docs guide && test -z "$(git status --porcelain docs/docs guide)"
       - name: Differential fuzzing (a new seed every run; rerun one with --seed N)
         run: cd py && python tests/fuzz.py --seed ${{ github.run_number }} --ledgers 200 --texts 3000 --keep fuzz-out
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1

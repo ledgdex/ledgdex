@@ -1,7 +1,7 @@
 """The docs' examples (guide/examples/) are run as they are printed in the docs: each in an empty folder with its
 own key store, and each must exit 0 and print every line its "expect:" comments name. The docs pages include these
 files verbatim, so a published example is a tested one."""
-import os, re, shutil, subprocess, sys, tempfile, unittest
+import json, os, re, shutil, subprocess, sys, tempfile, unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXAMPLES = os.path.join(HERE, '..', '..', 'guide', 'examples')
@@ -57,8 +57,22 @@ class DocsPages(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         sys.path.insert(0, os.path.join(HERE, '..', '..', 'guide'))
-        import pages
-        cls.pages = pages
+        import build, pages
+        cls.build, cls.pages = build, pages
+        with open(build.DATA, encoding='utf-8') as f:
+            cls.data = json.load(f)
+
+    def test_generated_pages_are_current_and_marked(self):
+        self.assertEqual(self.data, self.build.updated(self.data), 'run python guide/build.py')
+        titles = {p['title'] for p in self.pages.generated()}
+        marked = {p['title'] for p in self.data if p['body'][0].startswith(self.pages.MARKER)}
+        self.assertEqual(titles, marked)
+
+    def test_install_commands_name_this_release(self):
+        from ledgdex import __version__
+        text = json.dumps(self.data)
+        tags = set(re.findall(r'@(v[0-9][0-9.]*)#subdirectory', text))
+        self.assertEqual({'v' + __version__}, tags, 'update the release tag in guide/dex/data.json')
 
     def test_every_message_body_shown_is_valid(self):
         from ledgdex.core import check_body
@@ -71,7 +85,7 @@ class DocsPages(unittest.TestCase):
     def test_every_command_and_option_is_documented(self):
         from ledgdex.cli import parser
         import argparse
-        text = '\n'.join(b for p in self.pages.pages() for b in p['body'])
+        text = '\n'.join(b for p in self.data for b in p['body'])
         sub = next(a for a in parser()._actions if isinstance(a, argparse._SubParsersAction))
         for name, sp in sub.choices.items():
             self.assertIn('ledgdex ' + name, text)

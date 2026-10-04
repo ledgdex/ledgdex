@@ -65,15 +65,15 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
    on push, daily at 06:17 UTC, and by hand). Commit message style there: "ledgdex check workflow: install ledgdex
    vX.Y.Z". Run locally, its check reports 3 warnings and 0 errors: two older seller snapshots that the buyer's
    receipts point to are only behind, and the sandbox can't reach matrixdex.github.io.
-3. Backlog (asked for, deferred by the user): a **"JavaScript Core" docs page** (where it runs: modern browsers and
-   Node 18+, no npm, no build; Deno/Bun untested so don't claim them; what it is for; when Python is better: CLI,
-   publish, check, keys on disk; loading from `https://ledgdex.github.io/core.js` vs pinning your own copy; CORS;
-   sealed browser keys) with **three new tested examples**: `13-js-verify.mjs` (Node: verify a published ledger from a
-   URL or file, list open offers with price from the signed offer `led.entries[led.index.get(id)].msg.body`, show a
-   one-letter change breaking it at entry 1), a web page that lists a shop's offers from its ledger (test by extracting
-   the module script and running it in Node with a stub `document`/`fetch`, rewriting the core URL to the local
-   `js/`), and signing an order in the browser (`newSecret`, `sealKey`/`openKey`, `signer()`, `messageA`, a buyer ledger
-   with a `sent` claim, recorded by the Python CLI). The user said "do the js core addition later".
+3. Done: the **"JavaScript Core" docs page** and three tested examples (`88f8b6b`, the user's patch):
+   `13-js-verify.mjs` (Node: verify a published ledger, list open offers, one changed letter breaks it),
+   `14-js-web-page.html` (a shop's offers on a web page, checked in the reader's browser, text via `textContent`),
+   `15-js-sign.mjs` (sealed browser key, Web Crypto signer, a `sent` claim recorded by the CLI). The page says Node 20
+   or later (tests use Node 22); other runtimes untested. JS examples run offline in tests: `py/tests/offline.mjs`
+   (loaded with `node --import`) serves `https://ledgdex.github.io/` from this repo (`docs/` from `guide/dex/`, the
+   rest from `js/`); `py/tests/page.mjs` runs a web page's module script in node with a stand-in DOM. In `.html`
+   examples, `<!-- ... -->` lines (and `// ` lines in the script) become paragraphs. The docs site has not been
+   republished with these pages yet (`cd guide/dex && ledgdex publish .`); ask the user before publishing.
 4. Planning only, nothing built: **payment-agnostic ledgdex** (section 9 below).
 
 ## 3. Repository layout
@@ -100,7 +100,7 @@ js/                    the same core in plain ES modules (no npm, no dependencie
 vectors/               shared test vectors, byte-exact for both languages: canon, ed25519, signatures, ledgers/,
                        pages, dexnames, dex/ (whole dexes dexweb built). Regenerate: python py/tests/make_vectors.py
 viewer/                the viewer dex (data.json, config.json, styles.css, run.py) -> ledgdex.github.io root
-guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (12 tested examples), pages.py
+guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 tested examples), pages.py
                        (generated pages), build.py (optional refresher), make_demo_ledger.py
 .github/workflows/tests.yml   CI
 ```
@@ -164,7 +164,7 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (12 t
 Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-cd py && python -m unittest discover -s tests -v                       # cryptography backend (136 tests)
+cd py && python -m unittest discover -s tests -v                       # cryptography backend (139 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
 cd py && python tests/fuzz.py --seed N --ledgers 200 --texts 3000 --keep fuzz-out  # differential fuzzing
@@ -177,7 +177,7 @@ cd viewer && python run.py --build-only                                # viewer 
   corrupts them (bytes, lines, fields re-signed so the change reaches deeper rules), and makes tricky JSON texts;
   Python and node each report parse / whole / where it breaks / why / canon(state) / pages; any difference fails.
   CI runs a new seed every run (`--seed ${{ github.run_number }}`); for audits run many seeds and larger counts.
-- `test_guide.py` runs all 12 docs examples in empty temp folders with their own `LEDGDEX_HOME`, asserts every
+- `test_guide.py` runs all 15 docs examples in empty temp folders with their own `LEDGDEX_HOME`, asserts every
   `# expect:` / `// expect:` line is printed, checks every command and option is documented, every docs link and
   anchor resolves (in `guide/dex/gen/`), no page has `<script`, `<b>` or `<strong>`, generated pages are current and
   marked, and the install commands name `v` + `__version__`.
@@ -225,15 +225,15 @@ loophole each audit finds.* 23 audits were run:
 ### Docs (`guide/`)
 - `guide/dex/` is a dex AND a ledgdex (its `ledgdex.jsonl` is the frozen demo ledger, id `sha256:8a657c68...`, dex
   address `https://ledgdex.github.io/docs`). **`data.json` is the source**: the user edits it by hand like any dex.
-- 16 pages are generated from code and examples by `guide/pages.py` (Command Line Options from argparse with
+- 19 pages are generated from code and examples by `guide/pages.py` (Command Line Options from argparse with
   COLUMNS=110, API Reference from `inspect` and the JS exports, Message Types validated with `check_body`, Examples
-  and the 12 example pages). Each generated page's first body string starts with
+  and the 15 example pages). Each generated page's first body string starts with
   `<!-- generated by build.py. use build.py to generate page if there are changes -->` (the user asked for exactly
   that comment). `python guide/build.py` replaces only those pages (by title), `--check` fails if stale, `--gen` also
   builds `guide/dex/gen/`. build.py writes data.json the way ledgdex does (indent 4, ensure_ascii False, no trailing
   newline) and atomically (tmp + replace).
 - Publish: `cd guide/dex && ledgdex publish .` -> dexweb git method to `ledgdex/ledgdex.github.io`, `site_path: docs`.
-- Example files (`guide/examples/NN-name.sh|py|mjs`): at the top only the shebang/`set -eu` and `expect:` lines; each
+- Example files (`guide/examples/NN-name.sh|py|mjs|html`): at the top only the shebang/`set -eu` and `expect:` lines; each
   column-0 comment line (`# ` or `// `) becomes the paragraph shown above the code that follows it, and the code shown
   on the page has no comments (the user wants minimal comments in code; explanation in paragraphs). Backticks in those
   comments become inline code. Keep examples clear, concise and in simple language about what they achieve.

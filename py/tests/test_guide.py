@@ -52,7 +52,7 @@ class Examples(unittest.TestCase):
 
 
 class DocsPages(unittest.TestCase):
-    """The docs dex (guide/, published to docs/docs/) agrees with the code."""
+    """The docs dex (guide/dex/, published to ledgdex.github.io/docs) agrees with the code."""
 
     @classmethod
     def setUpClass(cls):
@@ -94,9 +94,9 @@ class DocsPages(unittest.TestCase):
                     self.assertIn(opt, text, name + ' ' + opt)
 
     def test_published_docs_links_resolve(self):
-        docs = os.path.join(HERE, '..', '..', 'docs', 'docs')
+        docs = os.path.join(HERE, '..', '..', 'guide', 'dex', 'gen')     # python guide/build.py --gen
         if not os.path.isdir(docs):
-            self.skipTest('docs/docs not built')
+            self.skipTest('the docs are not built: python guide/build.py --gen')
         files = [f for f in os.listdir(docs) if f.endswith('.html')]
         self.assertGreater(len(files), 40)
         ids = {}

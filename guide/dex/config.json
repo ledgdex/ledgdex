@@ -8,8 +8,9 @@
     "index_list_type_para": false,
     "index_list_no_page_link_only": true,
     "publish": {
-        "method": "folder",
-        "path": "../../docs/docs",
+        "dest": "git@github.com:ledgdex/ledgdex.github.io.git",
+        "branch": "main",
+        "site_path": "docs",
         "append_only": [
             "ledgdex.jsonl"
         ]

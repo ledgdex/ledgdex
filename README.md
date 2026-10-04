@@ -2,7 +2,7 @@
 
 A simple market on a dex. Every seller and buyer keeps a signed, append-only ledger (`ledgdex.jsonl`) in their own dex, a freely shared website built with [dexweb](https://github.com/matrixdex/dexweb). A trade exists three times: the buyer's signed claim, the seller's signed record of it, and the buyer's copy of that record. No server, no blockchain: SHA-256, Ed25519 and plain files.
 
-**Docs: https://matrixdex.github.io/ledgdex/docs/** (getting started, setting up a marketplace, extending ledgdex, bots, the command line and API references, and tested examples). The docs are a dex built with dexweb, and a ledgdex too: dex is the core; dex + ledger is a ledgdex. Their source is [guide/](guide/).
+**Site: https://ledgdex.github.io** (viewer and live markets). **Docs: https://ledgdex.github.io/docs/** (getting started, setting up a marketplace, extending ledgdex, bots, the command line and API references, and tested examples). The docs are a dex built with dexweb, and a ledgdex too: dex is the core; dex + ledger is a ledgdex. Their source is [guide/](guide/).
 
 The specification is [architecture/SPEC.md](architecture/SPEC.md). Everything in it is built: the market (offers, claims, payment, delivery, receipts), disputes, sealed-bid auctions, device keys, key rotation and recovery, indexes, the root, dex pages, publishing and tamper checks, in Python, plus a JavaScript version and a browser viewer.
 
@@ -152,9 +152,9 @@ Run `ledgdex check` on the root (the GitHub workflow, or cron) so any change to 
 
 `js/` holds the same core in plain browser JavaScript (no npm): canonical JSON, SHA-256/512, Ed25519, verification, the state function, the dex pages (`render.js`) and the dexweb build (`dexweb.js`). `node js/test.mjs` checks it reproduces the shared vectors in `vectors/` byte for byte: states, pages, and whole dexs that dexweb built. `python py/tests/make_vectors.py` regenerates them.
 
-The viewer is a dex. Its source is `viewer/` (`data.json`, `config.json`, `styles.css`, `run.py`), built with dexweb and published with dexweb's folder method to `docs/`, which GitHub Pages serves: https://matrixdex.github.io/ledgdex/ (Settings, Pages: branch `main`, folder `/docs`). After changing `viewer/` or `js/`, run `cd viewer && python run.py`; CI checks `docs/` is current.
+The viewer is a dex. Its source is `viewer/` (`data.json`, `config.json`, `styles.css`, `run.py`), built with dexweb and published with dexweb's git method to the root of [ledgdex/ledgdex.github.io](https://github.com/ledgdex/ledgdex.github.io), which GitHub Pages serves: https://ledgdex.github.io (home, viewer, live markets and about; the docs are in `docs/` there). After changing `viewer/` or `js/`, run `cd viewer && python run.py` (`--build-only` builds `gen/` without publishing). The docs publish to the same repository with `cd guide/dex && ledgdex publish .`.
 
-The viewer page loads any ledger by address or file, verifies it in the browser, and shows it as the same pages its dex has. It signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser, using the browser's own constant-time Web Crypto Ed25519 when it has one, else ledgdex's built-in code. The key is stored only sealed with your passphrase ("Keep, sealed"), and "Download key backup" gives you a copy to keep offline. The viewer also keeps your own ledger: every message you sign is kept as `sent`, and "Collect receipts" keeps the seller's records of them. "Download your dex" gives you your ledger as a complete dex (a zip), file for file what `ledgdex init` and dexweb make; publish it like any dex. So a buyer with only a browser has a ledgdex too. Open a ledger directly with `https://matrixdex.github.io/ledgdex/viewer.html?ledger=https://farm.github.io`.
+The viewer page loads any ledger by address or file, verifies it in the browser, and shows it as the same pages its dex has. It signs claims, payments, confirmations, disputes, bids and reveals with a key kept in the browser, using the browser's own constant-time Web Crypto Ed25519 when it has one, else ledgdex's built-in code. The key is stored only sealed with your passphrase ("Keep, sealed"), and "Download key backup" gives you a copy to keep offline. The viewer also keeps your own ledger: every message you sign is kept as `sent`, and "Collect receipts" keeps the seller's records of them. "Download your dex" gives you your ledger as a complete dex (a zip), file for file what `ledgdex init` and dexweb make; publish it like any dex. So a buyer with only a browser has a ledgdex too. Open a ledger directly with `https://ledgdex.github.io/viewer.html?ledger=https://farm.github.io`.
 
 ## Checking for tampering
 
@@ -180,7 +180,7 @@ Before you trade for real, read [SECURITY.md](SECURITY.md). In short:
 - Install the `fast` extra (`pip install -e "py[fast]"`) on every machine that signs: it signs in constant time. ledgdex warns when it signs without it.
 - Keep owner keys offline (backed up), and use device keys day to day. Revoke a lost device at once.
 - Run `ledgdex check` on your ledger and the ledgers you trade with, daily (the workflow, cron or a worker). An error there is tampering, with proof.
-- In the browser, keep your key sealed with a long passphrase and download a backup. Host the viewer on an address of its own (a custom domain): every page on one origin, such as `matrixdex.github.io`, can read what pages there store.
+- In the browser, keep your key sealed with a long passphrase and download a backup. Use the viewer at https://ledgdex.github.io, or host it on an address of its own: every page on one origin can read what pages there store.
 - Generated workflows install ledgdex from the release tag and pin each action to a commit.
 
 ## Tests

@@ -1,7 +1,7 @@
 # Ledgdex
 
 Ledgdex: an agent-centric ledger with triple-entry accounting, for The Matrix.
-Specification v0.1. CC0. Repository: https://github.com/matrixdex/ledgdex
+Specification v0.1. CC0. Repository: https://github.com/ledgdex/ledgdex
 
 This file is for two readers. Part I explains the idea to a person. Part II is the exact specification a coding agent
 implements. Part III is the build plan. Where the two parts seem to disagree, Part II wins.
@@ -857,7 +857,7 @@ auction should close more than 5 minutes after the last bid it must accept.
 
 ## Files to produce
 
-The repository root is https://github.com/matrixdex/ledgdex.
+The repository root is https://github.com/ledgdex/ledgdex.
 
 ```
 ledgdex/
@@ -1073,6 +1073,11 @@ claims that device recorded, read as warnings and is now `receipt_mismatch`.
 In the browser, signing uses Web Crypto's Ed25519 when the browser has it and it gives the RFC 8032 answers
 (`js/sig.js`), and the vendored code otherwise; the tests check both give the same keys, signatures, messages and
 ledgers, which closes milestone 2. Verification stays with the vendored code in every browser.
+
+**v1.0.17**: the repository moves to https://github.com/ledgdex/ledgdex, and the viewer and docs to
+https://ledgdex.github.io, an origin no other site shares (the viewer keeps sealed keys in browser storage, which every
+page on an origin can read). Generated check workflows install ledgdex from the new repository. Nothing in the format
+changes.
 
 ## Milestones and acceptance tests
 

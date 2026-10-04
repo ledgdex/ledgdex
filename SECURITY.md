@@ -1,6 +1,6 @@
 # Security
 
-Ledgdex v1.0.16. The rules every implementation must keep are the security invariants in
+Ledgdex v1.0.17. The rules every implementation must keep are the security invariants in
 [architecture/SPEC.md](architecture/SPEC.md), section 9; this file says what they mean for people running ledgdex.
 
 ## Reporting a problem
@@ -69,12 +69,16 @@ ledger or steps that show the problem. Please do not open a public issue for a w
 - **The root.** Its owner admits who is in The Matrix, names new keys for lost ones, and is the default arbiter.
   Keep its owner key offline and run `ledgdex check` on it. A root that misbehaves does so in signed entries
   everyone can see, but it is trusted to admit and recover honestly.
-- **The viewer's origin.** Pages on one web origin can read each other's browser storage. `matrixdex.github.io` is
-  shared by every matrixdex repository's pages, so a sealed key there is safe only as long as the passphrase is
-  strong. For production, serve the viewer from an address of its own (a custom domain). The viewer's pages carry
-  a Content-Security-Policy that allows scripts only from the viewer, and the viewer refuses to run inside another
-  page's frame (so no site can trick your clicks on it). Serving it with an `X-Frame-Options: DENY` or
-  `frame-ancestors 'none'` header, where your host allows headers, adds a second guard.
+- **The viewer's origin.** Pages on one web origin can read each other's browser storage, so the viewer, which keeps
+  your sealed key there, is served from an origin of its own: https://ledgdex.github.io, the GitHub Pages site of the
+  `ledgdex` organization. Every repository in that organization with Pages turned on would publish to the same origin
+  (`ledgdex.github.io/<repository>`), so only `ledgdex.github.io` has Pages; keep it that way, and keep push access to
+  it to as few people as possible. The docs there (`/docs`) run no scripts. The viewer's pages carry a
+  Content-Security-Policy that allows scripts only from the viewer, and the viewer refuses to run inside another
+  page's frame (so no site can trick your clicks on it). A custom domain behind a host that sends an
+  `X-Frame-Options: DENY` or `frame-ancestors 'none'` header adds a second guard. The viewer used to be served from
+  `matrixdex.github.io/ledgdex`, an origin shared with other matrixdex sites: if you kept a key there, open that
+  viewer, download a key backup, and load it in the new one.
 - **Clocks.** Entry times are their owners' clocks, within 5 minutes of each other (SPEC 9.2).
 - **What is not protected by design** is listed in the spec, Part I: a seller who never records a claim, the order
   of claims that arrive together, delivery and payment outside the ledger, and fake identities (admission handles

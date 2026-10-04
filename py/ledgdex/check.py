@@ -313,7 +313,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - run: pip install "ledgdex @ git+https://github.com/matrixdex/ledgdex@{version}#subdirectory=py"
+      - run: pip install "ledgdex @ git+https://github.com/ledgdex/ledgdex@{version}#subdirectory=py"
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .ledgdex-check

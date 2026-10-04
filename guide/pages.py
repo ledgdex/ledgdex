@@ -9,7 +9,7 @@ from ledgdex.render import html_title
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXAMPLES = os.path.join(HERE, 'examples')
 JS = os.path.join(HERE, '..', 'js')
-REPO = 'https://github.com/matrixdex/ledgdex'
+REPO = 'https://github.com/ledgdex/ledgdex'
 
 
 # ---------- helpers ----------
@@ -250,7 +250,7 @@ def generated():
          'Python: ' + ', '.join("<a href='#" + m + "'>" + m + '</a>' for m, _, _ in API) + '.',
          python_api(),
          'JavaScript (ES modules, no dependencies; served next to the viewer, e.g. ' +
-         c('https://matrixdex.github.io/ledgdex/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
+         c('https://ledgdex.github.io/core.js') + '). Asynchronous twins (' + c('messageA') + ', ' +
          c('newLedgerA') + ', ' + c('nextEntryA') + ') take a signer from ' + c('sig.js') + ' (Web Crypto).',
          js_api())
 
@@ -312,7 +312,7 @@ EXAMPLE_AFTER = {
     '12-javascript.mjs': [
         'In a web page, load the same core as a module and read any published ledger:',
         code("<script type='module'>\n"
-             "  import { Ledger } from 'https://matrixdex.github.io/ledgdex/core.js';\n"
+             "  import { Ledger } from 'https://ledgdex.github.io/core.js';\n"
              "  const res = await fetch('https://farm.example/ledgdex.jsonl');\n"
              "  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n"
              "  console.log(led.whole, led.entries.length, led.error);\n"

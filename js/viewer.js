@@ -291,10 +291,38 @@ function main() {
   $('copy').onclick = () => navigator.clipboard.writeText(canonString(lastMsg));
   $('load').onclick = load;
   $('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') load(); });
+  const openFile = async (f) => {  // a ledger file to look at: from the "Ledger file" button, or dropped on the page
+    loadedFrom = '';
+    show(new Uint8Array(await f.arrayBuffer()), await rootLedger().catch(() => null));
+  };
   $('file').onchange = async () => {
     const f = $('file').files[0];
-    if (f) { loadedFrom = ''; show(new Uint8Array(await f.arrayBuffer()), await rootLedger().catch(() => null)); }
+    if (f) await openFile(f);
   };
+  // A file dropped anywhere on the page opens as the ledger to look at, as with the "Ledger file" button. Only drags
+  // that carry files are taken: dropped text and links keep the browser's own behavior. Without preventDefault, the
+  // browser opens a dropped file itself and leaves this page.
+  const carriesFiles = (e) => e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files');
+  let depth = 0;  // dragenter and dragleave fire for every element the drag crosses
+  const page = document.documentElement;  // styles.css frames the window while a file is over it
+  const mark = (on) => { if (on) page.dataset.drop = ''; else delete page.dataset.drop; };
+  document.addEventListener('dragenter', (e) => { if (carriesFiles(e)) { depth += 1; mark(true); } });
+  document.addEventListener('dragleave', (e) => {
+    if (carriesFiles(e) && (depth -= 1) <= 0) { depth = 0; mark(false); }
+  });
+  document.addEventListener('dragover', (e) => {
+    if (!carriesFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  document.addEventListener('drop', async (e) => {
+    if (!carriesFiles(e)) return;
+    e.preventDefault();
+    depth = 0;
+    mark(false);
+    const f = e.dataTransfer.files[0];
+    if (f) await openFile(f);
+  });
   const plain = store.get('ledgdex-secret');  // older viewers kept the key unsealed: take it out of storage
   store.del('ledgdex-secret');
   if (plain && /^[0-9a-f]{64}$/.test(plain)) {

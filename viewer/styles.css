@@ -54,3 +54,7 @@ button { cursor: pointer; }
 button:hover { border-color: #00ff41; }
 code { overflow-wrap: anywhere; }
 h2 { color: rgb(240, 240, 240); font-family: monospace; font-size: 1.5rem; margin-top: 2em; }
+/* a file dragged over the page (viewer.js): a frame around the window, which does not catch the drop itself */
+html[data-drop]::after {
+  content: ''; position: fixed; inset: 8px; border: 3px dashed #00ff41; pointer-events: none;
+}

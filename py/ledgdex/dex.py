@@ -1,5 +1,5 @@
 """A ledgdex on disk: the ledger file in a dex, keys in ~/.ledgdex, and reading other ledgers."""
-import contextlib, os, re, urllib.request
+import contextlib, http.client, os, re, urllib.error, urllib.request
 from .core import Ledger, Invalid, public
 
 LEDGER = 'ledgdex.jsonl'
@@ -250,8 +250,13 @@ def http_get(url, limit=None):
     if not re.match(r'https?://', url):
         raise Invalid('only http(s) addresses are read: ' + url)
     req = urllib.request.Request(url, headers={'User-Agent': 'ledgdex'})
-    with _opener.open(req, timeout=30) as r:
-        data = r.read(limit + 1)
+    try:
+        with _opener.open(req, timeout=30) as r:
+            data = r.read(limit + 1)
+    except urllib.error.HTTPError as e:   # 404 and the like: a short message, not a traceback
+        raise Invalid('cannot read ' + url + ': HTTP ' + str(e.code) + ' ' + str(e.reason)) from None
+    except (OSError, http.client.HTTPException) as e:   # no such host, refused, timed out, cut off
+        raise Invalid('cannot read ' + url + ': ' + str(getattr(e, 'reason', None) or e)) from None
     if len(data) > limit:
         raise Invalid(url + ' is larger than ' + str(limit) + ' bytes (LEDGDEX_MAX_BYTES)')
     return data

@@ -209,6 +209,22 @@ class Check(unittest.TestCase):
         os.remove(pic)
         self.assertIn(('warning', 'media_unavailable'), self.codes(self.run_check(sp, media=True)))
 
+    def test_unreadable_addresses_give_a_short_error(self):
+        import contextlib, io, socket
+        from ledgdex.cli import main
+        with socket.socket() as s:   # a port with nothing on it
+            s.bind(('127.0.0.1', 0))
+            closed = 'http://127.0.0.1:' + str(s.getsockname()[1]) + '/'
+        for url, said in ((self.serve() + '/missing/', 'HTTP 404'), (closed, 'cannot read ' + closed)):
+            err = io.StringIO()
+            with self.assertRaises(SystemExit) as e, contextlib.redirect_stderr(err):
+                main(['verify', url])
+            self.assertEqual(1, e.exception.code)
+            said_by_ledgdex = [line for line in err.getvalue().splitlines() if line.startswith('ledgdex: cannot read ')]
+            self.assertEqual(1, len(said_by_ledgdex), err.getvalue())   # the test server logs to stderr too
+            self.assertIn(said, said_by_ledgdex[0])
+            self.assertNotIn('Traceback', err.getvalue())
+
     def test_media_is_only_fetched_over_http(self):
         pic = self.put('pic.png', b'picture')
         h = 'sha256:' + __import__('hashlib').sha256(b'picture').hexdigest()

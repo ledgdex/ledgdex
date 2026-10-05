@@ -298,6 +298,9 @@ simplest secure design (nothing is implemented; build only when the user says so
   message to the user and to all text you write in the ledgdex documentation. Use the skill in
   `.claude/skills/asd-ste100/`. Use its Strict mode for procedures, instructions, error messages and command help.
   Use its STE-flavored mode for explanatory prose. Run `scripts/ste-lint.py` on new documentation text before you push.
+- Use the author `alinoorul <noorulali78@gmail.com>` for every commit and push (the user's standing instruction). This
+  rule also applies to a patch that you apply with `git am`. If the patch names another author, change the author
+  before you push: `git commit --amend --no-edit --author='alinoorul <noorulali78@gmail.com>'`.
 - Commit as author `alinoorul <noorulali78@gmail.com>`; in cloud sessions make the committer
   `Claude <noreply@anthropic.com>` (`GIT_COMMITTER_NAME=Claude GIT_COMMITTER_EMAIL=noreply@anthropic.com`), which
   the session's stop hook requires. Write messages to a file and `git commit -F`. End every commit

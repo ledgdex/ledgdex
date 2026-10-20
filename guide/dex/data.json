@@ -47,7 +47,7 @@
     {
         "title": "Installation",
         "body": [
-            "Ledgdex needs Python 3.8 or later, and dexweb. Pip installs dexweb with ledgdex. To publish, you also need git.",
+            "Ledgdex needs Python 3.8 or later, and dexweb. Pip installs dexweb with ledgdex. To publish to a git repository, for example on GitHub Pages, you also need git. To publish into a folder, you do not need git (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>).",
             "1. Install from the release. This is the recommended way: <pre><code>pip install \"ledgdex @ git+https://github.com/ledgdex/ledgdex@v1.0.17#subdirectory=py\"</code></pre>",
             "2. Install with fast, constant-time signing. Use this way on each computer that signs. Without it, ledgdex shows a warning: <pre><code>pip install \"ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.17#subdirectory=py\"</code></pre>",
             "3. Install from a clone, to work on ledgdex itself: <pre><code>git clone https://github.com/ledgdex/ledgdex\ncd ledgdex\npip install -e \"py[fast]\"\ncd py &amp;&amp; python -m unittest discover -s tests</code></pre>",
@@ -60,7 +60,7 @@
         "title": "Ledgdex Directory Structure",
         "body": [
             "This list shows the files that <code>ledgdex init shop ...</code> makes. Nothing in the folder is secret. Keys are never in a dex.",
-            "<pre><code>shop/\n  ledgdex.jsonl        the ledger: a header line and one signed entry for each line (it only grows)\n  data.json            the dex pages: your pages, and the pages that ledgdex writes (they start with &lt;!-- ledgdex --&gt;)\n  config.json          dexweb settings, \"publish\" (with \"append_only\": [\"ledgdex.jsonl\"]) and \"ledgdex\"\n  styles.css           the look of the site (the dexweb default)\n  run.py               \"python run.py\" builds the dex with dexweb, as in any dex\n  to_add/              files that dexweb adds as pages\n  backup/              the dexweb backup of data.json\n  gen/                 the website: the published files, with gen/ledgdex.jsonl\n  .ledgdex-root.jsonl  the last copy of the root that ledgdex read (only with a root, never published)\n  .ledgdex.lock        lets one writer change the dex at a time\n  .publish/            the dexweb copy of the repository that it publishes to\n\n~/.ledgdex/            secret keys, mode 600 (NAME.key), and secret bids until their reveal (bids/)\n~/.cache/ledgdex/      a record of the ledger bytes that ledgdex verified before (for speed only)</code></pre>",
+            "<pre><code>shop/\n  ledgdex.jsonl        the ledger: a header line and one signed entry for each line (it only grows)\n  data.json            the dex pages: your pages, and the pages that ledgdex writes (they start with &lt;!-- ledgdex --&gt;)\n  config.json          dexweb settings, \"publish\" (with \"append_only\": [\"ledgdex.jsonl\"]) and \"ledgdex\"\n  styles.css           the look of the site (the dexweb default)\n  run.py               \"python run.py\" builds the dex with dexweb, as in any dex\n  to_add/              files that dexweb adds as pages\n  backup/              the dexweb backup of data.json\n  gen/                 the website: the published files, with gen/ledgdex.jsonl\n  .ledgdex-root.jsonl  the last copy of the root that ledgdex read (only with a root, never published)\n  .ledgdex.lock        lets one writer change the dex at a time\n  .publish/            the dexweb copy of the repository that it publishes to (only with the git method)\n\n~/.ledgdex/            secret keys, mode 600 (NAME.key), and secret bids until their reveal (bids/)\n~/.cache/ledgdex/      a record of the ledger bytes that ledgdex verified before (for speed only)</code></pre>",
             "Ledgdex publishes only <code>gen/</code>. The command <code>ledgdex render shop</code> writes the generated pages again and builds <code>gen/</code> again. Each command that records an entry does this for you."
         ]
     },
@@ -232,10 +232,16 @@
             "2. Name the repository when you run <code>init</code>, or at a later time in <code>\"publish\"</code> in <code>config.json</code>: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm --url https://YOU.github.io \\\n    --dest git@github.com:YOU/YOU.github.io.git --branch main</code></pre>",
             "3. Publish after each change: <pre><code>ledgdex publish shop</code></pre>",
             "4. Others read your ledgdex at its address: <pre><code>ledgdex verify https://YOU.github.io</code></pre>",
-            "You can publish from many devices. Each device keeps a copy of the dex and has its own device key.",
+            "With a git repository, you can publish from many devices. Each device keeps a copy of the dex and has its own device key.",
             "If a different device published first, <code>ledgdex publish</code> signs the unpublished entries of this device again, after the published ledger. Then it publishes again.",
             "So there is one history, and never two entries at one position. <a href='examplepublish.html'>Example: Publish</a> runs these steps with a local repository.",
-            "Static hosting is enough. Examples are GitHub Pages, any web server, or a shared folder on a local network. Computers can trade over plain HTTP (<a href='botsandagents.html'>Bots and Agents</a>)."
+            "Static hosting is enough. Examples are GitHub Pages, any web server, or a shared folder on a local network. Computers can trade over plain HTTP (<a href='botsandagents.html'>Bots and Agents</a>).",
+            "Publish into a folder, without git. Dexweb has a second publish method, <code>folder</code>. It copies <code>gen/</code> into a folder. Use it for a dex on your own computer, for tests, or for a web server on a local network. You do not need git or a repository.",
+            "1. Make the dex without <code>--dest</code>. The <code>--url</code> is the address where the web server will serve the published dex: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm --url http://127.0.0.1:8000/shop</code></pre>",
+            "2. <code>ledgdex init</code> writes only the settings of the git method. So add <code>\"method\"</code> and <code>\"path\"</code> to <code>\"publish\"</code> in <code>config.json</code>. The path is relative to the dex folder: <pre><code>\"publish\": {\"method\": \"folder\", \"path\": \"../site/shop\", \"append_only\": [\"ledgdex.jsonl\"]}</code></pre>",
+            "3. Publish after each change. Dexweb copies <code>gen/</code> into <code>../site/shop</code>. The <code>append_only</code> check works as with git: <pre><code>ledgdex publish shop</code></pre>",
+            "4. Serve the folder <code>site</code> with any web server, for example <code>python3 -m http.server 8000</code> in that folder. Then others read your ledgdex at its address: <pre><code>ledgdex verify http://127.0.0.1:8000/shop</code></pre>",
+            "Use the folder method on one device only. It has no atomic step. Thus two devices that publish into one folder at the same time can overwrite each other. With a git repository, ledgdex finds the conflict, catches up and publishes again."
         ]
     },
     {
@@ -583,7 +589,7 @@
         "body": [
             "<code>config.json</code> is the dexweb configuration file. Ledgdex reads two parts of it:",
             "<pre><code>{\n  \"dexname\": \"Mango Farm\", ... dexweb's templates and settings ...,\n  \"publish\": {\"dest\": \"git@github.com:YOU/YOU.github.io.git\", \"branch\": \"main\",\n              \"append_only\": [\"ledgdex.jsonl\"]},\n  \"ledgdex\": {\"root\": \"https://market.example\", \"root_id\": \"sha256:...\"}\n}</code></pre>",
-            "- <code>publish</code>: where dexweb publishes (<a href='https://matrixdex.github.io/dexweb/publishingdexonline.html'>dexweb docs</a>). Its <code>append_only</code> list must include <code>ledgdex.jsonl</code>.",
+            "- <code>publish</code>: where dexweb publishes (<a href='https://matrixdex.github.io/dexweb/publishingdexonline.html'>dexweb docs</a>). Its <code>append_only</code> list must include <code>ledgdex.jsonl</code>. The git method is the default. It uses <code>dest</code>, <code>branch</code> and <code>site_path</code>. The folder method uses <code>\"method\": \"folder\"</code> and <code>path</code>, and needs no git (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>).",
             "- <code>ledgdex</code>: the root that this dex trades under, pinned by its id.",
             "Environment variables:",
             "<pre><code>LEDGDEX_HOME       where keys live (default ~/.ledgdex)\nLEDGDEX_CACHE      the verification cache (default ~/.cache/ledgdex)\nLEDGDEX_NO_CACHE   1: verify every entry every time\nLEDGDEX_PURE       1: sign and verify with the built-in Ed25519 (not constant time)\nLEDGDEX_MAX_BYTES  the most read from one address (default 67108864, 64 MiB)</code></pre>"

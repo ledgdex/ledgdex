@@ -250,7 +250,8 @@ loophole each audit finds.* 23 audits were run:
   Engine logo `guide/assets/research-engine-logo.png` as a data: image; styles `.certificate`/`.cert-*` in
   `guide/dex/styles.css`). The user's certificate design: the logo alone on top, centred, with no border; the
   two text lines exactly as the user wrote them (do not rewrite them); the version line; the signature
-  "Research Engine" and "The Matrix Dex" in green at the end; one 3px green border (no outline). Only the docs index links to the Tutorial. `py/tests/tutorial.py` runs the tutorial in one
+  "Research Engine" and "The Matrix Dex" in green at the end, side by side in one row, each above its own
+  signature line, like two agencies that sign; one 3px green border (no outline). Only the docs index links to the Tutorial. `py/tests/tutorial.py` runs the tutorial in one
   bash and checks every expected line (`python py/tests/tutorial.py`, about 90 s); `test_guide` runs it and checks
   that it uses every command and option. The Markdown file also works as a skill file for agents. The Examples page holds all 15 examples (the user's choice, to keep the index short), each under a heading
   `<span id='exampleNAME'>`; links to an example go to `examples.html#exampleNAME` (`pages.link` does this for
@@ -265,6 +266,9 @@ loophole each audit finds.* 23 audits were run:
   `guide/dex`. Run no tests for docs changes: not for text, cosmetic or `styles.css` changes. Run tests only when
   code changes, that is `guide/tutorial.md` or a file in `guide/examples/` (run only the tests that read the changed
   file) or the ledgdex code itself. Keep testing lazy: the docs have no tests, and that stays so.
+  Cosmetic changes (design, layout, colours, the certificate, `styles.css`) are never code changes: test nothing,
+  even when the change also edits the markup in `guide/pages.py` to keep it the same as `data.json`. A screenshot to
+  look at the design is allowed; it is not a test.
 - Example files (`guide/examples/NN-name.sh|py|mjs|html`): at the top only the shebang/`set -eu` and `expect:` lines; each
   column-0 comment line (`# ` or `// `) becomes the paragraph shown above the code that follows it, and the code shown
   on the page has no comments (the user wants minimal comments in code; explanation in paragraphs). Backticks in those

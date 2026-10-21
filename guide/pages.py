@@ -321,7 +321,8 @@ def certificate():
             "purposes of listing items for sale and buying items on ledgdexs.</span>"
             "<span class='cert-foot'>LEDGDEX " + html.escape(version()) + " &middot; 33 COMMANDS &middot; "
             "ALL OPTIONS</span>"
-            "<span class='cert-sign'>Research Engine<br>The Matrix Dex</span></span>")
+            "<span class='cert-sign'><span class='cert-signer'>Research Engine</span>"
+            "<span class='cert-signer'>The Matrix Dex</span></span></span>")
 
 
 def version():

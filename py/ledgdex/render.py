@@ -256,6 +256,12 @@ def favicon():
     return importlib.resources.files('dexweb').joinpath('favicon.ico').read_bytes()
 
 
+def styles():
+    """The default styles.css of a ledgdex: dexweb's default styles with a ledger look for the page content."""
+    import importlib.resources
+    return importlib.resources.files('ledgdex').joinpath('styles.css').read_text(encoding='utf-8')
+
+
 def generated(page):
     b = page.get('body') if isinstance(page, dict) else None
     return bool(b) and isinstance(b[0], str) and b[0].startswith(MARKER)
@@ -272,7 +278,8 @@ def dex_name(name):
 
 def create_dex(dex, data, dexname, publish=None):
     """A complete dex (spec 7.1) around the ledger bytes `data`: config.json with dexweb's own template and
-    "publish" with "append_only", data.json, run.py, then render. Keeps a config.json that is already there."""
+    "publish" with "append_only", data.json, run.py, the ledgdex styles.css, then render. Keeps each of these files
+    that is already there."""
     from dexweb import dexgen
     dexname = dex_name(dexname)
     from .dex import write
@@ -291,7 +298,7 @@ def create_dex(dex, data, dexname, publish=None):
     cfg['publish'] = pub
     with open(cfg_path, 'w') as f:
         f.write(json.dumps(cfg, indent=4))
-    for name, text in (('data.json', '[]'), ('run.py', RUN_PY)):
+    for name, text in (('data.json', '[]'), ('run.py', RUN_PY), ('styles.css', styles())):
         if not os.path.exists(os.path.join(dex, name)):
             with open(os.path.join(dex, name), 'w') as f:
                 f.write(text)

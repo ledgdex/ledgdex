@@ -432,15 +432,16 @@ def build():
         with contextlib.redirect_stdout(io.StringIO()):
             render(dex)
         files.update({k: v for k, v in dex_files(dex, 'dex/market-variant/').items() if '/gen/' in k})
-        # dexweb's own template and styles, for building dexs in the browser
+        # dexweb's own template, and the ledgdex styles, for building dexs in the browser
         g = dexgen.Dexgen.__new__(dexgen.Dexgen)
         g.dexname = ''
         g.save_dexname_in_config(tmp, '')
         with open(os.path.join(tmp, 'config.json')) as f:
             config = json.load(f)
-        import base64, importlib_resources
+        import base64
         from ledgdex.render import favicon
-        styles = importlib_resources.files('dexweb').joinpath('styles.css').read_text()
+        from ledgdex.render import styles as ledgdex_styles
+        styles = ledgdex_styles()
         files['../js/dexweb-template.json'] = json.dumps({'config': config, 'styles': styles,
                                                           'favicon': base64.b64encode(favicon()).decode()},
                                                          indent=1, ensure_ascii=False) + '\n'

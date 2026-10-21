@@ -548,7 +548,7 @@ printable ASCII string (U+0021..U+007E); they still sort by byte value, so every
 my-dex/
   data.json        dex pages: the author's own pages plus the pages ledgdex generates (7.2)
   config.json      dexweb template, and "publish" with "append_only" (7.4)
-  styles.css       dexweb styles
+  styles.css       the ledgdex default styles: dexweb's, with ruled ledger rows (kept if already there)
   run.py           dexweb build script, as in every dex
   gen/             the website, built by dexweb
   gen/ledgdex.jsonl  a byte-for-byte copy of the ledger, written by render (7.3), so the site serves it

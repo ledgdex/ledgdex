@@ -1,3 +1,8 @@
+/* The default styles of a ledgdex: the dexweb default styles, with a ledger look for the page content. Each line
+   of a page is a ruled row, and the value of a line (its last key, hash or id) goes on a row of its own. The title
+   and the index link keep the dexweb look. Colors: black, white, greys and green only. Ledgdex writes this file into
+   a new dex. Change it as you like: ledgdex does not write it again. */
+
 body {
   background-color: black;
   color: rgb(220, 220, 220);
@@ -34,14 +39,85 @@ img {
 .ulink:hover {
   text-decoration: none;
 }
+
+/* ---- the ledger look: page content only ---- */
+
+/* each line of a page is one ruled row of the book */
+body > p,
+.indexlink > p {
+  margin: 0;
+  padding: 0.5rem 0.9rem 0.5rem 1.1rem;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 1.6;
+  border-bottom: 1px solid rgb(42, 42, 42);
+  overflow-wrap: anywhere;  /* a long hash or address in plain text wraps on a narrow screen */
+}
+body > p:nth-of-type(even),
+.indexlink:nth-of-type(even) > p {
+  background-color: rgb(12, 12, 12);
+}
+
+/* the first line under the title is the total of the page: green */
+h1 + br + p {
+  color: #00ff41;
+  background-color: transparent;
+}
+
+code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95em;
+  color: rgb(156, 156, 156);
+  overflow-wrap: anywhere;
+}
+
+/* The value of a line goes on a second row. The break comes before the code, and the code stays inline, so any
+   text after the code stays on that second row.
+   - The ledger page (it links to ledgdex.jsonl): each line ends with its key, hash or id. Break before the last code.
+   - The other pages: break only in a line with one code, such as "Offer id: ...". A line with two or more codes,
+     such as a claim ("ID by KEY: 2 at ..."), stays one row. */
+body:has(> p > a[href="ledgdex.jsonl"]) > p > code:last-child::before,
+body:not(:has(> p > a[href="ledgdex.jsonl"])) > p > code:only-of-type::before {
+  content: "\A  ";
+  white-space: pre;
+}
+
+/* tables in your own pages: the same ruled rows */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+th, td {
+  padding: 0.4rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgb(42, 42, 42);
+}
+th {
+  color: white;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+tbody tr:nth-child(even) td {
+  background-color: rgb(12, 12, 12);
+}
+
 @media screen and (max-width: 800px) {
-  
   img {
     max-width: 100%;
-}
+  }
 }
 @media screen and (max-width: 600px) {
   body {
     padding: 0px 20px
+  }
+  body > p, .indexlink > p {
+    font-size: 14px;
+    padding: 0.5rem 0.6rem 0.5rem 0.8rem;
   }
 }

@@ -4,7 +4,7 @@ import helpers  # noqa: F401
 from ledgdex.cli import main
 from ledgdex.core import Ledger
 from ledgdex.dex import LEDGER, load, write
-from ledgdex.render import MARKER, render
+from ledgdex.render import MARKER, render, styles
 
 try:
     from dexweb import dexweb
@@ -59,6 +59,18 @@ class Dex(unittest.TestCase):
             self.assertEqual(json.load(f)['publish'], {'append_only': [LEDGER]})
         with open('shop/gen/' + LEDGER, 'rb') as a, open('shop/' + LEDGER, 'rb') as b:
             self.assertEqual(a.read(), b.read())
+        for f in ('shop/styles.css', 'shop/gen/styles.css'):   # the ledgdex styles, not dexweb's default
+            with open(f, encoding='utf-8') as css:
+                self.assertEqual(styles(), css.read(), f)
+
+    def test_init_keeps_the_styles_of_a_dex(self):
+        os.makedirs('mine')
+        with open('mine/styles.css', 'w') as f:
+            f.write('body { color: white; }\n')
+        run('init', 'mine', '--name', 'Mine', '--key', 'mine')
+        for f in ('mine/styles.css', 'mine/gen/styles.css'):
+            with open(f) as css:
+                self.assertEqual('body { color: white; }\n', css.read(), f)
 
     def test_trade_between_two_dexs(self):
         oid = self.shop()

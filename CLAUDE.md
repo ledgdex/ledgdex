@@ -93,6 +93,8 @@ py/ledgdex/            the Python package (pip install -e "py[fast]")
   state.py             the state function: replay a ledger into offers, claims, auctions, disputes, admissions...
   dex.py               a ledgdex on disk: keys (~/.ledgdex, mode 600), load/write, root pinning, locks
   render.py            ledger state -> dex pages in data.json (MARKER '<!-- ledgdex -->'), dex name sanitising
+  styles.css           the default styles.css of every new ledgdex (dexweb's defaults + ruled ledger rows; the
+                       user's design). create_dex writes it if missing; make_vectors puts it in js/dexweb-template.json
   publish.py           catch up with the published ledger, re-sequence, publish with dexweb (append_only)
   check.py             tamper checks over time (kept copies + receipts), the GitHub workflow generator
   cli.py               the `ledgdex` command (argparse; `parser()`); `next_at` keeps one key's messages in distinct seconds
@@ -171,7 +173,7 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-cd py && python -m unittest discover -s tests -v                       # cryptography backend (140 tests)
+cd py && python -m unittest discover -s tests -v                       # cryptography backend (141 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
 cd py && python tests/fuzz.py --seed N --ledgers 200 --texts 3000 --keep fuzz-out  # differential fuzzing

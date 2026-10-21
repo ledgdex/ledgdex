@@ -21,3 +21,6 @@ ledgdex = "ledgdex.cli:main"
 
 [tool.setuptools]
 packages = ["ledgdex"]
+
+[tool.setuptools.package-data]
+ledgdex = ["styles.css"]

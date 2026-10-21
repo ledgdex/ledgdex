@@ -260,6 +260,11 @@ loophole each audit finds.* 23 audits were run:
   at the end), only when asked, and leaves every other page alone; `--gen` builds `guide/dex/gen/` to preview. build.py writes data.json the way ledgdex does (indent 4, ensure_ascii False, no trailing
   newline) and atomically (tmp + replace).
 - Publish: `cd guide/dex && ledgdex publish .` -> dexweb git method to `ledgdex/ledgdex.github.io`, `site_path: docs`.
+- **How to make a docs change (the user's standing instruction, 2026-10-21):** when the user asks for a change to
+  the docs, edit `guide/dex/data.json` (or `styles.css`, `config.json`), then run `ledgdex publish .` in
+  `guide/dex`. Run no tests for docs changes: not for text, cosmetic or `styles.css` changes. Run tests only when
+  code changes, that is `guide/tutorial.md` or a file in `guide/examples/` (run only the tests that read the changed
+  file) or the ledgdex code itself. Keep testing lazy: the docs have no tests, and that stays so.
 - Example files (`guide/examples/NN-name.sh|py|mjs|html`): at the top only the shebang/`set -eu` and `expect:` lines; each
   column-0 comment line (`# ` or `// `) becomes the paragraph shown above the code that follows it, and the code shown
   on the page has no comments (the user wants minimal comments in code; explanation in paragraphs). Backticks in those

@@ -294,7 +294,7 @@ def tutorial_page():
                 name = row[0].strip('`')
                 commands.append("<a href='#step" + re.findall(r'\d+', row[-1])[0] + "'>" + html.escape(name) + '</a>')
     intro = [
-        'Contents:', *["- <a href='#" + a + "'>" + inline(h) + '</a>' for a, h in sections],
+        'Contents:', *["<a href='#" + a + "'>" + inline(h) + '</a>' for a, h in sections],
         'Commands, each linked to the first step that uses it: ' + ', '.join(commands) + '.',
         'Agents and bots: read this tutorial as a Markdown file, ' +
         ext(REPO + '/blob/main/guide/tutorial.md', c('guide/tutorial.md')) + '. Use it as a skill. The tests of '

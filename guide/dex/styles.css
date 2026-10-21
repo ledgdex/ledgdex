@@ -78,18 +78,11 @@ p > span[id] {
 .certificate {
   display: block; box-sizing: border-box; width: 100%; max-width: 680px; margin: 3em auto 1em;
   padding: clamp(18px, 5vw, 40px); background-color: black; color: white; text-align: center;
-  border: 3px solid #00ff41; border-radius: 0; outline: 1px solid #00ff41; outline-offset: 6px;
+  border: 3px solid #00ff41; border-radius: 0;
   font-family: Consolas, "Lucida Console", "Courier New", monospace; letter-spacing: 0.04em;
 }
-.cert-head {
-  display: flex; align-items: center; justify-content: center; gap: clamp(10px, 3vw, 18px); margin-bottom: 1.2em;
-}
 .cert-logo {
-  display: block; margin: 0; width: clamp(48px, 14vw, 84px); height: auto; max-width: none;
-  border: 2px solid #00ff41; border-radius: 50%;
-}
-.cert-issuer {
-  display: block; text-align: left; color: #00ff41; font-size: clamp(12px, 3.4vw, 16px); line-height: 1.5;
+  display: block; margin: 0 auto 1.2em; width: clamp(48px, 14vw, 84px); height: auto; max-width: none;
 }
 .cert-title {
   display: block; color: white; font-size: clamp(26px, 8vw, 44px); letter-spacing: 0.18em; margin: 0.2em 0;
@@ -103,6 +96,10 @@ p > span[id] {
 }
 .cert-foot {
   display: block; color: #00ff41; font-size: clamp(11px, 3vw, 14px); letter-spacing: 0.12em; margin-top: 1.4em;
+}
+.cert-sign {
+  display: block; color: #00ff41; font-size: clamp(14px, 4vw, 18px); line-height: 1.6; margin: 1.6em auto 0;
+  padding-top: 0.8em; width: max-content; max-width: 100%; border-top: 1px solid #00ff41;
 }
 
 /* ---- the ledger pages: the ledger, the example offer and the example auction ----

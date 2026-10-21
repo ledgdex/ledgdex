@@ -247,7 +247,9 @@ loophole each audit finds.* 23 audits were run:
   its sections (anchors `step1`..`step18`) and of the commands, each `sh` block as code, each `expect` block as
   "Expected output", and at the end a certificate (The Matrix Dex style: Consolas, black/white/green, the Research
   Engine logo `guide/assets/research-engine-logo.png` as a data: image; styles `.certificate`/`.cert-*` in
-  `guide/dex/styles.css`). Only the docs index links to the Tutorial. `py/tests/tutorial.py` runs the tutorial in one
+  `guide/dex/styles.css`). The user's certificate design: the logo alone on top, centred, with no border; the
+  two text lines exactly as the user wrote them (do not rewrite them); the version line; the signature
+  "Research Engine" and "The Matrix Dex" in green at the end; one 3px green border (no outline). Only the docs index links to the Tutorial. `py/tests/tutorial.py` runs the tutorial in one
   bash and checks every expected line (`python py/tests/tutorial.py`, about 90 s); `test_guide` runs it and checks
   that it uses every command and option. The Markdown file also works as a skill file for agents. The Examples page holds all 15 examples (the user's choice, to keep the index short), each under a heading
   `<span id='exampleNAME'>`; links to an example go to `examples.html#exampleNAME` (`pages.link` does this for

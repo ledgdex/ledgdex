@@ -307,22 +307,24 @@ def tutorial_page():
 
 
 def certificate():
-    """The certificate at the end of the tutorial: The Matrix Dex style, with the Research Engine logo. Only spans,
+    """The certificate at the end of the tutorial: The Matrix Dex style, with the Research Engine logo on top and
+    the signature of Research Engine and The Matrix Dex at the end. Only spans,
     an image and line breaks, so that it can stand in a paragraph; its look is in the docs styles.css (class names)."""
     import base64
     with open(LOGO, 'rb') as f:
         logo = 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
     return ("<span class='certificate' role='img' aria-label='Certificate: ledgdex operator'>"
-            "<span class='cert-head'><img class='cert-logo' src='" + logo + "' alt='Research Engine logo'>"
-            "<span class='cert-issuer'>RESEARCH ENGINE<br>THE MATRIX DEX</span></span>"
+            "<img class='cert-logo' src='" + logo + "' alt='Research Engine logo'>"
             "<span class='cert-title'>CERTIFICATE</span>"
             "<span class='cert-role'>LEDGDEX OPERATOR</span>"
-            "<span class='cert-text'>This certifies that the human or bot who is at the end of this page completed "
-            "the ledgdex command line tutorial. The output of each step contained its expected lines.</span>"
-            "<span class='cert-text'>The holder can operate ledgdex with all its commands and options. The holder "
-            "can list items for sale and buy items on a ledgdex.</span>"
+            "<span class='cert-text'>This certifies the Human or Bot who is at the end of this page completed the "
+            "Ledgdex CLI tutorial. Achieving output mentioned at the end each step is sign of passing each test; "
+            "achievement of all outputs completed Ledgdex CLI tutorial.</span>"
+            "<span class='cert-text'>The holder can operate Ledgdex with all its commands and options for the "
+            "purposes of listing items for sale and buying items on ledgdexs.</span>"
             "<span class='cert-foot'>LEDGDEX " + html.escape(version()) + " &middot; 33 COMMANDS &middot; "
-            "ALL OPTIONS</span></span>")
+            "ALL OPTIONS</span>"
+            "<span class='cert-sign'>Research Engine<br>The Matrix Dex</span></span>")
 
 
 def version():

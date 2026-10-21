@@ -1,19 +1,18 @@
-"""Refresh the generated pages of the ledgdex docs. Optional: run it only when the command line, the API, the message
-types or an example in guide/examples/ changed.
+"""Make docs pages from the code and the examples, when you ask for them. Optional: the docs do not need it.
 
 The docs are a ledgdex in guide/dex/: a dex (data.json, config.json, styles.css) with a ledger (ledgdex.jsonl, see
-make_demo_ledger.py). Pages are written by hand in data.json. A few are generated from the code and the examples
-(pages.py); their bodies start with pages.MARKER. This script replaces those pages in data.json, matched by title, adds
-any that are new, removes a generated page that pages.py no longer makes, and leaves every other page as it is.
+make_demo_ledger.py). data.json is the source of the docs: change any page there by hand, then publish. pages.py can
+make five pages from the code and the examples. This script writes a page into data.json only when you name it. It
+replaces the page with that title, or adds it at the end. It leaves every other page as it is.
 
-    python guide/build.py            update the generated pages in guide/dex/data.json
-    python guide/build.py --check    exit 1 if they are out of date (CI)
-    python guide/build.py --gen      also build the site into guide/dex/gen/ without publishing (to preview, and CI)
+    python guide/build.py                          list the pages that it can make
+    python guide/build.py --page "Message Types"   write that page into guide/dex/data.json (use --page again for more)
+    python guide/build.py --gen                    build the site into guide/dex/gen/ without publishing (to preview)
 
 Then publish the docs to docs/ in ledgdex/ledgdex.github.io (https://ledgdex.github.io/docs/):
 
     cd guide/dex && ledgdex publish ."""
-import contextlib, io, json, os, sys
+import argparse, contextlib, io, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'py'))
@@ -24,19 +23,20 @@ DEX = os.path.join(HERE, 'dex')
 DATA = os.path.join(DEX, 'data.json')
 
 
-def updated(data):
-    """data with every generated page replaced, or added at the end when new. A page that starts with pages.MARKER but
-    that pages.py no longer makes is removed."""
-    made = pages.generated()
-    titles = {p['title'] for p in made}
-    data = [p for p in data if not (p.get('body') and str(p['body'][0]).startswith(pages.MARKER))
-            or p['title'] in titles]
+def written(data, titles):
+    """data with the named pages replaced, or added at the end when new."""
+    made = {p['title']: p for p in pages.generated()}
+    unknown = [t for t in titles if t not in made]
+    if unknown:
+        raise SystemExit('build.py cannot make ' + ', '.join(map(repr, unknown)) + '. It can make: ' +
+                         ', '.join(map(repr, made)))
+    data = list(data)
     at = {p['title']: n for n, p in enumerate(data)}
-    for p in made:
-        if p['title'] in at:
-            data[at[p['title']]] = p
+    for t in titles:
+        if t in at:
+            data[at[t]] = made[t]
         else:
-            data.append(p)
+            data.append(made[t])
     return data
 
 
@@ -53,23 +53,23 @@ def gen():
 
 
 def main(argv):
-    with open(DATA, encoding='utf-8') as f:
-        data = json.load(f)
-    new = updated(data)
-    if new == data:
-        print('generated docs pages are up to date')
-        if '--gen' in argv:
-            gen()
+    ap = argparse.ArgumentParser(prog='build.py', description='Make docs pages from the code, when you ask.')
+    ap.add_argument('--page', action='append', default=[], metavar='TITLE', help='write this page into data.json')
+    ap.add_argument('--gen', action='store_true', help='build the site into guide/dex/gen/')
+    a = ap.parse_args(argv)
+    if not a.page and not a.gen:
+        print('pages that build.py can make: ' + ', '.join(p['title'] for p in pages.generated()))
         return
-    if '--check' in argv:
-        raise SystemExit('generated docs pages are out of date: run "python guide/build.py", then '
-                         '"cd guide/dex && ledgdex publish ."')
-    tmp = DATA + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(new, indent=4, ensure_ascii=False))     # as ledgdex writes it
-    os.replace(tmp, DATA)
-    print('generated docs pages updated in guide/dex/data.json; publish with: cd guide/dex && ledgdex publish .')
-    if '--gen' in argv:
+    if a.page:
+        with open(DATA, encoding='utf-8') as f:
+            data = json.load(f)
+        new = written(data, a.page)
+        tmp = DATA + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(new, indent=4, ensure_ascii=False))     # as ledgdex writes it
+        os.replace(tmp, DATA)
+        print('written into guide/dex/data.json: ' + ', '.join(a.page))
+    if a.gen:
         gen()
 
 

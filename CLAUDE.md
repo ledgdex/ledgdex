@@ -110,7 +110,7 @@ vectors/               shared test vectors, byte-exact for both languages: canon
 home/                  the home dex (home page, Live Markets, About; no scripts) -> ledgdex.github.io root
 viewer/                the viewer dex (data.json, config.json, styles.css, run.py) -> ledgdex.github.io/viewer/
 guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 tested examples), pages.py
-                       (generated pages), build.py (optional refresher), make_demo_ledger.py
+                       (pages it can make), build.py (writes a named page, by hand only), make_demo_ledger.py
 .github/workflows/tests.yml   CI
 .claude/skills/asd-ste100/    project skill (user-added): ASD-STE100 Simplified Technical English rewrites, with a
                               stdlib-only linter (scripts/ste-lint.py). From github.com/danyuchn/asd-ste100-skill at
@@ -176,12 +176,12 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-cd py && python -m unittest discover -s tests -v                       # cryptography backend (143 tests)
+cd py && python -m unittest discover -s tests -v                       # cryptography backend (137 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
 cd py && python tests/fuzz.py --seed N --ledgers 200 --texts 3000 --keep fuzz-out  # differential fuzzing
 python py/tests/make_vectors.py                                        # regenerate vectors (only for deliberate changes)
-python guide/build.py --check --gen                                    # docs: generated pages current, site builds
+python guide/build.py --gen                                            # docs: build gen/ to preview (optional, not a test)
 cd viewer && python run.py --build-only                                # viewer builds
 ```
 
@@ -189,13 +189,14 @@ cd viewer && python run.py --build-only                                # viewer 
   corrupts them (bytes, lines, fields re-signed so the change reaches deeper rules), and makes tricky JSON texts;
   Python and node each report parse / whole / where it breaks / why / canon(state) / pages; any difference fails.
   CI runs a new seed every run (`--seed ${{ github.run_number }}`); for audits run many seeds and larger counts.
-- `test_guide.py` runs all 15 docs examples in empty temp folders with their own `LEDGDEX_HOME`, asserts every
-  `# expect:` / `// expect:` line is printed, checks every command and option is documented, every docs link and
-  anchor resolves (in `guide/dex/gen/`), no page has `<script`, `<b>` or `<strong>`, generated pages are current and
-  marked, and the install commands name `v` + `__version__`.
+- `test_guide.py` runs all 15 docs examples in empty temp folders with their own `LEDGDEX_HOME` and asserts every
+  `# expect:` / `// expect:` line is printed; it runs the tutorial and checks that it uses every command and option.
+  These are CLI tests: they read `guide/examples/` and `guide/tutorial.md`, never `guide/dex/data.json`.
+- **No test and no CI step checks the docs pages** (the user's decision, 2026-10-21: "the idea of docs is to have a
+  static site that i can freely change without needing tests"). Never add one back. The docs pages, links, version
+  strings and styles are the user's, edited by hand and published with `ledgdex publish .`.
 - `test_safety.py`: invariant 14 (pages carry only text, `<code>`, `<br>`, safe http(s) links) on every vector page.
-- CI (`.github/workflows/tests.yml`), in order: install; docs build check (`build.py --check --gen`, then
-  `git diff --exit-code guide`); viewer build; both Python suites; JS vectors; fuzzing (uploads disagreements on
+- CI (`.github/workflows/tests.yml`), in order: install; viewer build; home build; both Python suites; JS vectors; fuzzing (uploads disagreements on
   failure). Actions are pinned to commits.
 
 Before every push: run the relevant suites locally on BOTH backends, re-read your diff adversarially, then push; check
@@ -241,7 +242,7 @@ loophole each audit finds.* 23 audits were run:
   density) to orthonalyzebot (a bot of the Orthonalyze clinic) and kneecarebot, under the ONITO medmodel exchange
   (root and index). osteobot is a second seller, unknownbot a non-member. Prices in USD cents, units "license". No
   mangoes, farms, Asha, Ravi or maps in the docs. README.md still uses the old story. **`data.json` is the source**: the user edits it by hand like any dex.
-- 5 pages are generated from code and examples by `guide/pages.py`: Command Line Options from argparse with
+- `guide/pages.py` can make 5 pages from code and examples (only when the user asks, see build.py below): Command Line Options from argparse with
   COLUMNS=110, API Reference from `inspect` and the JS exports, Message Types validated with `check_body`, Examples,
   and Tutorial. The Tutorial page comes from `guide/tutorial.md` (the user's tutorial, in ASD-STE100): an index of
   its sections (anchors `step1`..`step18`) and of the commands, each `sh` block as code, each `expect` block as
@@ -253,11 +254,10 @@ loophole each audit finds.* 23 audits were run:
   bash and checks every expected line (`python py/tests/tutorial.py`, about 90 s); `test_guide` runs it and checks
   that it uses every command and option. The Markdown file also works as a skill file for agents. The Examples page holds all 15 examples (the user's choice, to keep the index short), each under a heading
   `<span id='exampleNAME'>`; links to an example go to `examples.html#exampleNAME` (`pages.link` does this for
-  generated pages). The 15 old example pages are gone from data.json; `build.py` removes a marked page that
-  pages.py no longer makes. Each generated page's first body string starts with
-  `<!-- generated by build.py. use build.py to generate page if there are changes -->` (the user asked for exactly
-  that comment). `python guide/build.py` replaces only those pages (by title) and removes marked pages it no longer makes, `--check` fails if stale, `--gen` also
-  builds `guide/dex/gen/`. build.py writes data.json the way ledgdex does (indent 4, ensure_ascii False, no trailing
+  generated pages). The 15 old example pages are gone from data.json. Since 2026-10-21 the 5 pages carry no marker:
+  every page in data.json is the user's, free to change by hand. `python guide/build.py` lists what it can make;
+  `python guide/build.py --page TITLE` (repeatable) writes that page into data.json (replaces it by title, or adds it
+  at the end), only when asked, and leaves every other page alone; `--gen` builds `guide/dex/gen/` to preview. build.py writes data.json the way ledgdex does (indent 4, ensure_ascii False, no trailing
   newline) and atomically (tmp + replace).
 - Publish: `cd guide/dex && ledgdex publish .` -> dexweb git method to `ledgdex/ledgdex.github.io`, `site_path: docs`.
 - Example files (`guide/examples/NN-name.sh|py|mjs|html`): at the top only the shebang/`set -eu` and `expect:` lines; each
@@ -273,7 +273,8 @@ loophole each audit finds.* 23 audits were run:
   both: the page template in `guide/dex/config.json` writes `<body data-title='{0}'>` (indexed format fields), and
   the ledger rules at the end of `guide/dex/styles.css` select those titles. Chromium computed styles were checked
   equal to the ledgdex styles.css alone on the ledger pages, and to the old docs styles on the other pages.
-- Hand-written pages carry the version in install commands (`@v1.0.18#subdirectory=py`); a test enforces it.
+- Hand-written pages carry the version in install commands (`@v1.0.18#subdirectory=py`); update it by hand on a
+  release (no test checks it).
 
 ### Home (`home/`) and viewer (`viewer/`)
 - The home dex has the pages Live Markets and About. Its index lists Viewer and Docs too. It runs no scripts (its CSP

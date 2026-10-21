@@ -262,10 +262,15 @@ loophole each audit finds.* 23 audits were run:
   column-0 comment line (`# ` or `// `) becomes the paragraph shown above the code that follows it, and the code shown
   on the page has no comments (the user wants minimal comments in code; explanation in paragraphs). Backticks in those
   comments become inline code. Keep examples clear, concise and in simple language about what they achieve.
-- Style the user asked for: no `<b>`/bold anywhere; code blocks (`<pre>`) dark, with a 3px green border on all sides and no rounded corners, 15px, light
+- Style the user asked for: no `<b>`/bold anywhere; code blocks (`<pre>`) dark, with a thin (1px) green border on all sides and no rounded corners, 15px, light
   text; inline code `rgb(203,203,203)`, 18px inside paragraphs, inheriting size elsewhere (`monospace, monospace`);
   the docs index is NOT sorted by us (dexweb 4.2.5 sorts it by title; the user said "do not sort index for now").
   Docs style mirrors the dexweb docs (config/templates "LEDGDEX DOCS", "BACK TO LEDGDEX DOCS").
+- The three ledger pages of the docs (Ledgdex Docs ledger, Example offer: ..., Example auction: ...) use the ledger
+  look of `py/ledgdex/styles.css` (the user's choice); all other docs pages keep the docs look. One styles.css serves
+  both: the page template in `guide/dex/config.json` writes `<body data-title='{0}'>` (indexed format fields), and
+  the ledger rules at the end of `guide/dex/styles.css` select those titles. Chromium computed styles were checked
+  equal to the ledgdex styles.css alone on the ledger pages, and to the old docs styles on the other pages.
 - Hand-written pages carry the version in install commands (`@v1.0.18#subdirectory=py`); a test enforces it.
 
 ### Home (`home/`) and viewer (`viewer/`)

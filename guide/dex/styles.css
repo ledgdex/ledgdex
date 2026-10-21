@@ -47,7 +47,7 @@ img {
 }
 
 pre {
-  background-color: rgb(20, 20, 20); border: 3px solid #00ff41; border-radius: 0; padding: 12px 16px; overflow-x: auto;
+  background-color: rgb(20, 20, 20); border: 1px solid #00ff41; border-radius: 0; padding: 12px 16px; overflow-x: auto;
   font-family: monospace; font-size: 15px; letter-spacing: 0; line-height: 1.45; white-space: pre;
 }
 code {
@@ -103,4 +103,52 @@ p > span[id] {
 }
 .cert-foot {
   display: block; color: #00ff41; font-size: clamp(11px, 3vw, 14px); letter-spacing: 0.12em; margin-top: 1.4em;
+}
+
+/* ---- the ledger pages: the ledger, the example offer and the example auction ----
+   These rules are the ledger look of the default styles.css of a ledgdex (py/ledgdex/styles.css). They apply only
+   to the pages that ledgdex makes from the docs ledger. The page template puts the title of each page in the
+   data-title attribute of <body>. All the other pages keep the docs look above. */
+
+/* each line of a page is one ruled row of the book */
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]) > p {
+  margin: 0;
+  padding: 0.5rem 0.9rem 0.5rem 1.1rem;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 1.6;
+  border-bottom: 1px solid rgb(42, 42, 42);
+  overflow-wrap: anywhere;
+}
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]) > p:nth-of-type(even) {
+  background-color: rgb(12, 12, 12);
+}
+
+/* the first line under the title is the total of the page: green */
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]) > h1 + br + p {
+  color: #00ff41;
+  background-color: transparent;
+}
+
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]) code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95em;
+  color: rgb(156, 156, 156);
+  overflow-wrap: anywhere;
+}
+
+/* The value of a line goes on a second row. On the ledger page (it links to ledgdex.jsonl), break before the last
+   code of each line. On the offer and the auction pages, break only in a line with one code. */
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]):has(> p > a[href="ledgdex.jsonl"]) > p > code:last-child::before,
+body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]):not(:has(> p > a[href="ledgdex.jsonl"])) > p > code:only-of-type::before {
+  content: "\A  ";
+  white-space: pre;
+}
+
+@media screen and (max-width: 600px) {
+  body:is([data-title="Ledgdex Docs ledger"], [data-title^="Example offer: "], [data-title^="Example auction: "]) > p {
+    font-size: 14px;
+    padding: 0.5rem 0.6rem 0.5rem 0.8rem;
+  }
 }

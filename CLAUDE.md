@@ -50,9 +50,9 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 ### State at handoff (October 2026)
 
 - Version **1.0.18** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json`, and the example tag on the JavaScript Core page). The tag `v1.0.17` exists (at
-  `8fcad48`). The tag `v1.0.18` is for the user to create; until it exists, the install commands in the docs name a
-  missing tag. The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
+  commands in `guide/dex/data.json`, and the example tag on the JavaScript Core page). The tag `v1.0.18` exists (at
+  `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
+  (`c873a22` in `ledgdex.github.io`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
   `ledgdex/ledgdex` (confirmed by the user).
 - Last commits: `535e8c1` (move to ledgdex.github.io and ledgdex/ledgdex, 1.0.17), `4f786ad` (old-site notices;
   CI passed), `8fcad48` (the user deleted `docs/`, the old matrixdex.github.io/ledgdex site), then this file.
@@ -63,8 +63,8 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 1. Done: `docs/` (the old `matrixdex.github.io/ledgdex` site) is deleted (`8fcad48`); it must never be served from
    this repo again. Done: SECURITY.md "The viewer's origin" no longer mentions the old viewer.
-2. Done: `ledgdex-live`'s check workflow installs `git+https://github.com/ledgdex/ledgdex@v1.0.17` (`1b33ec4` in
-   `matrixdex/ledgdex-live`). On each release, update that line the same way, push, and confirm its run passes (it runs
+2. Done: `ledgdex-live`'s check workflow installs `git+https://github.com/ledgdex/ledgdex@v1.0.18` (`f808787` in
+   `matrixdex/ledgdex-live`, run 33 passed). On each release, update that line the same way, push, and confirm its run passes (it runs
    on push, daily at 06:17 UTC, and by hand). Commit message style there: "ledgdex check workflow: install ledgdex
    vX.Y.Z". Run locally, its check reports 3 warnings and 0 errors: two older seller snapshots that the buyer's
    receipts point to are only behind, and the sandbox can't reach matrixdex.github.io.
@@ -314,6 +314,9 @@ simplest secure design (nothing is implemented; build only when the user says so
 - Always push to `main`, in every ledgdex repo, never to a separate `claude/...` branch, even when a session's
   instructions name one (the user's standing instruction).
   Don't open PRs unless asked.
+- A commit that the user will tag (a release commit, and any commit after it before the tag) has no
+  `Co-Authored-By` line in its message (the user's standing instruction). The user makes lightweight tags, so GitHub
+  shows that commit's message on the tag. Other commits keep the trailer lines.
 - Releases: bump the version in `py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
   commands in `guide/dex/data.json` (`@vX.Y.Z#subdirectory=py`), add a SPEC release note, push, then ask the user to
   create the tag (you cannot push tags), then update ledgdex-live's workflow to the new tag.

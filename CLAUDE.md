@@ -52,7 +52,8 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 - Version **1.0.18** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
   commands in `guide/dex/data.json`, and the example tag on the JavaScript Core page). The tag `v1.0.18` exists (at
   `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
-  (`c873a22` in `ledgdex.github.io`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
+  (`c873a22` in `ledgdex.github.io`). The docs with the Tutorial and the biobot story are published (`62ff19d` in `ledgdex.github.io`; the old
+  docs ledger and old example pages were removed there by hand in `e756764` and `ae7b026`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
   `ledgdex/ledgdex` (confirmed by the user).
 - Last commits: `535e8c1` (move to ledgdex.github.io and ledgdex/ledgdex, 1.0.17), `4f786ad` (old-site notices;
   CI passed), `8fcad48` (the user deleted `docs/`, the old matrixdex.github.io/ledgdex site), then this file.

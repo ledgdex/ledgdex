@@ -4,7 +4,7 @@ types or an example in guide/examples/ changed.
 The docs are a ledgdex in guide/dex/: a dex (data.json, config.json, styles.css) with a ledger (ledgdex.jsonl, see
 make_demo_ledger.py). Pages are written by hand in data.json. A few are generated from the code and the examples
 (pages.py); their bodies start with pages.MARKER. This script replaces those pages in data.json, matched by title, adds
-any that are new, and leaves every other page as it is.
+any that are new, removes a generated page that pages.py no longer makes, and leaves every other page as it is.
 
     python guide/build.py            update the generated pages in guide/dex/data.json
     python guide/build.py --check    exit 1 if they are out of date (CI)
@@ -25,10 +25,14 @@ DATA = os.path.join(DEX, 'data.json')
 
 
 def updated(data):
-    """data with every generated page replaced, or added at the end when new."""
-    data = list(data)
+    """data with every generated page replaced, or added at the end when new. A page that starts with pages.MARKER but
+    that pages.py no longer makes is removed."""
+    made = pages.generated()
+    titles = {p['title'] for p in made}
+    data = [p for p in data if not (p.get('body') and str(p['body'][0]).startswith(pages.MARKER))
+            or p['title'] in titles]
     at = {p['title']: n for n, p in enumerate(data)}
-    for p in pages.generated():
+    for p in made:
         if p['title'] in at:
             data[at[p['title']]] = p
         else:

@@ -1,5 +1,6 @@
 """The generated pages of the ledgdex docs (see build.py): the command line options, the API reference and the
-message types, made from the code, and the example pages, made from guide/examples/ (tested by py/tests/test_guide.py).
+message types, made from the code, and the Examples page, made from guide/examples/ (tested by py/tests/test_guide.py).
+All examples are on that one page, each under a heading with its own anchor.
 Each page is a dex page: a title and a list of paragraphs, HTML as dexweb writes it. The other pages are written by
 hand in guide/dex/data.json."""
 import argparse, html, inspect, json, os, re
@@ -24,7 +25,15 @@ def c(text):
 
 
 def link(title, text=None):
+    """A link to a docs page, or to an example's section of the Examples page."""
+    if title in EXAMPLE_TITLES:
+        return "<a href='" + example_href(title) + "'>" + (text or title) + '</a>'
     return "<a href='" + html_title(title) + ".html'>" + (text or title) + '</a>'
+
+
+def example_href(title):
+    """An example's address: the anchor of its section on the Examples page, named like its old page."""
+    return 'examples.html#' + html_title(title)
 
 
 def ext(url, text):
@@ -268,18 +277,20 @@ def generated():
                '.html': lambda n: 'Save it as a file and open it in a browser, or put it on your website',
                '.mjs': lambda n: 'From the repository root (or with ' + c('LEDGDEX_JS') + ' set to the folder or URL '
                                  'of the JavaScript core): ' + c('node guide/examples/' + n)}
-    rows = []
+    rows, sections = [], []
     for name, (title, goal) in EXAMPLE_PAGES.items():
         rows.append(link(title) + ': ' + goal)
-        page(title, goal, 'Run it: ' + run_how[os.path.splitext(name)[1]](name) + '.', example(name),
-             *EXAMPLE_AFTER.get(name, []))
+        sections += (["<span id='" + html_title(title) + "'>" + title + '</span>', goal,
+                      'Run it: ' + run_how[os.path.splitext(name)[1]](name) + '.'] + example(name) +
+                     EXAMPLE_AFTER.get(name, []))
     page('Examples',
          'Every example below is a file in ' + ext(REPO + '/tree/main/guide/examples', c('guide/examples/')) + ', run '
          'as it is on every push: each must exit without error and print what its ' + c('expect:') + ' lines name. '
          'Download one and run it in an empty folder (keys go to ' + c('~/.ledgdex') + ', or set ' +
          c('LEDGDEX_HOME') + ' to keep them apart).', rows,
          'Smaller examples are on each topic page: ' + link('Selling') + ', ' + link('Buying') + ', ' +
-         link('Set Up a Marketplace') + ', ' + link('Checking for Tampering') + '.')
+         link('Set Up a Marketplace') + ', ' + link('Checking for Tampering') + '.',
+         sections)
 
     return P
 
@@ -320,6 +331,8 @@ EXAMPLE_PAGES = {
     '15-js-sign.mjs': ('Example: Sign in the Browser',
         'A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.'),
 }
+
+EXAMPLE_TITLES = {title for title, _ in EXAMPLE_PAGES.values()}
 
 # shown after an example's code
 EXAMPLE_AFTER = {

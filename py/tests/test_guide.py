@@ -102,7 +102,7 @@ class DocsPages(unittest.TestCase):
         if not os.path.isdir(docs):
             self.skipTest('the docs are not built: python guide/build.py --gen')
         files = [f for f in os.listdir(docs) if f.endswith('.html')]
-        self.assertGreater(len(files), 40)
+        self.assertGreater(len(files), 30)     # 32 pages and the index (the examples share one page)
         ids = {}
         for f in files:
             with open(os.path.join(docs, f), encoding='utf-8') as fh:

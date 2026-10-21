@@ -14,7 +14,7 @@
             "2. Make your ledgdex. This command makes a dex with a new ledger. It keeps a new key in <code>~/.ledgdex</code>: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm</code></pre>",
             "3. Offer something. Write each price as an integer in the smallest unit of the currency. For example, 120000 is INR 1,200.00: <pre><code>cat &gt; offer.json &lt;&lt;EOF\n{\"item\": {\"title\": \"Alphonso mangoes\"}, \"quantity\": 10, \"unit\": \"dozen\",\n \"currency\": \"INR\", \"price\": 120000, \"pay\": [{\"method\": \"upi\", \"to\": \"farm@bank\"}]}\nEOF\nledgdex offer shop offer.json</code></pre>",
             "4. Open <code>shop/gen/index.html</code>. This is your dex. It has a page for your ledger and a page for the offer. Put your own pages in <code>shop/data.json</code> or <code>shop/to_add/</code>, as in any dex.",
-            "5. Publish your ledgdex (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>). Buyers then claim from it (<a href='buying.html'>Buying</a>). <a href='examplefirsttrade.html'>Example: First Trade</a> runs a full trade on one computer.",
+            "5. Publish your ledgdex (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>). Buyers then claim from it (<a href='buying.html'>Buying</a>). <a href='examples.html#examplefirsttrade'>Example: First Trade</a> runs a full trade on one computer.",
             "Where to go next:",
             "- Users who start a market: <a href='setupamarketplace.html'>Set Up a Marketplace</a>.",
             "- Developers: <a href='extendingledgdex.html'>Extending Ledgdex</a> and the <a href='apireference.html'>API Reference</a>.",
@@ -71,7 +71,7 @@
             "One operator keeps a ledger that has two jobs:",
             "- The index: the list of shops in the market.",
             "- The root: the list of members that the operator admits.",
-            "Shops sell to admitted members. Buyers find offers through the index. The operator is the default arbiter of disputes. <a href='examplemarketplace.html'>Example: Marketplace</a> does all of these steps on one computer.",
+            "Shops sell to admitted members. Buyers find offers through the index. The operator is the default arbiter of disputes. <a href='examples.html#examplemarketplace'>Example: Marketplace</a> does all of these steps on one computer.",
             "1. The operator makes the ledgdex of the market and publishes it (<a href='publishingaledgdexonline.html'>Publishing a Ledgdex Online</a>): <pre><code>ledgdex init market --name \"Ratnagiri Market\" --about \"Fruit sellers of Ratnagiri\" --key market \\\n    --url https://market.example --dest git@github.com:YOU/market.git --branch main\nledgdex publish market</code></pre>",
             "2. Each shop makes its own ledgdex in the market: <pre><code>ledgdex init farm --name \"Mango Farm\" --key farm --root https://market.example</code></pre>",
             "3. Shops and buyers send their public key to the operator. The commands <code>ledgdex keygen NAME</code> and <code>ledgdex init</code> show the public key.",
@@ -114,7 +114,7 @@
             "- INR and USD: paise and cents (2 digits).",
             "- JPY: yen.",
             "- BTC: satoshi.",
-            "All currency codes work. The pages format the codes that they know. See <a href='atradestepbystep.html'>A Trade, Step by Step</a> and <a href='examplefirsttrade.html'>Example: First Trade</a>."
+            "All currency codes work. The pages format the codes that they know. See <a href='atradestepbystep.html'>A Trade, Step by Step</a> and <a href='examples.html#examplefirsttrade'>Example: First Trade</a>."
         ]
     },
     {
@@ -136,7 +136,7 @@
     {
         "title": "A Trade, Step by Step",
         "body": [
-            "This table shows who signs each message, which ledgers keep it, and the status of the claim after each step. <a href='examplefirsttrade.html'>Example: First Trade</a> runs these steps.",
+            "This table shows who signs each message, which ledgers keep it, and the status of the claim after each step. <a href='examples.html#examplefirsttrade'>Example: First Trade</a> runs these steps.",
             "<pre><code>step                         signed by   kept in                     claim status\noffer                        seller      seller ledger               (offer open)\nclaim                        buyer       buyer (sent), seller        accepted, or rejected with a reason\nreceipt of the claim         buyer       buyer ledger                (the third entry)\npaid                         buyer       buyer (sent), seller        accepted, paid\nreceived                     seller      seller ledger               accepted, received\ndelivered                    seller      seller ledger               accepted, delivered\nconfirmed                    buyer       buyer (sent), seller        closed (once received + delivered + confirmed)\ndispute                      either      seller ledger               disputed\nruling                       arbiter     seller ledger               released, refunded or split</code></pre>",
             "The state tests the rejection reasons in this order: <code>unknown_offer</code>, <code>offer_changed</code>, <code>withdrawn</code>, <code>expired</code>, <code>self_claim</code>, <code>not_allowed</code>, <code>bad_quantity</code>, <code>price_mismatch</code>.",
             "Some messages break no structure rule, but no state rule accepts them. Examples are a payment from a different key, a ruling by the wrong key, and a message that the seller records two times.",
@@ -156,7 +156,7 @@
             "4. The seller records the ruling. The status of the claim becomes <code>released</code>, <code>refunded</code> or <code>split</code>.",
             "If a different key rules, the ledger keeps the ruling, and the state ignores it (<code>not_arbiter</code>). The arbiter can decide a dispute one time only.",
             "Money moves outside the ledger. A ruling is a signed decision. The parties and their market do what it says.",
-            "<a href='exampledisputes.html'>Example: Disputes</a> runs these steps. In this example, a seller also tries to decide its own dispute."
+            "<a href='examples.html#exampledisputes'>Example: Disputes</a> runs these steps. In this example, a seller also tries to decide its own dispute."
         ]
     },
     {
@@ -176,7 +176,7 @@
             "- A reveal must match its bid.",
             "- With <code>\"best\": \"lowest\"</code>, the auction is a procurement. The lowest amount at or below <code>reserve</code> wins.",
             "- If two bids tie, the earlier bid wins.",
-            "The state judges a ledger at its last entry. So, to announce the result, the seller adds an entry after <code>reveal_until</code>, for example a note. See <a href='exampleauction.html'>Example: Auction</a>."
+            "The state judges a ledger at its last entry. So, to announce the result, the seller adds an entry after <code>reveal_until</code>, for example a note. See <a href='examples.html#exampleauction'>Example: Auction</a>."
         ]
     },
     {
@@ -193,7 +193,7 @@
             "2. The root names a new key for the ledger.",
             "3. The owner gets the ledger again with the new key.",
             "A recovery removes all device keys. <pre><code>NEW=$(ledgdex keygen farm-new)                         # owner, on a new machine\nledgdex recover root https://farm.example \"$NEW\"      # root operator, with the root's owner key\nledgdex recovered shop --root https://market.example --key farm-new</code></pre>",
-            "Keep a backup of each owner key offline. <a href='examplekeys.html'>Example: Keys</a> runs all of these steps."
+            "Keep a backup of each owner key offline. <a href='examples.html#examplekeys'>Example: Keys</a> runs all of these steps."
         ]
     },
     {
@@ -220,7 +220,7 @@
             "<pre><code>ledgdex list market https://farm.example --note \"mangoes\"\nledgdex delist market LEDGER_ID --reason closed</code></pre>",
             "Discovery reads an index. With <code>--offers</code>, it also reads the open offers and auctions of each listed ledger, with their signed price and terms.",
             "With <code>--json</code>, it writes JSON for programs: <pre><code>ledgdex discover https://market.example --offers\nledgdex discover https://market.example --offers --json</code></pre>",
-            "If a listed address serves a different ledger, discovery reports it and does not trust it. <a href='examplemarketplace.html'>Example: Marketplace</a> and <a href='examplebots.html'>Example: Bots</a> choose offers in this way."
+            "If a listed address serves a different ledger, discovery reports it and does not trust it. <a href='examples.html#examplemarketplace'>Example: Marketplace</a> and <a href='examples.html#examplebots'>Example: Bots</a> choose offers in this way."
         ]
     },
     {
@@ -234,7 +234,7 @@
             "4. Others read your ledgdex at its address: <pre><code>ledgdex verify https://YOU.github.io</code></pre>",
             "With a git repository, you can publish from many devices. Each device keeps a copy of the dex and has its own device key.",
             "If a different device published first, <code>ledgdex publish</code> signs the unpublished entries of this device again, after the published ledger. Then it publishes again.",
-            "So there is one history, and never two entries at one position. <a href='examplepublish.html'>Example: Publish</a> runs these steps with a local repository.",
+            "So there is one history, and never two entries at one position. <a href='examples.html#examplepublish'>Example: Publish</a> runs these steps with a local repository.",
             "Static hosting is enough. Examples are GitHub Pages, any web server, or a shared folder on a local network. Computers can trade over plain HTTP (<a href='botsandagents.html'>Bots and Agents</a>).",
             "Publish into a folder, without git. Dexweb has a second publish method, <code>folder</code>. It copies <code>gen/</code> into a folder. Use it for a dex on your own computer, for tests, or for a web server on a local network. You do not need git or a repository.",
             "1. Make the dex without <code>--dest</code>. The <code>--url</code> is the address where the web server will serve the published dex: <pre><code>ledgdex init shop --name \"Mango Farm\" --key farm --url http://127.0.0.1:8000/shop</code></pre>",
@@ -256,7 +256,7 @@
             "- <code>ledger_changed</code>: an address serves a different ledger.",
             "- <code>broken</code>, <code>media_changed</code>, <code>published_differs</code>.",
             "A warning tells you that the check could not check something: <code>stale</code>, <code>unreachable</code>, <code>needs_root</code>, <code>receipt_bad_signer</code>, <code>receipt_url_mismatch</code>, <code>future_time</code>, <code>media_unavailable</code>, <code>behind</code>.",
-            "Check the ledgers that you trade with each day. <a href='examplecheck.html'>Example: Check</a> shows how the check finds a rewrite."
+            "Check the ledgers that you trade with each day. <a href='examples.html#examplecheck'>Example: Check</a> shows how the check finds a rewrite."
         ]
     },
     {
@@ -352,7 +352,7 @@
     {
         "title": "API Reference",
         "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Ledgdex is a Python package (<code>ledgdex</code>, in <code>py/</code>) and a JavaScript core (<code>js/</code>) that make the same bytes, ids, signatures and state. Signatures and descriptions below are generated from the code. Start with <a href='examplepythonapi.html'>Example: Python API</a>, <a href='examplejavascript.html'>Example: JavaScript</a> and <a href='extendingledgdex.html'>Extending Ledgdex</a>; the format is in <a href='ledgerfileformat.html'>Ledger File Format</a> and the <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>.",
+            "<!-- generated by build.py. use build.py to generate page if there are changes -->Ledgdex is a Python package (<code>ledgdex</code>, in <code>py/</code>) and a JavaScript core (<code>js/</code>) that make the same bytes, ids, signatures and state. Signatures and descriptions below are generated from the code. Start with <a href='examples.html#examplepythonapi'>Example: Python API</a>, <a href='examples.html#examplejavascript'>Example: JavaScript</a> and <a href='extendingledgdex.html'>Extending Ledgdex</a>; the format is in <a href='ledgerfileformat.html'>Ledger File Format</a> and the <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>.",
             "Python: <a href='#ledgdex.core'>ledgdex.core</a>, <a href='#ledgdex.canon'>ledgdex.canon</a>, <a href='#ledgdex.state'>ledgdex.state</a>, <a href='#ledgdex.dex'>ledgdex.dex</a>, <a href='#ledgdex.render'>ledgdex.render</a>, <a href='#ledgdex.check'>ledgdex.check</a>, <a href='#ledgdex.publish'>ledgdex.publish</a>, <a href='#ledgdex.cli'>ledgdex.cli</a>, <a href='#ledgdex.sig'>ledgdex.sig</a>.",
             "<span id='ledgdex.core'>ledgdex.core</span>: Messages, entries and ledgers: signing, verifying, reading a ledger (spec 2, 3).",
             "<pre><code>class ledgdex.core.Ledger(data, cache=True, root=None)</code></pre>",
@@ -603,7 +603,7 @@
             "2. Tools that read the state. <code>state(Ledger(...))</code> is plain JSON of offers, claims, auctions, disputes, admissions and listings.",
             "Reports, exports, dashboards and alerts can read the state. Nothing that they do can change a ledger.",
             "3. Agents: programs that sign and record by rule (<a href='botsandagents.html'>Bots and Agents</a>). From Python, call the commands with <code>ledgdex.cli.main([...])</code>, or use the library under them.",
-            "4. In the browser: the same core in <code>js/</code> (<a href='javascriptcore.html'>JavaScript Core</a>, <a href='examplejavascript.html'>Example: JavaScript</a>).",
+            "4. In the browser: the same core in <code>js/</code> (<a href='javascriptcore.html'>JavaScript Core</a>, <a href='examples.html#examplejavascript'>Example: JavaScript</a>).",
             "5. New message types. A new type changes the format, so start with the <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>specification</a>. Then change these parts:",
             "- the fields of the body in <code>BODIES</code> (core.py and core.js)",
             "- who can sign and record the type",
@@ -614,7 +614,7 @@
             "- Do not change a ledger file by hand. The ledger breaks, or the change is a rewrite that each receipt shows.",
             "- Do not keep keys in a dex.",
             "- Do not trust a ledger before you verify it (<code>Ledger(data).whole</code>).",
-            "<a href='exampleextending.html'>Example: Extending</a> makes a sales report and adds it to the dex as a page."
+            "<a href='examples.html#exampleextending'>Example: Extending</a> makes a sales report and adds it to the dex as a page."
         ]
     },
     {
@@ -633,10 +633,10 @@
             "A script from a different site can change without your knowledge, and it runs with the rights of your page.",
             "In Node, import the files from a copy of <code>js/</code>, as the examples do.",
             "Use the JavaScript core for these jobs:",
-            "1. Verify ledgers in the reader's own browser, so nobody has to trust your server. <a href='exampleshopwebpage.html'>Example: Shop Web Page</a> shows the offers of a shop on the shop's own website.",
-            "2. Buy with nothing to install. A buyer keeps a sealed key in the browser, signs orders and keeps its own ledger, as the viewer does. See <a href='examplesigninthebrowser.html'>Example: Sign in the Browser</a>.",
-            "3. Write programs and bots in JavaScript that read, verify and follow ledgers in Node. See <a href='exampleverifyinnode.html'>Example: Verify in Node</a>.",
-            "4. Make ledgers and messages in code, as the Python library does. See <a href='examplejavascript.html'>Example: JavaScript</a>.",
+            "1. Verify ledgers in the reader's own browser, so nobody has to trust your server. <a href='examples.html#exampleshopwebpage'>Example: Shop Web Page</a> shows the offers of a shop on the shop's own website.",
+            "2. Buy with nothing to install. A buyer keeps a sealed key in the browser, signs orders and keeps its own ledger, as the viewer does. See <a href='examples.html#examplesigninthebrowser'>Example: Sign in the Browser</a>.",
+            "3. Write programs and bots in JavaScript that read, verify and follow ledgers in Node. See <a href='examples.html#exampleverifyinnode'>Example: Verify in Node</a>.",
+            "4. Make ledgers and messages in code, as the Python library does. See <a href='examples.html#examplejavascript'>Example: JavaScript</a>.",
             "Use Python for the command line and for all work over time. Only the Python package has these functions:",
             "- publishing a dex with dexweb",
             "- <code>ledgdex check</code>, with its kept copies and receipts",
@@ -678,7 +678,7 @@
             "- Run <code>record --from</code> with many sources. If a source is unreachable or breaks the rules, the command skips it and reports it. It records the other sources.",
             "- Ledgdex signs the messages from one key at different times. So all repeated orders count.",
             "- On a local network, serve each dex over plain HTTP, and use those addresses.",
-            "<a href='examplebots.html'>Example: Bots</a> runs a seller bot and two buyer bots until all deals close. <a href='robotspaidperclean.html'>Robots Paid per Clean</a> is a full use case."
+            "<a href='examples.html#examplebots'>Example: Bots</a> runs a seller bot and two buyer bots until all deals close. <a href='robotspaidperclean.html'>Robots Paid per Clean</a> is a full use case."
         ]
     },
     {
@@ -693,7 +693,7 @@
             "5. If a robot stops work, it withdraws its offer. Shops then claim from the other robots.",
             "6. In the evening, each shop pays each robot for the confirmed cleans of the day. Each robot records <code>received</code>.",
             "Anyone can calculate the totals of the day from the ledgers alone.",
-            "<a href='examplerobotcleaning.html'>Example: Robot Cleaning</a> runs a full day with two operators and three shops.",
+            "<a href='examples.html#examplerobotcleaning'>Example: Robot Cleaning</a> runs a full day with two operators and three shops.",
             "The spec has drafts for these parts (milestone 11): deadlines that cancel unclaimed cleans, mall credits, and a clearing ledger."
         ]
     },
@@ -708,9 +708,27 @@
         ]
     },
     {
-        "title": "Example: First Trade",
+        "title": "Examples",
         "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->One shop sells mangoes to one buyer, from start to finish, on your own computer.",
+            "<!-- generated by build.py. use build.py to generate page if there are changes -->Every example below is a file in <a href='https://github.com/ledgdex/ledgdex/tree/main/guide/examples'><code>guide/examples/</code></a>, run as it is on every push: each must exit without error and print what its <code>expect:</code> lines name. Download one and run it in an empty folder (keys go to <code>~/.ledgdex</code>, or set <code>LEDGDEX_HOME</code> to keep them apart).",
+            "<a href='examples.html#examplefirsttrade'>Example: First Trade</a>: One shop sells mangoes to one buyer, from start to finish, on your own computer.",
+            "<a href='examples.html#examplemarketplace'>Example: Marketplace</a>: A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.",
+            "<a href='examples.html#exampleauction'>Example: Auction</a>: A gallery auctions an old map with secret bids, and the highest bid wins.",
+            "<a href='examples.html#exampledisputes'>Example: Disputes</a>: A buyer pays but gets nothing, complains, and an independent judge orders a refund.",
+            "<a href='examples.html#examplekeys'>Example: Keys</a>: Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.",
+            "<a href='examples.html#examplepublish'>Example: Publish</a>: Putting a ledgdex online from two devices without the two ever disagreeing.",
+            "<a href='examples.html#examplecheck'>Example: Check</a>: Catching a cheat: a shop secretly rewrites its records, and a check proves it.",
+            "<a href='examples.html#examplepythonapi'>Example: Python API</a>: For developers: using ledgdex from Python directly, with no files or website.",
+            "<a href='examples.html#examplebots'>Example: Bots</a>: Programs trading with each other, with no person involved: two buyer bots buy software licences from the cheaper of two seller bots.",
+            "<a href='examples.html#examplerobotcleaning'>Example: Robot Cleaning</a>: Cleaning robots paid per clean by the shops of a mall, for one day.",
+            "<a href='examples.html#exampleextending'>Example: Extending</a>: For developers: building your own report from a ledger, and adding it to your website.",
+            "<a href='examples.html#examplejavascript'>Example: JavaScript</a>: For developers: the same ledger code in JavaScript, for Node or a web page.",
+            "<a href='examples.html#exampleverifyinnode'>Example: Verify in Node</a>: For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
+            "<a href='examples.html#exampleshopwebpage'>Example: Shop Web Page</a>: A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
+            "<a href='examples.html#examplesigninthebrowser'>Example: Sign in the Browser</a>: A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
+            "Smaller examples are on each topic page: <a href='selling.html'>Selling</a>, <a href='buying.html'>Buying</a>, <a href='setupamarketplace.html'>Set Up a Marketplace</a>, <a href='checkingfortampering.html'>Checking for Tampering</a>.",
+            "<span id='examplefirsttrade'>Example: First Trade</span>",
+            "One shop sells mangoes to one buyer, from start to finish, on your own computer.",
             "Run it: In an empty folder: <code>sh 01-first-trade.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "The shop makes its ledgdex: a website (dex) with a signed record book (ledger) in it. Your keys are kept in <code>~/.ledgdex</code>.",
@@ -725,13 +743,9 @@
             "<pre><code>ledgdex pay me shop \"$CLAIM\" --method upi --ref UTR123 --output paid.json\nledgdex record shop --from me\nledgdex received shop \"$CLAIM\" 240000\nledgdex delivered shop \"$CLAIM\" --note \"by courier\"\nledgdex confirm me shop \"$CLAIM\" --output confirmed.json\nledgdex record shop --from me</code></pre>",
             "Anyone can now verify the shop's ledger and see the order: it is closed.",
             "<pre><code>ledgdex verify shop\nledgdex state shop | python3 -m json.tool | grep '\"status\"'</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/01-first-trade.sh'><code>guide/examples/01-first-trade.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Marketplace",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/01-first-trade.sh'><code>guide/examples/01-first-trade.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplemarketplace'>Example: Marketplace</span>",
+            "A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.",
             "Run it: In an empty folder: <code>sh 02-marketplace.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "The organiser makes the market's ledgdex. Its ledger is both the member list (the root) and the list of shops (the index). Two shops join, naming the market they trade in.",
@@ -748,13 +762,9 @@
             "<pre><code>set -- $(python3 -c '\nimport json\nfound = json.load(open(\"found.json\"))\nbest = min(((o[\"price\"], l[\"url\"], o[\"id\"]) for l in found for o in l[\"offers\"]), key=lambda x: x[0])\nprint(best[1], best[2])')\nledgdex claim me \"$1\" \"$2\" --output claim.json\nledgdex record \"$1\" --from me</code></pre>",
             "Someone who is not a member tries the same and is turned away: the order is rejected as <code>not_allowed</code>.",
             "<pre><code>ledgdex init stranger --name \"Stranger\" --key stranger\nledgdex claim stranger \"$1\" \"$2\" --output stranger-claim.json\nledgdex record \"$1\" --from stranger</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/02-marketplace.sh'><code>guide/examples/02-marketplace.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Auction",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->A gallery auctions an old map with secret bids, and the highest bid wins.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/02-marketplace.sh'><code>guide/examples/02-marketplace.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='exampleauction'>Example: Auction</span>",
+            "A gallery auctions an old map with secret bids, and the highest bid wins.",
             "Run it: In an empty folder: <code>sh 03-auction.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "Two small helpers: <code>at N</code> gives the time N seconds from now, and <code>wait_until T</code> waits until just after time T. Bidding lasts seconds here so the example is quick; a real auction lasts hours or days.",
@@ -767,13 +777,9 @@
             "<pre><code>wait_until \"$CLOSE\"\nledgdex reveal asha gallery \"$AUCTION\" --output asha-reveal.json\nledgdex reveal ravi gallery \"$AUCTION\" --output ravi-reveal.json\nledgdex record gallery --from asha --from ravi</code></pre>",
             "When the reveal time is over, the gallery adds a note to close the auction. Anyone can now see the winner: Ravi, at INR 7,200.",
             "<pre><code>wait_until \"$REVEAL_UNTIL\"\nledgdex note gallery \"$AUCTION\" \"Bidding is over: the result is in the state.\"\nledgdex state gallery | python3 -c '\nimport json, sys\na = list(json.load(sys.stdin)[\"auctions\"].values())[0]\nprint(json.dumps({\"winner\": a[\"winner\"], \"amount\": a[\"amount\"], \"status\": a[\"status\"]}, indent=1))'</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/03-auction.sh'><code>guide/examples/03-auction.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Disputes",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->A buyer pays but gets nothing, complains, and an independent judge orders a refund.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/03-auction.sh'><code>guide/examples/03-auction.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='exampledisputes'>Example: Disputes</span>",
+            "A buyer pays but gets nothing, complains, and an independent judge orders a refund.",
             "Run it: In an empty folder: <code>sh 04-disputes.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "The judge (arbiter) is a traders' association with its own ledgdex. The shop names the association's key in its offer.",
@@ -786,13 +792,9 @@
             "<pre><code>ledgdex ruling shop shop \"$DISPUTE\" --outcome release --text \"I say it was delivered.\" --output self-ruling.json\nledgdex record shop --from shop || true</code></pre>",
             "The association decides: refund. The shop records the decision, and the order shows as refunded.",
             "<pre><code>ledgdex ruling assoc shop \"$DISPUTE\" --outcome refund --text \"No proof of delivery: refund in full.\" --output ruling.json\nledgdex record shop --from assoc\nledgdex state shop | python3 -c '\nimport json, sys\nst = json.load(sys.stdin)\nprint(json.dumps({\"status\": [c[\"status\"] for c in st[\"claims\"].values()][0],\n                  \"ignored\": [i[\"reason\"] for i in st[\"ignored\"]]}))'</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/04-disputes.sh'><code>guide/examples/04-disputes.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Keys",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/04-disputes.sh'><code>guide/examples/04-disputes.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplekeys'>Example: Keys</span>",
+            "Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.",
             "Run it: In an empty folder: <code>sh 05-keys.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu\nKEYS=${LEDGDEX_HOME:-$HOME/.ledgdex}</code></pre>",
             "A market (the root) that can name a new key for a member who lost theirs, and a shop in it.",
@@ -807,13 +809,9 @@
             "<pre><code>ledgdex rotate shop --key farm-2026</code></pre>",
             "The main key is lost (here it is moved away). The market checks who the owner is and names a new key, and the owner takes the ledger back with it.",
             "<pre><code>mkdir -p lost &amp;&amp; mv \"$KEYS/farm-2026.key\" lost/\nNEW=$(ledgdex keygen farm-new)\nledgdex recover root shop \"$NEW\"\nledgdex recovered shop --root root --key farm-new\nledgdex note shop \"$FIRST\" \"back with the new key\"\nledgdex verify shop --root root</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/05-keys.sh'><code>guide/examples/05-keys.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Publish",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Putting a ledgdex online from two devices without the two ever disagreeing.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/05-keys.sh'><code>guide/examples/05-keys.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplepublish'>Example: Publish</span>",
+            "Putting a ledgdex online from two devices without the two ever disagreeing.",
             "Run it: In an empty folder: <code>sh 06-publish.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "A ledgdex is published like any dex, to a git repository. Online that is GitHub Pages (<code>--dest git@github.com:YOU/YOU.github.io.git</code>); here it is a local repository. The shop publishes its first offer.",
@@ -824,13 +822,9 @@
             "<pre><code>ledgdex note shop \"$OFFER\" \"from the laptop\"\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex note phone \"$OFFER\" \"from the phone\"\nledgdex publish shop\nLEDGDEX_HOME=\"$PWD/phone-keys\" ledgdex publish phone</code></pre>",
             "The published ledger is whole and has both notes, in order.",
             "<pre><code>git --git-dir=site.git show main:ledgdex.jsonl &gt; published.jsonl\nledgdex verify published.jsonl\npython3 -c '\nimport json\nfor line in open(\"published.jsonl\").read().split(\"\\n\")[1:]:\n    if line and json.loads(line)[\"msg\"][\"type\"] == \"note\":\n        print(json.loads(line)[\"msg\"][\"body\"][\"text\"])'</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/06-publish.sh'><code>guide/examples/06-publish.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Check",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Catching a cheat: a shop secretly rewrites its records, and a check proves it.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/06-publish.sh'><code>guide/examples/06-publish.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplecheck'>Example: Check</span>",
+            "Catching a cheat: a shop secretly rewrites its records, and a check proves it.",
             "Run it: In an empty folder: <code>sh 07-check.sh</code>.",
             "<pre><code>#!/bin/sh\nset -eu</code></pre>",
             "A shop sells to a buyer, and the buyer keeps a receipt.",
@@ -843,13 +837,9 @@
             "<pre><code>ledgdex check shop me || echo \"check failed with exit code $?\"\nls .ledgdex-check/proofs/</code></pre>",
             "The same check, written as a GitHub workflow that runs every day. Without GitHub, use cron or <code>--every 3600</code>.",
             "<pre><code>ledgdex workflow shop/ledgdex.jsonl me/ledgdex.jsonl &gt; ledgdex-check.yml\nhead -3 ledgdex-check.yml</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/07-check.sh'><code>guide/examples/07-check.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Python API",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->For developers: using ledgdex from Python directly, with no files or website.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/07-check.sh'><code>guide/examples/07-check.sh</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplepythonapi'>Example: Python API</span>",
+            "For developers: using ledgdex from Python directly, with no files or website.",
             "Run it: In an empty folder: <code>python3 08-python-api.py</code>.",
             "<pre><code>import json\nfrom ledgdex.canon import canon, hash_\nfrom ledgdex.core import Ledger, message, new_ledger, new_secret, public\nfrom ledgdex.state import state</code></pre>",
             "Two keys, one for the seller and one for the buyer. These are secrets: keep them out of any dex.",
@@ -866,13 +856,9 @@
             "<pre><code>data = bytearray(led.data)\ndata[data.index(b'\"quantity\":2') + 11] = ord('3')\ntampered = Ledger(bytes(data), cache=False)\nprint('broken at', tampered.broken_at, '-', tampered.error)</code></pre>",
             "Canonical JSON is the exact bytes that are hashed and signed: sorted keys, no spaces, UTF-8.",
             "<pre><code>print(canon({'b': 1, 'a': 'é'}).decode())</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/08-python-api.py'><code>guide/examples/08-python-api.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Bots",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Programs trading with each other, with no person involved: two buyer bots buy software licences from the cheaper of two seller bots.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/08-python-api.py'><code>guide/examples/08-python-api.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplebots'>Example: Bots</span>",
+            "Programs trading with each other, with no person involved: two buyer bots buy software licences from the cheaper of two seller bots.",
             "Run it: In an empty folder: <code>python3 09-bots.py</code>.",
             "<pre><code>import contextlib, io, json\nfrom ledgdex.cli import main</code></pre>",
             "<code>ledgdex(...)</code> runs one ledgdex command in this program and returns what it printed; <code>state(...)</code> reads a ledgdex's state.",
@@ -885,13 +871,9 @@
             "<pre><code>ledgdex('init', 'index', '--name', 'Software Market', '--key', 'index')\nfor shop, price in (('acme', 4900), ('globex', 3900)):\n    ledgdex('init', shop, '--name', shop.title() + ' Software', '--key', shop)\n    with open(shop + '.json', 'w') as f:\n        json.dump({'item': {'title': 'Photo editor licence'}, 'quantity': 100, 'unit': 'licence',\n                   'currency': 'USD', 'price': price}, f)\n    ledgdex('offer', shop, shop + '.json')\n    ledgdex('list', 'index', shop, '--note', 'software')\nfor buyer in ('alice', 'bob'):\n    ledgdex('init', buyer, '--name', buyer.title(), '--key', buyer)</code></pre>",
             "Every bot takes a turn each round, as it would on a timer. Online, each bot would also publish its dex after its turn. After four rounds both buyers have bought from Globex, the cheaper shop, and both deals are closed.",
             "<pre><code>sellers = [SellerBot('acme', ['alice', 'bob']), SellerBot('globex', ['alice', 'bob'])]\nbuyers = [BuyerBot('alice', 'index', 'Photo editor licence', 5000), BuyerBot('bob', 'index', 'Photo editor licence', 5000)]\nfor n in range(1, 5):\n    for bot in buyers + sellers:\n        bot.round()\n    claims = state('globex')['claims']\n    print('round', n, sorted(c['status'] + (' delivered' if c.get('delivered') else '') for c in claims.values()))\nprint('all deals closed:', all(c['status'] == 'closed' for c in state('globex')['claims'].values()) and\n      len(state('globex')['claims']) == 2)</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/09-bots.py'><code>guide/examples/09-bots.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Robot Cleaning",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Cleaning robots paid per clean by the shops of a mall, for one day.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/09-bots.py'><code>guide/examples/09-bots.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplerobotcleaning'>Example: Robot Cleaning</span>",
+            "Cleaning robots paid per clean by the shops of a mall, for one day.",
             "Run it: In an empty folder: <code>python3 10-robot-cleaning.py</code>.",
             "<pre><code>import contextlib, hashlib, io, json, os\nfrom ledgdex.cli import main\nHOME = os.environ.get('LEDGDEX_HOME') or os.path.join(os.path.expanduser('~'), '.ledgdex')</code></pre>",
             "<code>ledgdex(...)</code> runs one ledgdex command. <code>keys</code> picks the folder of keys to sign with: a robot's own, or by default its company's.",
@@ -906,13 +888,9 @@
             "<pre><code>for shop, robot, claim in done:\n    ledgdex('pay', shop, robot, claim, '--method', 'card', '--ref', 'DAY-2026-10-01', '--output', shop + '-paid.json')\nfor robot in robots:\n    keys = os.path.join(os.getcwd(), robot + '-keys')\n    ledgdex('record', robot, *[x for s in shops for x in ('--from', s)], keys=keys)\n    for cid, c in state(robot)['claims'].items():\n        if 'paid' in c and 'received' not in c:\n            ledgdex('received', robot, cid, c['price'], keys=keys)</code></pre>",
             "The day's report, worked out from the ledgers alone, so anyone can check it.",
             "<pre><code>for robot in robots:\n    claims = state(robot)['claims'].values()\n    print(robot, 'day total: USD', sum(c['price'] for c in claims if c['status'] == 'closed') / 100,\n          'for', sum(c['status'] == 'closed' for c in claims), 'cleans')\nprint('paid per clean:', all(c['status'] == 'closed' for r in robots for c in state(r)['claims'].values()))</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/10-robot-cleaning.py'><code>guide/examples/10-robot-cleaning.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Extending",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->For developers: building your own report from a ledger, and adding it to your website.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/10-robot-cleaning.py'><code>guide/examples/10-robot-cleaning.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='exampleextending'>Example: Extending</span>",
+            "For developers: building your own report from a ledger, and adding it to your website.",
             "Run it: In an empty folder: <code>python3 11-extending.py</code>.",
             "<pre><code>import contextlib, csv, io, json, os\nfrom ledgdex.cli import main\nfrom ledgdex.dex import load\nfrom ledgdex.render import MARKER, render\nfrom ledgdex.state import state</code></pre>",
             "<code>ledgdex(...)</code> runs one ledgdex command in this program and returns what it printed.",
@@ -925,13 +903,9 @@
             "<pre><code>with open('shop/data.json') as f:\n    pages = json.load(f)\npages.append({'title': 'Sales report', 'body': [\n    led.header['name'] + ' sales: ' + str(len(st['claims'])) + ' orders, INR ' + '{:,.2f}'.format(total / 100) + '.',\n    'Every figure here is computed from the signed ledger: &lt;a href=\"ledgdex.jsonl\"&gt;ledgdex.jsonl&lt;/a&gt;.']})\nwith open('shop/data.json', 'w') as f:\n    json.dump(pages, f, indent=4, ensure_ascii=False)\nrender('shop')\nprint(open('shop/gen/salesreport.html').read().split('&lt;p&gt;')[1].split('&lt;/p&gt;')[0])</code></pre>",
             "A new ledger entry rewrites only the pages ledgdex made itself (they start with <code>&amp;lt;!-- ledgdex --&amp;gt;</code>). Your page stays.",
             "<pre><code>ledgdex('note', 'shop', offer, 'restocked')\nwith open('shop/data.json') as f:\n    kept = [p for p in json.load(f) if p['title'] == 'Sales report' and not p['body'][0].startswith(MARKER)]\nprint('your page kept:', len(kept) == 1, '| ledgdex pages:', sum(p['body'][0].startswith(MARKER) for p in pages))</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/11-extending.py'><code>guide/examples/11-extending.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: JavaScript",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->For developers: the same ledger code in JavaScript, for Node or a web page.",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/11-extending.py'><code>guide/examples/11-extending.py</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplejavascript'>Example: JavaScript</span>",
+            "For developers: the same ledger code in JavaScript, for Node or a web page.",
             "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/12-javascript.mjs</code>.",
             "<pre><code>import { pathToFileURL } from 'url';</code></pre>",
             "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.",
@@ -942,29 +916,54 @@
             "<pre><code>const read = new Ledger(led.data);\nconsole.log('whole', read.whole, 'entries', read.entries.length);\nconst st = state(read);\nconsole.log(Object.values(st.claims).map((c) =&gt; c.status).join(', '));\nconsole.log('same state as a fresh read:', canonString(st, ID_KEY) === canonString(state(new Ledger(led.data)), ID_KEY));</code></pre>",
             "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/12-javascript.mjs'><code>guide/examples/12-javascript.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
             "In a web page, load the same core as a module and read any published ledger:",
-            "<pre><code>&lt;script type='module'&gt;\n  import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\n  const res = await fetch('https://farm.example/ledgdex.jsonl');\n  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n  console.log(led.whole, led.entries.length, led.error);\n&lt;/script&gt;</code></pre>"
-        ]
-    },
-    {
-        "title": "Examples",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->Every example below is a file in <a href='https://github.com/ledgdex/ledgdex/tree/main/guide/examples'><code>guide/examples/</code></a>, run as it is on every push: each must exit without error and print what its <code>expect:</code> lines name. Download one and run it in an empty folder (keys go to <code>~/.ledgdex</code>, or set <code>LEDGDEX_HOME</code> to keep them apart).",
-            "<a href='examplefirsttrade.html'>Example: First Trade</a>: One shop sells mangoes to one buyer, from start to finish, on your own computer.",
-            "<a href='examplemarketplace.html'>Example: Marketplace</a>: A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.",
-            "<a href='exampleauction.html'>Example: Auction</a>: A gallery auctions an old map with secret bids, and the highest bid wins.",
-            "<a href='exampledisputes.html'>Example: Disputes</a>: A buyer pays but gets nothing, complains, and an independent judge orders a refund.",
-            "<a href='examplekeys.html'>Example: Keys</a>: Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.",
-            "<a href='examplepublish.html'>Example: Publish</a>: Putting a ledgdex online from two devices without the two ever disagreeing.",
-            "<a href='examplecheck.html'>Example: Check</a>: Catching a cheat: a shop secretly rewrites its records, and a check proves it.",
-            "<a href='examplepythonapi.html'>Example: Python API</a>: For developers: using ledgdex from Python directly, with no files or website.",
-            "<a href='examplebots.html'>Example: Bots</a>: Programs trading with each other, with no person involved: two buyer bots buy software licences from the cheaper of two seller bots.",
-            "<a href='examplerobotcleaning.html'>Example: Robot Cleaning</a>: Cleaning robots paid per clean by the shops of a mall, for one day.",
-            "<a href='exampleextending.html'>Example: Extending</a>: For developers: building your own report from a ledger, and adding it to your website.",
-            "<a href='examplejavascript.html'>Example: JavaScript</a>: For developers: the same ledger code in JavaScript, for Node or a web page.",
-            "<a href='exampleverifyinnode.html'>Example: Verify in Node</a>: For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
-            "<a href='exampleshopwebpage.html'>Example: Shop Web Page</a>: A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
-            "<a href='examplesigninthebrowser.html'>Example: Sign in the Browser</a>: A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
-            "Smaller examples are on each topic page: <a href='selling.html'>Selling</a>, <a href='buying.html'>Buying</a>, <a href='setupamarketplace.html'>Set Up a Marketplace</a>, <a href='checkingfortampering.html'>Checking for Tampering</a>."
+            "<pre><code>&lt;script type='module'&gt;\n  import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\n  const res = await fetch('https://farm.example/ledgdex.jsonl');\n  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n  console.log(led.whole, led.entries.length, led.error);\n&lt;/script&gt;</code></pre>",
+            "<span id='exampleverifyinnode'>Example: Verify in Node</span>",
+            "For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
+            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/13-js-verify.mjs</code>.",
+            "<pre><code>import { readFile } from 'fs/promises';\nimport { pathToFileURL } from 'url';</code></pre>",
+            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.",
+            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { amount } = await import(new URL('render.js', base));</code></pre>",
+            "Read a ledger from a dex address, a <code>ledgdex.jsonl</code> address or a file, given as the first argument. Without one, this reads the ledger of these docs.",
+            "<pre><code>const source = process.argv[2] || 'https://ledgdex.github.io/docs';\nasync function read(src) {\n  if (!/^https?:\\/\\//.test(src)) return new Uint8Array(await readFile(src));\n  const url = src.endsWith('.jsonl') ? src : src.replace(/\\/+$/, '') + '/ledgdex.jsonl';\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(url + ': HTTP ' + res.status);\n  return new Uint8Array(await res.arrayBuffer());\n}\nconst bytes = await read(source);</code></pre>",
+            "Check every hash and signature. <code>whole</code> is true only if every entry checks out; otherwise <code>broken_at</code> and <code>error</code> say where and why.",
+            "<pre><code>const led = new Ledger(bytes);\nconsole.log(led.header.name + ': ' + (led.whole ? 'whole' : 'BROKEN at entry ' + led.broken_at + ', ' + led.error) +\n  ', ' + led.entries.length + ' entries');</code></pre>",
+            "The state says which offers are open and how many are left. The price and unit are in the signed offer itself, found by its id.",
+            "<pre><code>const st = state(led);\nfor (const [id, o] of Object.entries(st.offers)) {\n  if (o.status !== 'open') continue;\n  const offer = led.entries[led.index.get(id)].msg.body;\n  console.log(o.title, '|', amount(offer.currency, offer.price), 'per', offer.unit, '|', o.remaining, 'left');\n}</code></pre>",
+            "Change one letter of the offer's title and read the ledger again: it is no longer whole, and it says where.",
+            "<pre><code>const changed = bytes.slice();\nchanged[Buffer.from(changed).indexOf('Alphonso')] = 'B'.charCodeAt(0);\nconst bad = new Ledger(changed);\nconsole.log('one changed letter breaks it at entry', bad.broken_at + ':', bad.error);</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/13-js-verify.mjs'><code>guide/examples/13-js-verify.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='exampleshopwebpage'>Example: Shop Web Page</span>",
+            "A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
+            "Run it: Save it as a file and open it in a browser, or put it on your website.",
+            "<pre><code>&lt;!DOCTYPE html&gt;\n&lt;html lang='en'&gt;\n&lt;head&gt;\n&lt;meta charset='utf-8'&gt;\n&lt;meta name='viewport' content='width=device-width, initial-scale=1'&gt;\n&lt;title&gt;Mango Farm: today's offers&lt;/title&gt;\n&lt;/head&gt;</code></pre>",
+            "The page shows a line while it works, and a list that the script fills in.",
+            "<pre><code>&lt;body&gt;\n&lt;h1&gt;Today's offers&lt;/h1&gt;\n&lt;p id='status'&gt;Checking the shop's ledger...&lt;/p&gt;\n&lt;ul id='offers'&gt;&lt;/ul&gt;\n&lt;script type='module'&gt;</code></pre>",
+            "Load the JavaScript core from the ledgdex site. For a real shop, copy <code>js/</code> from a release onto your own site and load it from there.",
+            "<pre><code>import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\nimport { state } from 'https://ledgdex.github.io/viewer/state.js';\nimport { amount } from 'https://ledgdex.github.io/viewer/render.js';</code></pre>",
+            "Read the shop's ledger. This one is the ledger of these docs: put your shop's address here. The site that serves it must let other sites read it; GitHub Pages does.",
+            "<pre><code>const SHOP = 'https://ledgdex.github.io/docs/ledgdex.jsonl';\nconst res = await fetch(SHOP);\nconst led = new Ledger(new Uint8Array(await res.arrayBuffer()));</code></pre>",
+            "Check every hash and signature in the reader's own browser, then list the open offers. Text from a ledger goes in with <code>textContent</code>, never as HTML, so nothing written in a ledger can run on your page.",
+            "<pre><code>const status = document.getElementById('status');\nif (!led.whole) {\n  status.textContent = 'This ledger is broken at entry ' + led.broken_at + ': ' + led.error;\n} else {\n  status.textContent = led.header.name + ': whole, ' + led.entries.length + ' entries';\n  const list = document.getElementById('offers');\n  for (const [id, o] of Object.entries(state(led).offers)) {\n    if (o.status !== 'open') continue;\n    const offer = led.entries[led.index.get(id)].msg.body;\n    const item = document.createElement('li');\n    item.textContent = o.title + ': ' + amount(offer.currency, offer.price) + ' per ' + offer.unit + ', ' + o.remaining + ' left';\n    list.append(item);\n  }\n}\n&lt;/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/14-js-web-page.html'><code>guide/examples/14-js-web-page.html</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>).",
+            "<span id='examplesigninthebrowser'>Example: Sign in the Browser</span>",
+            "A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
+            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/15-js-sign.mjs</code>.",
+            "<pre><code>import { execFileSync } from 'child_process';\nimport { mkdirSync, readFileSync, writeFileSync } from 'fs';\nimport { pathToFileURL } from 'url';</code></pre>",
+            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository. The same modules run in a browser.",
+            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger, messageA, newLedgerA, newSecret, publicKey } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { hash } = await import(new URL('canon.js', base));\nconst { sealKey, openKey } = await import(new URL('keystore.js', base));\nconst { signer } = await import(new URL('sig.js', base));</code></pre>",
+            "The shop uses the command line, as in the first trade example: it makes its ledgdex and offers 10 dozen mangoes.",
+            "<pre><code>const ledgdex = (...args) =&gt; execFileSync('ledgdex', args, { encoding: 'utf8' });\nledgdex('init', 'shop', '--name', 'Mango Farm', '--key', 'farm');\nwriteFileSync('offer.json', JSON.stringify({ item: { title: 'Alphonso mangoes' }, quantity: 10, unit: 'dozen',\n  currency: 'INR', price: 120000 }));\nconst offerId = ledgdex('offer', 'shop', 'offer.json').trim().split(' ').pop();</code></pre>",
+            "The buyer has only a browser. It makes a key and keeps it sealed with a passphrase, as the viewer does: the sealed box can be stored (in a browser, in <code>localStorage</code>), and only the passphrase opens it.",
+            "<pre><code>const secret = newSecret();\nconst box = await sealKey(secret, 'a long passphrase only Asha knows', publicKey(secret));\nconsole.log('key sealed with a passphrase:', box.kdf + ',', box.rounds, 'rounds');\nconst opened = await openKey(box, 'a long passphrase only Asha knows');</code></pre>",
+            "<code>signer</code> signs with Web Crypto's Ed25519 when the browser (or Node) has it, and with ledgdex's own code when it does not.",
+            "<pre><code>const sgn = await signer(opened);\nconsole.log('signed with', sgn.name);</code></pre>",
+            "The buyer reads the shop's ledger, finds the offer, and signs a claim for 2 dozen that names the offer by its id and its hash.",
+            "<pre><code>const shop = new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl')));\nconst offer = shop.entries[shop.index.get(offerId)].msg;\nconst claim = await messageA(sgn, 'claim', { offer: offerId, offer_hash: hash(offer), quantity: 2, price: offer.body.price });</code></pre>",
+            "The buyer keeps the claim as \"sent\" in a ledger of its own, and publishes it: here, a folder with its <code>ledgdex.jsonl</code>. In the viewer, Download your dex does this.",
+            "<pre><code>const mine = await newLedgerA(sgn, 'Asha', 'A buyer with a browser', '');\nmine.append(await mine.nextEntryA(sgn, await messageA(sgn, 'sent', { to: shop.header.owner, msg: claim })));\nmkdirSync('me');\nwriteFileSync('me/ledgdex.jsonl', mine.data);</code></pre>",
+            "The shop collects the claim from the buyer's dex with the command line, and the order is accepted.",
+            "<pre><code>console.log(ledgdex('record', 'shop', '--from', 'me').trim());\nconst after = state(new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl'))));\nconsole.log('the shop accepted the order:', Object.values(after.claims).map((c) =&gt; c.status).join(', '));</code></pre>",
+            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/15-js-sign.mjs'><code>guide/examples/15-js-sign.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
         ]
     },
     {
@@ -991,65 +990,6 @@
             "- publishing on PyPI",
             "- browser tests in CI",
             "- an independent third verifier"
-        ]
-    },
-    {
-        "title": "Example: Verify in Node",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->For developers: a Node program that reads a published ledger, checks it and lists what it sells.",
-            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/13-js-verify.mjs</code>.",
-            "<pre><code>import { readFile } from 'fs/promises';\nimport { pathToFileURL } from 'url';</code></pre>",
-            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository.",
-            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { amount } = await import(new URL('render.js', base));</code></pre>",
-            "Read a ledger from a dex address, a <code>ledgdex.jsonl</code> address or a file, given as the first argument. Without one, this reads the ledger of these docs.",
-            "<pre><code>const source = process.argv[2] || 'https://ledgdex.github.io/docs';\nasync function read(src) {\n  if (!/^https?:\\/\\//.test(src)) return new Uint8Array(await readFile(src));\n  const url = src.endsWith('.jsonl') ? src : src.replace(/\\/+$/, '') + '/ledgdex.jsonl';\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(url + ': HTTP ' + res.status);\n  return new Uint8Array(await res.arrayBuffer());\n}\nconst bytes = await read(source);</code></pre>",
-            "Check every hash and signature. <code>whole</code> is true only if every entry checks out; otherwise <code>broken_at</code> and <code>error</code> say where and why.",
-            "<pre><code>const led = new Ledger(bytes);\nconsole.log(led.header.name + ': ' + (led.whole ? 'whole' : 'BROKEN at entry ' + led.broken_at + ', ' + led.error) +\n  ', ' + led.entries.length + ' entries');</code></pre>",
-            "The state says which offers are open and how many are left. The price and unit are in the signed offer itself, found by its id.",
-            "<pre><code>const st = state(led);\nfor (const [id, o] of Object.entries(st.offers)) {\n  if (o.status !== 'open') continue;\n  const offer = led.entries[led.index.get(id)].msg.body;\n  console.log(o.title, '|', amount(offer.currency, offer.price), 'per', offer.unit, '|', o.remaining, 'left');\n}</code></pre>",
-            "Change one letter of the offer's title and read the ledger again: it is no longer whole, and it says where.",
-            "<pre><code>const changed = bytes.slice();\nchanged[Buffer.from(changed).indexOf('Alphonso')] = 'B'.charCodeAt(0);\nconst bad = new Ledger(changed);\nconsole.log('one changed letter breaks it at entry', bad.broken_at + ':', bad.error);</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/13-js-verify.mjs'><code>guide/examples/13-js-verify.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Shop Web Page",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->A web page that shows a shop's offers, read from its ledger and checked in the reader's own browser.",
-            "Run it: Save it as a file and open it in a browser, or put it on your website.",
-            "<pre><code>&lt;!DOCTYPE html&gt;\n&lt;html lang='en'&gt;\n&lt;head&gt;\n&lt;meta charset='utf-8'&gt;\n&lt;meta name='viewport' content='width=device-width, initial-scale=1'&gt;\n&lt;title&gt;Mango Farm: today's offers&lt;/title&gt;\n&lt;/head&gt;</code></pre>",
-            "The page shows a line while it works, and a list that the script fills in.",
-            "<pre><code>&lt;body&gt;\n&lt;h1&gt;Today's offers&lt;/h1&gt;\n&lt;p id='status'&gt;Checking the shop's ledger...&lt;/p&gt;\n&lt;ul id='offers'&gt;&lt;/ul&gt;\n&lt;script type='module'&gt;</code></pre>",
-            "Load the JavaScript core from the ledgdex site. For a real shop, copy <code>js/</code> from a release onto your own site and load it from there.",
-            "<pre><code>import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\nimport { state } from 'https://ledgdex.github.io/viewer/state.js';\nimport { amount } from 'https://ledgdex.github.io/viewer/render.js';</code></pre>",
-            "Read the shop's ledger. This one is the ledger of these docs: put your shop's address here. The site that serves it must let other sites read it; GitHub Pages does.",
-            "<pre><code>const SHOP = 'https://ledgdex.github.io/docs/ledgdex.jsonl';\nconst res = await fetch(SHOP);\nconst led = new Ledger(new Uint8Array(await res.arrayBuffer()));</code></pre>",
-            "Check every hash and signature in the reader's own browser, then list the open offers. Text from a ledger goes in with <code>textContent</code>, never as HTML, so nothing written in a ledger can run on your page.",
-            "<pre><code>const status = document.getElementById('status');\nif (!led.whole) {\n  status.textContent = 'This ledger is broken at entry ' + led.broken_at + ': ' + led.error;\n} else {\n  status.textContent = led.header.name + ': whole, ' + led.entries.length + ' entries';\n  const list = document.getElementById('offers');\n  for (const [id, o] of Object.entries(state(led).offers)) {\n    if (o.status !== 'open') continue;\n    const offer = led.entries[led.index.get(id)].msg.body;\n    const item = document.createElement('li');\n    item.textContent = o.title + ': ' + amount(offer.currency, offer.price) + ' per ' + offer.unit + ', ' + o.remaining + ' left';\n    list.append(item);\n  }\n}\n&lt;/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/14-js-web-page.html'><code>guide/examples/14-js-web-page.html</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
-        ]
-    },
-    {
-        "title": "Example: Sign in the Browser",
-        "body": [
-            "<!-- generated by build.py. use build.py to generate page if there are changes -->A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.",
-            "Run it: From the repository root (or with <code>LEDGDEX_JS</code> set to the folder or URL of the JavaScript core): <code>node guide/examples/15-js-sign.mjs</code>.",
-            "<pre><code>import { execFileSync } from 'child_process';\nimport { mkdirSync, readFileSync, writeFileSync } from 'fs';\nimport { pathToFileURL } from 'url';</code></pre>",
-            "Load the JavaScript core: from <code>LEDGDEX_JS</code> (a folder or a URL) if set, else from <code>js/</code> in the ledgdex repository. The same modules run in a browser.",
-            "<pre><code>const where = process.env.LEDGDEX_JS || new URL('../../js/', import.meta.url).href;\nconst base = /^[a-z]+:/.test(where) ? where : pathToFileURL(where.endsWith('/') ? where : where + '/').href;\nconst { Ledger, messageA, newLedgerA, newSecret, publicKey } = await import(new URL('core.js', base));\nconst { state } = await import(new URL('state.js', base));\nconst { hash } = await import(new URL('canon.js', base));\nconst { sealKey, openKey } = await import(new URL('keystore.js', base));\nconst { signer } = await import(new URL('sig.js', base));</code></pre>",
-            "The shop uses the command line, as in the first trade example: it makes its ledgdex and offers 10 dozen mangoes.",
-            "<pre><code>const ledgdex = (...args) =&gt; execFileSync('ledgdex', args, { encoding: 'utf8' });\nledgdex('init', 'shop', '--name', 'Mango Farm', '--key', 'farm');\nwriteFileSync('offer.json', JSON.stringify({ item: { title: 'Alphonso mangoes' }, quantity: 10, unit: 'dozen',\n  currency: 'INR', price: 120000 }));\nconst offerId = ledgdex('offer', 'shop', 'offer.json').trim().split(' ').pop();</code></pre>",
-            "The buyer has only a browser. It makes a key and keeps it sealed with a passphrase, as the viewer does: the sealed box can be stored (in a browser, in <code>localStorage</code>), and only the passphrase opens it.",
-            "<pre><code>const secret = newSecret();\nconst box = await sealKey(secret, 'a long passphrase only Asha knows', publicKey(secret));\nconsole.log('key sealed with a passphrase:', box.kdf + ',', box.rounds, 'rounds');\nconst opened = await openKey(box, 'a long passphrase only Asha knows');</code></pre>",
-            "<code>signer</code> signs with Web Crypto's Ed25519 when the browser (or Node) has it, and with ledgdex's own code when it does not.",
-            "<pre><code>const sgn = await signer(opened);\nconsole.log('signed with', sgn.name);</code></pre>",
-            "The buyer reads the shop's ledger, finds the offer, and signs a claim for 2 dozen that names the offer by its id and its hash.",
-            "<pre><code>const shop = new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl')));\nconst offer = shop.entries[shop.index.get(offerId)].msg;\nconst claim = await messageA(sgn, 'claim', { offer: offerId, offer_hash: hash(offer), quantity: 2, price: offer.body.price });</code></pre>",
-            "The buyer keeps the claim as \"sent\" in a ledger of its own, and publishes it: here, a folder with its <code>ledgdex.jsonl</code>. In the viewer, Download your dex does this.",
-            "<pre><code>const mine = await newLedgerA(sgn, 'Asha', 'A buyer with a browser', '');\nmine.append(await mine.nextEntryA(sgn, await messageA(sgn, 'sent', { to: shop.header.owner, msg: claim })));\nmkdirSync('me');\nwriteFileSync('me/ledgdex.jsonl', mine.data);</code></pre>",
-            "The shop collects the claim from the buyer's dex with the command line, and the order is accepted.",
-            "<pre><code>console.log(ledgdex('record', 'shop', '--from', 'me').trim());\nconst after = state(new Ledger(new Uint8Array(readFileSync('shop/ledgdex.jsonl'))));\nconsole.log('the shop accepted the order:', Object.values(after.claims).map((c) =&gt; c.status).join(', '));</code></pre>",
-            "The whole file: <a href='https://github.com/ledgdex/ledgdex/blob/main/guide/examples/15-js-sign.mjs'><code>guide/examples/15-js-sign.mjs</code></a>, run as it is on every push (<code>py/tests/test_guide.py</code>)."
         ]
     },
     {

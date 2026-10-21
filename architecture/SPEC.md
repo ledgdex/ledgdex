@@ -1079,6 +1079,14 @@ https://ledgdex.github.io, an origin no other site shares (the viewer keeps seal
 page on an origin can read). Generated check workflows install ledgdex from the new repository. Nothing in the format
 changes.
 
+**v1.0.18**: every new ledgdex gets the ledgdex `styles.css` (`py/ledgdex/styles.css`): the dexweb default
+styles, with a ledger look for the page content. Each line of a page is a ruled row, and the value of a line (its last
+key, hash or id) goes on a row of its own. `ledgdex init` writes it, and keeps a `styles.css` that is already there; the
+viewer's "Download your dex" uses the same file. A command that cannot read an address (HTTP 404, a refused
+connection, an unknown host) now writes one line and stops with exit code 1, not a traceback. The viewer opens a
+ledger file dropped anywhere on its page, and moves to https://ledgdex.github.io/viewer/index.html (the old address
+sends you there); the home pages are a dex of their own (`home/`) that runs no scripts. Nothing in the format changes.
+
 ## Milestones and acceptance tests
 
 1. **Encoding.** Canonical JSON and hashing. Vectors: nested objects, key order, every escape case, Unicode

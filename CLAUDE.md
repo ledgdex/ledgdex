@@ -49,9 +49,11 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 ### State at handoff (October 2026)
 
-- Version **1.0.17** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json`). The tag `v1.0.17` exists (at `8fcad48`); the user creates tags (sessions cannot
-  push tags; pushes of tags return 403). Pages is off on `ledgdex/ledgdex` (confirmed by the user).
+- Version **1.0.18** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
+  commands in `guide/dex/data.json`, and the example tag on the JavaScript Core page). The tag `v1.0.17` exists (at
+  `8fcad48`). The tag `v1.0.18` is for the user to create; until it exists, the install commands in the docs name a
+  missing tag. The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
+  `ledgdex/ledgdex` (confirmed by the user).
 - Last commits: `535e8c1` (move to ledgdex.github.io and ledgdex/ledgdex, 1.0.17), `4f786ad` (old-site notices;
   CI passed), `8fcad48` (the user deleted `docs/`, the old matrixdex.github.io/ledgdex site), then this file.
 - The site at ledgdex.github.io is published and was verified (viewer loads and verifies the docs ledger; all pages
@@ -250,7 +252,7 @@ loophole each audit finds.* 23 audits were run:
   text; inline code `rgb(203,203,203)`, 18px inside paragraphs, inheriting size elsewhere (`monospace, monospace`);
   the docs index is NOT sorted by us (dexweb 4.2.5 sorts it by title; the user said "do not sort index for now").
   Docs style mirrors the dexweb docs (config/templates "LEDGDEX DOCS", "BACK TO LEDGDEX DOCS").
-- Hand-written pages carry the version in install commands (`@v1.0.17#subdirectory=py`); a test enforces it.
+- Hand-written pages carry the version in install commands (`@v1.0.18#subdirectory=py`); a test enforces it.
 
 ### Home (`home/`) and viewer (`viewer/`)
 - The home dex has the pages Live Markets and About. Its index lists Viewer and Docs too. It runs no scripts (its CSP
@@ -326,7 +328,7 @@ simplest secure design (nothing is implemented; build only when the user says so
 - Env vars: `LEDGDEX_HOME` (keys, default `~/.ledgdex`), `LEDGDEX_CACHE` (verification cache, `~/.cache/ledgdex`),
   `LEDGDEX_NO_CACHE=1`, `LEDGDEX_PURE=1`, `LEDGDEX_MAX_BYTES` (read cap, 64 MiB), `LEDGDEX_JS` (examples: where the JS
   core is).
-- Install: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.17#subdirectory=py"`.
+- Install: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.18#subdirectory=py"`.
 - The CLI's full list of commands and options is in SPEC "Command-line tool" and on the docs page Command Line Options.
 - SPEC "Future improvements": encrypted keys at rest, constant-time signing required, state caching at scale, an
   independent third verifier, Web Crypto verifying and locked keys, browser tests in CI, PyPI packaging, delegated

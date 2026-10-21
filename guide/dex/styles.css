@@ -97,13 +97,12 @@ p > span[id] {
 .cert-foot {
   display: block; color: #00ff41; font-size: clamp(11px, 3vw, 14px); letter-spacing: 0.12em; margin-top: 1.4em;
 }
-/* two signatures side by side, each on its own signature line */
+/* two signatures side by side */
 .cert-sign {
   display: flex; justify-content: space-between; gap: clamp(12px, 5vw, 40px); margin-top: 2.4em;
 }
 .cert-signer {
   display: block; flex: 1 1 0; color: #00ff41; font-size: clamp(11px, 3.2vw, 18px); line-height: 1.4; white-space: nowrap;
-  padding-top: 0.6em; border-top: 1px solid #00ff41;
 }
 
 /* ---- the ledger pages: the ledger, the example offer and the example auction ----

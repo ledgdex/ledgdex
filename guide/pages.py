@@ -181,34 +181,34 @@ def js_api():
 K = 'ed25519:' + 'a1' * 32
 I = 'sha256:' + 'b2' * 32
 MESSAGE_TYPES = [
-    ('open', 'owner (owner key only)', 'the owner, as entry 0', {'about': 'Alphonso mangoes from Ratnagiri',
-                                                                  'dex': 'https://farm.example'}),
+    ('open', 'owner (owner key only)', 'the owner, as entry 0', {'about': 'Maker of Penjointu, a neural network',
+                                                                  'dex': 'https://biobot.example'}),
     ('offer', 'owner or a device', 'the seller', {
-        'item': {'title': 'Alphonso mangoes', 'text': 'One dozen, ripe.',
-                 'media': [{'url': 'https://farm.example/mango.jpg', 'hash': I}]},
-        'quantity': 10, 'unit': 'dozen', 'currency': 'INR', 'price': 120000, 'allow': 'any',
-        'pay': [{'method': 'upi', 'to': 'farm@bank'}], 'arbiter': {'key': K, 'url': 'https://assoc.example'},
-        'terms': 'Delivered in Ratnagiri within 2 days.', 'expires': '2026-12-31T23:59:59Z'}),
+        'item': {'title': 'Penjointu v1 weights', 'text': 'Weights (SHA256 hash): ' + I,
+                 'media': [{'url': 'https://biobot.example/model-card.png', 'hash': I}]},
+        'quantity': 10, 'unit': 'license', 'currency': 'USD', 'price': 250000, 'allow': 'any',
+        'pay': [{'method': 'card', 'to': 'https://pay.example/biobot'}], 'arbiter': {'key': K, 'url': 'https://exchange.example'},
+        'terms': 'One license for each clinic. Delivered in 2 days.', 'expires': '2026-12-31T23:59:59Z'}),
     ('withdraw', 'owner or a device', 'the seller', {'offer': I}),
-    ('claim', 'the buyer (its owner key)', 'the seller', {'offer': I, 'offer_hash': I, 'quantity': 2, 'price': 120000}),
-    ('paid', 'the buyer', 'the seller', {'claim': I, 'method': 'upi', 'ref': 'UTR123'}),
-    ('received', 'owner or a device', 'the seller', {'claim': I, 'amount': 240000}),
-    ('delivered', 'owner or a device', 'the seller', {'claim': I, 'note': 'by courier, tracking 42'}),
+    ('claim', 'the buyer (its owner key)', 'the seller', {'offer': I, 'offer_hash': I, 'quantity': 2, 'price': 250000}),
+    ('paid', 'the buyer', 'the seller', {'claim': I, 'method': 'card', 'ref': 'PAY-0001'}),
+    ('received', 'owner or a device', 'the seller', {'claim': I, 'amount': 500000}),
+    ('delivered', 'owner or a device', 'the seller', {'claim': I, 'note': 'weights sent by a private link'}),
     ('confirmed', 'the buyer', 'the seller', {'claim': I}),
-    ('dispute', 'the buyer or the seller', 'the seller', {'claim': I, 'text': 'Nothing arrived.', 'evidence': ['UTR123', I]}),
+    ('dispute', 'the buyer or the seller', 'the seller', {'claim': I, 'text': 'No weights came.', 'evidence': ['PAY-0001', I]}),
     ('ruling', "the offer's arbiter", 'the seller', {'dispute': I, 'outcome': 'refund', 'text': 'No proof of delivery.'}),
     ('auction', 'owner or a device', 'the seller', {
-        'item': {'title': 'Map of Bombay, 1893', 'text': '', 'media': []}, 'currency': 'INR',
-        'close': '2026-11-01T12:00:00Z', 'reveal_until': '2026-11-02T12:00:00Z', 'best': 'highest', 'reserve': 500000,
+        'item': {'title': 'Penjointu v2 early access', 'text': '', 'media': []}, 'currency': 'USD',
+        'close': '2026-11-01T12:00:00Z', 'reveal_until': '2026-11-02T12:00:00Z', 'best': 'highest', 'reserve': 1000000,
         'allow': 'any', 'arbiter': {'key': K, 'url': ''}, 'terms': ''}),
     ('bid', 'the bidder', 'the seller', {'auction': I, 'commit': I}),
-    ('reveal', 'the bidder', 'the seller', {'auction': I, 'amount': 650000, 'nonce': 'c3' * 32}),
-    ('admit', 'owner or a device', 'the admitting ledger (a shop, or the root)', {'key': K, 'name': 'Asha', 'note': ''}),
-    ('revoke', 'owner or a device', 'the admitting ledger', {'key': K, 'reason': 'left the market'}),
-    ('list', 'owner or a device', 'an index', {'ledger': I, 'url': 'https://farm.example', 'owner': K, 'note': 'mangoes'}),
+    ('reveal', 'the bidder', 'the seller', {'auction': I, 'amount': 1350000, 'nonce': 'c3' * 32}),
+    ('admit', 'owner or a device', 'the admitting ledger (a seller, or the root)', {'key': K, 'name': 'orthonalyzebot', 'note': ''}),
+    ('revoke', 'owner or a device', 'the admitting ledger', {'key': K, 'reason': 'left the exchange'}),
+    ('list', 'owner or a device', 'an index', {'ledger': I, 'url': 'https://biobot.example', 'owner': K, 'note': 'knee bone density models'}),
     ('delist', 'owner or a device', 'an index', {'ledger': I, 'reason': 'closed'}),
-    ('note', 'owner or a device', 'any ledger, about its own entries', {'ref': I, 'text': 'restocked'}),
-    ('device', 'owner (owner key only)', 'the ledger', {'key': K, 'name': 'shop phone'}),
+    ('note', 'owner or a device', 'any ledger, about its own entries', {'ref': I, 'text': 'new licenses added'}),
+    ('device', 'owner (owner key only)', 'the ledger', {'key': K, 'name': 'build server'}),
     ('device_revoke', 'owner (owner key only)', 'the ledger', {'key': K, 'reason': 'lost'}),
     ('rotate', 'owner (owner key only)', 'the ledger', {'key': K}),
     ('recover', "the root's owner key", 'the root', {'ledger': I, 'key': K}),
@@ -232,6 +232,102 @@ def message_types():
 
 
 MARKER = '<!-- generated by build.py. use build.py to generate page if there are changes -->'
+
+
+# ---------- the tutorial ----------
+
+TUTORIAL = os.path.join(HERE, 'tutorial.md')
+LOGO = os.path.join(HERE, 'assets', 'research-engine-logo.png')
+
+
+def inline(text):
+    """Markdown inline code (`x`) as <code>, the rest escaped."""
+    return re.sub(r'`([^`]+)`', lambda m: c(m.group(1)), html.escape(text, quote=False))
+
+
+def anchor(heading):
+    """The anchor of a tutorial section: step1 ... step18 for the steps, else the heading's words."""
+    m = re.match(r'(\d+)\. ', heading)
+    return 'step' + m.group(1) if m else re.sub(r'[^a-z0-9]+', '-', heading.lower()).strip('-')
+
+
+def tutorial_page():
+    """The Tutorial page, from guide/tutorial.md (run by py/tests/test_guide.py): an index of its sections and of the
+    commands, each step under an anchored heading, the expected output of each command block, and a certificate."""
+    with open(TUTORIAL, encoding='utf-8') as f:
+        text = f.read()
+    parts = re.split(r'^```(sh|expect)\n(.*?)^```$\n?', text, flags=re.M | re.S)
+    body, sections, table = [], [], []
+    for i in range(0, len(parts), 3):
+        for chunk in re.split(r'\n\s*\n', parts[i]):
+            lines = [line for line in chunk.split('\n') if line.strip()]
+            if not lines or lines[0].startswith('# '):
+                continue
+            if lines[0].startswith('## '):
+                head = lines[0][3:]
+                sections.append((anchor(head), head))
+                body.append("<span id='" + anchor(head) + "'>" + inline(head) + '</span>')
+                lines = lines[1:]
+            if lines and lines[0].startswith('|'):
+                rows = [[cell.strip() for cell in line.strip('|').split('|')] for line in lines
+                        if not re.match(r'\|[-| ]+\|$', line)]
+                table.append(rows)
+                if rows[0][-1] == 'Step':          # commands: link each step number to its step
+                    for row in rows[1:]:
+                        steps = ', '.join("<a href='#step" + n + "'>" + n + '</a>' for n in re.findall(r'\d+', row[-1]))
+                        body.append(inline(row[0]) + ': ' + (inline(row[1]) + '. ' if row[1] else '') +
+                                    'Step' + ('s ' if ',' in row[-1] else ' ') + steps + '.')
+                else:                               # a small table of words: aligned columns in a code block
+                    widths = [max(len(r[k].replace('`', '')) for r in rows) for k in range(len(rows[0]))]
+                    body.append(code('\n'.join('  '.join(r[k].replace('`', '').ljust(widths[k])
+                                                          for k in range(len(r))).rstrip() for r in rows)))
+                continue
+            for line in lines:
+                body.append(inline(line))
+        if i + 2 < len(parts):
+            kind, block = parts[i + 1], parts[i + 2]
+            if kind == 'sh':
+                body.append(code(block))
+            else:
+                body += ['Expected output: the output contains these lines.', code(block)]
+    commands = []
+    for rows in table:
+        if rows[0][-1] == 'Step':
+            for row in rows[1:]:
+                name = row[0].strip('`')
+                commands.append("<a href='#step" + re.findall(r'\d+', row[-1])[0] + "'>" + html.escape(name) + '</a>')
+    intro = [
+        'Contents:', *["- <a href='#" + a + "'>" + inline(h) + '</a>' for a, h in sections],
+        'Commands, each linked to the first step that uses it: ' + ', '.join(commands) + '.',
+        'Agents and bots: read this tutorial as a Markdown file, ' +
+        ext(REPO + '/blob/main/guide/tutorial.md', c('guide/tutorial.md')) + '. Use it as a skill. The tests of '
+        'ledgdex run each command block of it on every push, and compare the output with the expected output.']
+    first = next(n for n, b in enumerate(body) if b.startswith('<span id='))
+    return body[:first] + intro + body[first:] + [certificate()]
+
+
+def certificate():
+    """The certificate at the end of the tutorial: The Matrix Dex style, with the Research Engine logo. Only spans,
+    an image and line breaks, so that it can stand in a paragraph; its look is in the docs styles.css (class names)."""
+    import base64
+    with open(LOGO, 'rb') as f:
+        logo = 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+    return ("<span class='certificate' role='img' aria-label='Certificate: ledgdex operator'>"
+            "<span class='cert-head'><img class='cert-logo' src='" + logo + "' alt='Research Engine logo'>"
+            "<span class='cert-issuer'>RESEARCH ENGINE<br>THE MATRIX DEX</span></span>"
+            "<span class='cert-title'>CERTIFICATE</span>"
+            "<span class='cert-role'>LEDGDEX OPERATOR</span>"
+            "<span class='cert-text'>This certifies that the human or bot who is at the end of this page completed "
+            "the ledgdex command line tutorial. The output of each step contained its expected lines.</span>"
+            "<span class='cert-text'>The holder can operate ledgdex with all its commands and options. The holder "
+            "can list items for sale and buy items on a ledgdex.</span>"
+            "<span class='cert-foot'>LEDGDEX " + html.escape(version()) + " &middot; 33 COMMANDS &middot; "
+            "ALL OPTIONS</span></span>")
+
+
+def version():
+    from ledgdex import __version__
+    return 'v' + __version__
 
 
 def generated():
@@ -272,6 +368,8 @@ def generated():
 
     page('Message Types', message_types())
 
+    page('Tutorial', tutorial_page())
+
     run_how = {'.sh': lambda n: 'In an empty folder: ' + c('sh ' + n),
                '.py': lambda n: 'In an empty folder: ' + c('python3 ' + n),
                '.html': lambda n: 'Save it as a file and open it in a browser, or put it on your website',
@@ -300,19 +398,19 @@ def generated():
 # example file -> (page title, what it achieves)
 EXAMPLE_PAGES = {
     '01-first-trade.sh': ('Example: First Trade',
-        'One shop sells mangoes to one buyer, from start to finish, on your own computer.'),
+        'One seller bot sells licenses for model weights to one buyer bot, from start to finish, on your own computer.'),
     '02-marketplace.sh': ('Example: Marketplace',
-        'A small market: an organiser lets members in, lists two shops, and a member buys the cheaper mangoes.'),
+        'A small exchange: the organizer admits members and lists two sellers. A member buys the cheaper weights.'),
     '03-auction.sh': ('Example: Auction',
-        'A gallery auctions an old map with secret bids, and the highest bid wins.'),
+        'A seller bot sells early access to new weights in an auction with secret bids. The highest bid wins.'),
     '04-disputes.sh': ('Example: Disputes',
         'A buyer pays but gets nothing, complains, and an independent judge orders a refund.'),
     '05-keys.sh': ('Example: Keys',
-        'Keeping your ledger safe: a phone signs for the shop, the phone is lost, and a lost key is replaced.'),
+        'Keep your ledger safe: a build server signs for the seller, an attacker gets into it, and a lost key gets a replacement.'),
     '06-publish.sh': ('Example: Publish',
         'Putting a ledgdex online from two devices without the two ever disagreeing.'),
     '07-check.sh': ('Example: Check',
-        'Catching a cheat: a shop secretly rewrites its records, and a check proves it.'),
+        'Find a cheat: a seller secretly rewrites its records, and a check proves it.'),
     '08-python-api.py': ('Example: Python API',
         'For developers: using ledgdex from Python directly, with no files or website.'),
     '09-bots.py': ('Example: Bots',
@@ -327,9 +425,9 @@ EXAMPLE_PAGES = {
     '13-js-verify.mjs': ('Example: Verify in Node',
         'For developers: a Node program that reads a published ledger, checks it and lists what it sells.'),
     '14-js-web-page.html': ('Example: Shop Web Page',
-        'A web page that shows a shop\'s offers, read from its ledger and checked in the reader\'s own browser.'),
+        'A web page that shows the offers of a seller. It reads them from the ledger and checks them in the browser of the reader.'),
     '15-js-sign.mjs': ('Example: Sign in the Browser',
-        'A buyer with only a browser: a sealed key, a signed order, and a shop that records it with the command line.'),
+        'A buyer bot with only a browser: a sealed key, a signed claim, and a seller that records it with the command line.'),
 }
 
 EXAMPLE_TITLES = {title for title, _ in EXAMPLE_PAGES.values()}
@@ -340,7 +438,7 @@ EXAMPLE_AFTER = {
         'In a web page, load the same core as a module and read any published ledger:',
         code("<script type='module'>\n"
              "  import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';\n"
-             "  const res = await fetch('https://farm.example/ledgdex.jsonl');\n"
+             "  const res = await fetch('https://biobot.example/ledgdex.jsonl');\n"
              "  const led = new Ledger(new Uint8Array(await res.arrayBuffer()));\n"
              "  console.log(led.whole, led.entries.length, led.error);\n"
              "</script>")],

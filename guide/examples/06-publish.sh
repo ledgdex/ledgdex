@@ -1,28 +1,28 @@
 #!/bin/sh
 # expect: published
 # expect: re-sequenced 1 unpublished entries
-# expect: from the laptop
-# expect: from the phone
+# expect: from the main computer
+# expect: from the build server
 set -eu
 
-# A ledgdex is published like any dex, to a git repository. Online that is GitHub Pages (`--dest git@github.com:YOU/YOU.github.io.git`); here it is a local repository. The shop publishes its first offer.
+# You publish a ledgdex like any dex, to a git repository. Online, that is GitHub Pages (`--dest git@github.com:YOU/YOU.github.io.git`). Here, it is a local repository. Biobot publishes its first offer.
 git init -q --bare -b main site.git
-ledgdex init shop --name "Mango Farm" --key farm --url https://farm.example --dest "file://$PWD/site.git" --branch main
-printf '%s' '{"item": {"title": "Alphonso mangoes"}, "quantity": 10, "currency": "INR", "price": 120000}' > offer.json
-OFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')
-ledgdex publish shop && echo published
+ledgdex init biobot --name "biobot" --key biobot --url https://biobot.example --dest "file://$PWD/site.git" --branch main
+printf '%s' '{"item": {"title": "Penjointu v1 weights"}, "quantity": 10, "unit": "license", "currency": "USD", "price": 250000}' > offer.json
+OFFER=$(ledgdex offer biobot offer.json | awk '{print $NF}')
+ledgdex publish biobot && echo published
 
-# A second device, a phone, gets a copy of the shop and its own key. Its first publish brings it up to date, and it learns it is a device of the shop.
-cp -r shop phone && rm -rf phone/.publish
-PHONE=$(LEDGDEX_HOME="$PWD/phone-keys" ledgdex keygen phone)
-ledgdex device add shop "$PHONE" --name phone && ledgdex publish shop
-LEDGDEX_HOME="$PWD/phone-keys" ledgdex publish phone
+# A second device, the build server, gets a copy of the dex and its own key. Its first publish brings it up to date, and tells it that it is a device of biobot.
+cp -r biobot buildserver && rm -rf buildserver/.publish
+BUILD=$(LEDGDEX_HOME="$PWD/buildserver-keys" ledgdex keygen buildserver)
+ledgdex device add biobot "$BUILD" --name "build server" && ledgdex publish biobot
+LEDGDEX_HOME="$PWD/buildserver-keys" ledgdex publish buildserver
 
-# Both write a note at the same time and both publish. The phone's note is fitted in after the laptop's: nothing is lost, and there is only one history.
-ledgdex note shop "$OFFER" "from the laptop"
-LEDGDEX_HOME="$PWD/phone-keys" ledgdex note phone "$OFFER" "from the phone"
-ledgdex publish shop
-LEDGDEX_HOME="$PWD/phone-keys" ledgdex publish phone
+# Both devices write a note at the same time, and both publish. Ledgdex puts the note of the build server after the note of the main computer. Nothing gets lost, and there is only one history.
+ledgdex note biobot "$OFFER" "from the main computer"
+LEDGDEX_HOME="$PWD/buildserver-keys" ledgdex note buildserver "$OFFER" "from the build server"
+ledgdex publish biobot
+LEDGDEX_HOME="$PWD/buildserver-keys" ledgdex publish buildserver
 
 # The published ledger is whole and has both notes, in order.
 git --git-dir=site.git show main:ledgdex.jsonl > published.jsonl

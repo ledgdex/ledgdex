@@ -4,35 +4,35 @@
 # expect: not_arbiter
 set -eu
 
-# The judge (arbiter) is a traders' association with its own ledgdex. The shop names the association's key in its offer.
-ledgdex init assoc --name "Fruit Traders Association" --key assoc
-ARBITER=$(ledgdex state assoc | python3 -c 'import json,sys; print(json.load(sys.stdin)["owner"])')
-ledgdex init shop --name "Mango Farm" --key farm
+# The judge (the arbiter) is the exchange, with its own ledgdex. The seller names the key of the exchange in its offer.
+ledgdex init exchange --name "ONITO medmodel exchange" --key exchange
+ARBITER=$(ledgdex state exchange | python3 -c 'import json,sys; print(json.load(sys.stdin)["owner"])')
+ledgdex init biobot --name "biobot" --key biobot
 cat > offer.json <<JSON
-{"item": {"title": "Alphonso mangoes"}, "quantity": 5, "unit": "dozen", "currency": "INR", "price": 120000,
- "arbiter": {"key": "$ARBITER", "url": "assoc"}}
+{"item": {"title": "Penjointu v1 weights"}, "quantity": 5, "unit": "license", "currency": "USD", "price": 250000,
+ "arbiter": {"key": "$ARBITER", "url": "exchange"}}
 JSON
-OFFER=$(ledgdex offer shop offer.json | awk '{print $NF}')
+OFFER=$(ledgdex offer biobot offer.json | awk '{print $NF}')
 
-# The buyer orders and pays.
-ledgdex init me --name "Asha" --key asha
-ledgdex claim me shop "$OFFER" --output claim.json
-CLAIM=$(ledgdex record shop --from me | awk '/claim recorded/ {print $3}')
-ledgdex pay me shop "$CLAIM" --method upi --ref UTR555 --output paid.json
-ledgdex record shop --from me
+# The buyer claims a license and pays.
+ledgdex init orthonalyzebot --name "orthonalyzebot" --key orthonalyzebot
+ledgdex claim orthonalyzebot biobot "$OFFER" --output claim.json
+CLAIM=$(ledgdex record biobot --from orthonalyzebot | awk '/claim recorded/ {print $3}')
+ledgdex pay orthonalyzebot biobot "$CLAIM" --method card --ref PAY-0555 --output paid.json
+ledgdex record biobot --from orthonalyzebot
 
-# Nothing arrives. The buyer opens a dispute, with the payment reference as evidence.
-ledgdex dispute me "$CLAIM" --seller shop --text "Paid on the 1st, nothing delivered." --evidence UTR555 --output dispute.json
-DISPUTE=$(ledgdex record shop --from me | awk '/dispute recorded/ {print $3}')
+# The weights do not arrive. The buyer opens a dispute, with the payment reference as evidence.
+ledgdex dispute orthonalyzebot "$CLAIM" --seller biobot --text "Paid on the 1st. No weights came." --evidence PAY-0555 --output dispute.json
+DISPUTE=$(ledgdex record biobot --from orthonalyzebot | awk '/dispute recorded/ {print $3}')
 
-# The shop tries to decide its own case. The decision is recorded, but it does not count (`not_arbiter`).
-ledgdex ruling shop shop "$DISPUTE" --outcome release --text "I say it was delivered." --output self-ruling.json
-ledgdex record shop --from shop || true
+# The seller tries to rule on its own case. The ledger records the ruling, but the ruling does not count (`not_arbiter`).
+ledgdex ruling biobot biobot "$DISPUTE" --outcome release --text "We sent the weights." --output self-ruling.json
+ledgdex record biobot --from biobot || true
 
-# The association decides: refund. The shop records the decision, and the order shows as refunded.
-ledgdex ruling assoc shop "$DISPUTE" --outcome refund --text "No proof of delivery: refund in full." --output ruling.json
-ledgdex record shop --from assoc
-ledgdex state shop | python3 -c '
+# The exchange rules: refund. The seller records the ruling, and the claim shows as refunded.
+ledgdex ruling exchange biobot "$DISPUTE" --outcome refund --text "No proof of delivery: refund in full." --output ruling.json
+ledgdex record biobot --from exchange
+ledgdex state biobot | python3 -c '
 import json, sys
 st = json.load(sys.stdin)
 print(json.dumps({"status": [c["status"] for c in st["claims"].values()][0],

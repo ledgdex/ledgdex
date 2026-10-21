@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'py'))
 from ledgdex.core import message, new_ledger, new_secret, public  # noqa: E402
 
 PATH = os.path.join(os.path.dirname(__file__), 'dex', 'ledgdex.jsonl')
-T = '2026-10-04T09:00:{:02d}Z'
+T = '2026-10-20T09:00:{:02d}Z'
 
 if os.path.exists(PATH):
     sys.exit(PATH + ' exists: the docs ledger is made once')
@@ -19,18 +19,20 @@ led = new_ledger(key, 'Ledgdex Docs', 'The ledger of the ledgdex docs: a demonst
                  'signing, so nothing can be added to it, and nobody may buy from it.',
                  'https://ledgdex.github.io/docs', at=T.format(0))
 offer = message(key, 'offer', {
-    'item': {'title': 'Example offer: Alphonso mangoes',
-             'text': 'A demonstration of the page ledgdex makes for an offer. Nobody may buy it.', 'media': []},
-    'quantity': 12, 'unit': 'dozen', 'currency': 'INR', 'price': 120000, 'allow': [],
-    'pay': [{'method': 'upi', 'to': 'example@bank'}], 'arbiter': {'key': public(key), 'url': ''},
+    'item': {'title': 'Example offer: Penjointu v1 weights',
+             'text': 'A demonstration of the page ledgdex makes for an offer: the weights of Penjointu, a neural '
+                     'network that analyzes the bone density of knee joints. Nobody may buy it.', 'media': []},
+    'quantity': 10, 'unit': 'license', 'currency': 'USD', 'price': 250000, 'allow': [],
+    'pay': [{'method': 'card', 'to': 'https://pay.example/biobot'}], 'arbiter': {'key': public(key), 'url': ''},
     'terms': 'An example in the ledgdex docs: "allow" is an empty list, so every claim is refused.'}, at=T.format(1))
 oid = led.append(led.next_entry(key, offer, at=T.format(1)))
 auction = message(key, 'auction', {
-    'item': {'title': 'Example auction: Map of Bombay, 1893',
-             'text': 'A demonstration of the page ledgdex makes for a sealed-bid auction. Nobody may bid.',
+    'item': {'title': 'Example auction: Penjointu v2 early access',
+             'text': 'A demonstration of the page ledgdex makes for a sealed-bid auction: the v2 weights, 90 days '
+                     'before all other clinics. Nobody may bid.',
              'media': []},
-    'currency': 'INR', 'close': '2026-10-11T09:00:00Z', 'reveal_until': '2026-10-12T09:00:00Z', 'best': 'highest',
-    'reserve': 500000, 'allow': [], 'arbiter': {'key': public(key), 'url': ''},
+    'currency': 'USD', 'close': '2026-10-28T09:00:00Z', 'reveal_until': '2026-10-29T09:00:00Z', 'best': 'highest',
+    'reserve': 1000000, 'allow': [], 'arbiter': {'key': public(key), 'url': ''},
     'terms': 'An example in the ledgdex docs.'}, at=T.format(2))
 led.append(led.next_entry(key, auction, at=T.format(2)))
 led.append(led.next_entry(key, message(key, 'note', {'ref': oid, 'text': 'This ledger was signed once, for the docs.'},

@@ -175,7 +175,7 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-cd py && python -m unittest discover -s tests -v                       # cryptography backend (141 tests)
+cd py && python -m unittest discover -s tests -v                       # cryptography backend (143 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
 cd py && python tests/fuzz.py --seed N --ledgers 200 --texts 3000 --keep fuzz-out  # differential fuzzing
@@ -234,11 +234,21 @@ loophole each audit finds.* 23 audits were run:
 ## 8. Docs, viewer and site: how they are made and published
 
 ### Docs (`guide/`)
-- `guide/dex/` is a dex AND a ledgdex (its `ledgdex.jsonl` is the frozen demo ledger, id `sha256:8a657c68...`, dex
-  address `https://ledgdex.github.io/docs`). **`data.json` is the source**: the user edits it by hand like any dex.
-- 4 pages are generated from code and examples by `guide/pages.py`: Command Line Options from argparse with
-  COLUMNS=110, API Reference from `inspect` and the JS exports, Message Types validated with `check_body`, and
-  Examples. The Examples page holds all 15 examples (the user's choice, to keep the index short), each under a heading
+- `guide/dex/` is a dex AND a ledgdex (its `ledgdex.jsonl` is the frozen demo ledger, id `sha256:7b3d502d...`, made
+  again on 2026-10-21 with model weights in place of the old mango offer; dex address `https://ledgdex.github.io/docs`).
+- The story of the docs (the user's choice): biobot sells the weights of Penjointu (a neural network for knee bone
+  density) to orthonalyzebot (a bot of the Orthonalyze clinic) and kneecarebot, under the ONITO medmodel exchange
+  (root and index). osteobot is a second seller, unknownbot a non-member. Prices in USD cents, units "license". No
+  mangoes, farms, Asha, Ravi or maps in the docs. README.md still uses the old story. **`data.json` is the source**: the user edits it by hand like any dex.
+- 5 pages are generated from code and examples by `guide/pages.py`: Command Line Options from argparse with
+  COLUMNS=110, API Reference from `inspect` and the JS exports, Message Types validated with `check_body`, Examples,
+  and Tutorial. The Tutorial page comes from `guide/tutorial.md` (the user's tutorial, in ASD-STE100): an index of
+  its sections (anchors `step1`..`step18`) and of the commands, each `sh` block as code, each `expect` block as
+  "Expected output", and at the end a certificate (The Matrix Dex style: Consolas, black/white/green, the Research
+  Engine logo `guide/assets/research-engine-logo.png` as a data: image; styles `.certificate`/`.cert-*` in
+  `guide/dex/styles.css`). Only the docs index links to the Tutorial. `py/tests/tutorial.py` runs the tutorial in one
+  bash and checks every expected line (`python py/tests/tutorial.py`, about 90 s); `test_guide` runs it and checks
+  that it uses every command and option. The Markdown file also works as a skill file for agents. The Examples page holds all 15 examples (the user's choice, to keep the index short), each under a heading
   `<span id='exampleNAME'>`; links to an example go to `examples.html#exampleNAME` (`pages.link` does this for
   generated pages). The 15 old example pages are gone from data.json; `build.py` removes a marked page that
   pages.py no longer makes. Each generated page's first body string starts with

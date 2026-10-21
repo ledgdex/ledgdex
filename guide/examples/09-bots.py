@@ -4,7 +4,7 @@
 import contextlib, io, json
 from ledgdex.cli import main
 
-# `ledgdex(...)` runs one ledgdex command in this program and returns what it printed; `state(...)` reads a ledgdex's state.
+# `ledgdex(...)` runs one ledgdex command in this program and returns its output. `state(...)` reads the state of a ledgdex.
 def ledgdex(*args):
     out = io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
@@ -16,7 +16,7 @@ def state(src):
     return json.loads(ledgdex('state', src))
 
 
-# A seller bot, each round, collects orders and payments from its buyers' dexes. For every accepted order that is paid, it records the money as received and delivers a licence key. A real bot would first look up the payment reference with its bank.
+# In each round, a seller bot collects claims and payments from the dexes of its buyers. For each accepted claim with a payment, it records the money and delivers a licence key. A real bot first looks up the payment reference at its bank.
 class SellerBot:
     def __init__(self, dex, buyers):
         self.dex, self.buyers = dex, buyers
@@ -29,7 +29,7 @@ class SellerBot:
                 ledgdex('delivered', self.dex, cid, '--note', 'licence key LIC-' + cid[7:15].upper())
 
 
-# A buyer bot wants one licence within a budget. In its first round it finds the cheapest open offer on the index and orders it. After that, each round it keeps the seller's receipts, pays once the order is accepted, and confirms once the licence is delivered.
+# A buyer bot wants one licence within a budget. In its first round, it finds the cheapest open offer in the index and claims it. In each later round, it keeps the receipts of the seller. It pays when the seller accepts the claim, and it confirms when the licence arrives.
 class BuyerBot:
     def __init__(self, dex, index, title, budget):
         self.dex, self.index, self.title, self.budget = dex, index, title, budget
@@ -68,7 +68,7 @@ for shop, price in (('acme', 4900), ('globex', 3900)):
 for buyer in ('alice', 'bob'):
     ledgdex('init', buyer, '--name', buyer.title(), '--key', buyer)
 
-# Every bot takes a turn each round, as it would on a timer. Online, each bot would also publish its dex after its turn. After four rounds both buyers have bought from Globex, the cheaper shop, and both deals are closed.
+# Each bot takes a turn in each round, as on a timer. Online, each bot also publishes its dex after its turn. After four rounds, both buyers bought from Globex, the cheaper shop, and both deals closed.
 sellers = [SellerBot('acme', ['alice', 'bob']), SellerBot('globex', ['alice', 'bob'])]
 buyers = [BuyerBot('alice', 'index', 'Photo editor licence', 5000), BuyerBot('bob', 'index', 'Photo editor licence', 5000)]
 for n in range(1, 5):

@@ -1,5 +1,5 @@
 // expect: Ledgdex Docs: whole, 4 entries
-// expect: Example offer: Alphonso mangoes | INR 1,200.00 (120000) per dozen | 12 left
+// expect: Example offer: Penjointu v1 weights | USD 2,500.00 (250000) per license | 10 left
 // expect: one changed letter breaks it at entry 1
 import { readFile } from 'fs/promises';
 import { pathToFileURL } from 'url';
@@ -22,12 +22,12 @@ async function read(src) {
 }
 const bytes = await read(source);
 
-// Check every hash and signature. `whole` is true only if every entry checks out; otherwise `broken_at` and `error` say where and why.
+// Verify each hash and each signature. `whole` is true only if each entry is correct. If not, `broken_at` and `error` say where and why.
 const led = new Ledger(bytes);
 console.log(led.header.name + ': ' + (led.whole ? 'whole' : 'BROKEN at entry ' + led.broken_at + ', ' + led.error) +
   ', ' + led.entries.length + ' entries');
 
-// The state says which offers are open and how many are left. The price and unit are in the signed offer itself, found by its id.
+// The state says which offers are open and how many units each offer has. The price and the unit are in the signed offer. Find the offer by its id.
 const st = state(led);
 for (const [id, o] of Object.entries(st.offers)) {
   if (o.status !== 'open') continue;
@@ -37,6 +37,6 @@ for (const [id, o] of Object.entries(st.offers)) {
 
 // Change one letter of the offer's title and read the ledger again: it is no longer whole, and it says where.
 const changed = bytes.slice();
-changed[Buffer.from(changed).indexOf('Alphonso')] = 'B'.charCodeAt(0);
+changed[Buffer.from(changed).indexOf('Penjointu')] = 'B'.charCodeAt(0);
 const bad = new Ledger(changed);
 console.log('one changed letter breaks it at entry', bad.broken_at + ':', bad.error);

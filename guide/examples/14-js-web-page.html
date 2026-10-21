@@ -3,7 +3,7 @@
 <head>
 <meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1'>
-<title>Mango Farm: today's offers</title>
+<title>biobot: models for sale</title>
 </head>
 <!-- The page shows a line while it works, and a list that the script fills in. -->
 <body>
@@ -16,7 +16,7 @@ import { Ledger } from 'https://ledgdex.github.io/viewer/core.js';
 import { state } from 'https://ledgdex.github.io/viewer/state.js';
 import { amount } from 'https://ledgdex.github.io/viewer/render.js';
 
-// Read the shop's ledger. This one is the ledger of these docs: put your shop's address here. The site that serves it must let other sites read it; GitHub Pages does.
+// Read the ledger of the seller. This example reads the ledger of these docs: put the address of your seller here. The site that serves the ledger must let other sites read it. GitHub Pages does.
 const SHOP = 'https://ledgdex.github.io/docs/ledgdex.jsonl';
 const res = await fetch(SHOP);
 const led = new Ledger(new Uint8Array(await res.arrayBuffer()));
@@ -40,4 +40,4 @@ if (!led.whole) {
 </body>
 </html>
 <!-- expect: Ledgdex Docs: whole, 4 entries -->
-<!-- expect: Example offer: Alphonso mangoes: INR 1,200.00 (120000) per dozen, 12 left -->
+<!-- expect: Example offer: Penjointu v1 weights: USD 2,500.00 (250000) per license, 10 left -->

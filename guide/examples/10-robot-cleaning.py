@@ -18,7 +18,7 @@ def state(src):
     return json.loads(ledgdex('state', src))
 
 
-# Two companies, one robot each. The company holds the main key; the robot gets its own device key and signs with it. Each robot offers today's 10 cleans at USD 4.00 each. Three shops join.
+# Two companies have one robot each. The company holds the main key. The robot gets its own device key and signs with it. Each robot offers 10 cleans for today, at USD 4.00 each. Three shops join.
 robots = {'roomba': 'CleanCo', 'hoover': 'Brightfloor'}
 for robot, operator in robots.items():
     ledgdex('init', robot, '--name', robot.title() + ' (' + operator + ')', '--key', operator.lower())
@@ -34,7 +34,10 @@ for shop in shops:
     ledgdex('init', shop, '--name', shop.title(), '--key', shop)
 
 
-# One clean: the shop orders it from the robot's open offer; the robot records the order, cleans, and records a photo as proof (its address and hash; here a made-up hash); the shop confirms.
+# One clean has these steps:
+# 1. The shop claims the clean from the open offer of the robot.
+# 2. The robot records the claim, cleans, and records a photo as evidence: its address and hash. Here the hash is an example.
+# 3. The shop confirms the clean.
 def open_offer(robot):
     return next((i for i, o in state(robot)['offers'].items() if o['status'] == 'open' and o['remaining']), None)
 
@@ -51,7 +54,7 @@ def clean(shop, robot):
     return claim
 
 
-# In the morning each shop gets a clean from each robot. At midday the hoover's battery fails, so it withdraws its offer; in the afternoon every shop uses the roomba.
+# In the morning, each shop gets a clean from each robot. At midday, the battery of the hoover fails, so the hoover withdraws its offer. In the afternoon, each shop uses the roomba.
 done = [(shop, robot, clean(shop, robot)) for shop in shops for robot in robots]
 ledgdex('withdraw', 'hoover', open_offer('hoover'), keys=os.path.join(os.getcwd(), 'hoover-keys'))
 print('robot offline: hoover; open offers:', {r: open_offer(r) is not None for r in robots})
@@ -67,7 +70,7 @@ for robot in robots:
         if 'paid' in c and 'received' not in c:
             ledgdex('received', robot, cid, c['price'], keys=keys)
 
-# The day's report, worked out from the ledgers alone, so anyone can check it.
+# The report of the day comes only from the ledgers, so anyone can make sure that it is correct.
 for robot in robots:
     claims = state(robot)['claims'].values()
     print(robot, 'day total: USD', sum(c['price'] for c in claims if c['status'] == 'closed') / 100,

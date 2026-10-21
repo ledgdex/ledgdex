@@ -120,6 +120,32 @@ class DocsPages(unittest.TestCase):
                     self.assertIn("id='" + anchor + "'", ids[target], f + ' links to ' + h)
 
 
+class Tutorial(unittest.TestCase):
+    """The Tutorial page (guide/tutorial.md) is run as a reader runs it: its command blocks in order in one shell,
+    in an empty folder, and the output must contain every line of its expected-output blocks. So a reader who passes
+    the tutorial ran commands that work."""
+
+    def test_the_tutorial_runs_and_prints_what_it_expects(self):
+        import tutorial
+        with tempfile.TemporaryDirectory(prefix='ledgdex-tutorial-') as tmp:
+            code, problems = tutorial.run(tmp)
+        self.assertEqual([], problems)
+        self.assertEqual(0, code)
+
+    def test_the_tutorial_uses_every_command_and_option(self):
+        import tutorial
+        sys.path.insert(0, os.path.join(HERE, '..'))
+        from ledgdex.cli import parser
+        commands = '\n'.join(text for kind, text in tutorial.blocks() if kind == 'sh')
+        sub = next(a for a in parser()._actions if a.__class__.__name__ == '_SubParsersAction')
+        for name, sp in sub.choices.items():
+            self.assertRegex(commands, r'ledgdex ' + name + r'\b', name)
+            for action in sp._actions:
+                for opt in action.option_strings:
+                    if opt not in ('-h', '--help'):
+                        self.assertIn(' ' + opt, commands, 'ledgdex ' + name + ' ' + opt)
+
+
 def _make(name):
     return lambda self: self.run_example(name)
 

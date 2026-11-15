@@ -265,6 +265,9 @@ loophole each audit finds.* 23 audits were run:
   `python guide/build.py --page TITLE` (repeatable) writes that page into data.json (replaces it by title, or adds it
   at the end), only when asked, and leaves every other page alone; `--gen` builds `guide/dex/gen/` to preview. build.py writes data.json the way ledgdex does (indent 4, ensure_ascii False, no trailing
   newline) and atomically (tmp + replace).
+- `ledgdex shop` in the docs: tutorial step 18 teaches it (Clean up is step 19), and the hand-written page
+  "Sell your catalog on Ledgdex" (the user's name for it; file `sellyourcatalogonledgdex.html`, linked from Selling)
+  documents the catalog.
 - Publish: `cd guide/dex && ledgdex publish .` -> dexweb git method to `ledgdex/ledgdex.github.io`, `site_path: docs`.
 - **How to make a docs change (the user's standing instruction, 2026-10-21):** when the user asks for a change to
   the docs, edit `guide/dex/data.json` (or `styles.css`, `config.json`), then run `ledgdex publish .` in

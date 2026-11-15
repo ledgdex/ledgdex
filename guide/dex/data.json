@@ -101,7 +101,7 @@
             "4. Record the money when it arrives. Record the delivery when you deliver: <pre><code>ledgdex received shop CLAIM_ID 240000\nledgdex delivered shop CLAIM_ID --note \"by courier\"</code></pre>",
             "5. To stop selling, withdraw the offer: <pre><code>ledgdex withdraw shop OFFER_ID</code></pre>",
             "6. Publish after each step that others must see: <pre><code>ledgdex publish shop</code></pre>",
-            "To make a complete shop from a catalog in one step, see <a href='shopsfromacatalog.html'>Shops From a Catalog</a>.",
+            "To make a complete shop from a catalog in one step, see <a href='sellyourcatalogonledgdex.html'>Sell your catalog on Ledgdex</a>.",
             "The state applies these rules to each claim. Anyone can calculate the state again. A claim must obey all of these rules:",
             "- It names the offer by its id and by its hash. So the offer cannot change under the claim.",
             "- It pays the price of the offer.",
@@ -119,7 +119,7 @@
         ]
     },
     {
-        "title": "Shops From a Catalog",
+        "title": "Sell your catalog on Ledgdex",
         "body": [
             "A shop is a ledgdex with one offer for each product. <code>ledgdex shop</code> makes the complete shop from one JSON file, the catalog. You do not write offer files. A bot or a person gives the catalog and a GitHub repository. Then ledgdex makes the shop and publishes it with dexweb.",
             "<pre><code>ledgdex shop catalog.json --repo OWNER/NAME</code></pre>",

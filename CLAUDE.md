@@ -213,8 +213,8 @@ cd viewer && python run.py --build-only                                # viewer 
   `test_guide`, fast backend, plus the JS vectors; ~30 s) after small changes; the full suite (`--full`: everything on
   both backends, the docs examples, the tutorial, fuzzing; ~10 min) after bigger changes and before major pushes and
   releases. Put `[full tests]` in the commit message of a bigger change so that CI runs the full suite too.
-- CI (`.github/workflows/tests.yml`): job `essential` (`python run_tests.py`) on Linux, macOS and Windows for every
-  push; job `build` (Linux): viewer and home builds, the PyPI packages (the wheel holds only `ledgdex/` and its
+- CI (`.github/workflows/tests.yml`): job `essential` (`python run_tests.py`) on Linux only (the user's choice) for
+  every push; job `build` (Linux): viewer and home builds, the PyPI packages (the wheel holds only `ledgdex/` and its
   metadata, a guard refuses anything else; the essential suite from the extracted sdist); job `full`
   (`--full`, all three systems) for `v*` tags, workflow_dispatch, Mondays, and `[full tests]` commits. The user requires the tests to pass on Windows, macOS and Linux. Keep them portable:
   - every text file ledgdex reads or writes is opened with `encoding='utf-8'`, and writes with `newline='\n'`;

@@ -49,9 +49,10 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 ### State at handoff (October 2026)
 
-- Version **1.0.18** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json`, and the example tag on the JavaScript Core page). The tag `v1.0.18` exists (at
-  `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
+- Version **1.0.19** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
+  commands in `guide/dex/data.json` and `guide/tutorial.md`, and the example tag on the JavaScript Core page). 1.0.19
+  adds `ledgdex shop` (SPEC 7.5). Its tag is not made yet: ask the user to create `v1.0.19`, then update the
+  ledgdex-live workflow. The tag `v1.0.18` exists (at `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
   (`c873a22` in `ledgdex.github.io`). The docs with the Tutorial and the biobot story are published (`62ff19d` in `ledgdex.github.io`; the old
   docs ledger and old example pages were removed there by hand in `e756764` and `ae7b026`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
   `ledgdex/ledgdex` (confirmed by the user).
@@ -99,6 +100,8 @@ py/ledgdex/            the Python package (pip install -e "py[fast]")
   styles.css           the default styles.css of every new ledgdex (dexweb's defaults + ruled ledger rows; the
                        user's design). create_dex writes it if missing; make_vectors puts it in js/dexweb-template.json
   publish.py           catch up with the published ledger, re-sequence, publish with dexweb (append_only)
+  shop.py              `ledgdex shop CATALOG` / `shop()`: a whole shop from a JSON catalog (SPEC 7.5): strict
+                       catalog check, make the dex, offer each product, withdraw changed/removed ones, publish
   check.py             tamper checks over time (kept copies + receipts), the GitHub workflow generator
   cli.py               the `ledgdex` command (argparse; `parser()`); `next_at` keeps one key's messages in distinct seconds
 py/tests/              unittest suites (see section 6), helpers.py, make_vectors.py, fuzz.py
@@ -176,7 +179,7 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-cd py && python -m unittest discover -s tests -v                       # cryptography backend (137 tests)
+cd py && python -m unittest discover -s tests -v                       # cryptography backend (145 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
 cd py && python tests/fuzz.py --seed N --ledgers 200 --texts 3000 --keep fuzz-out  # differential fuzzing
@@ -195,6 +198,8 @@ cd viewer && python run.py --build-only                                # viewer 
 - **No test and no CI step checks the docs pages** (the user's decision, 2026-10-21: "the idea of docs is to have a
   static site that i can freely change without needing tests"). Never add one back. The docs pages, links, version
   strings and styles are the user's, edited by hand and published with `ledgdex publish .`.
+- `test_shop.py`: `ledgdex shop` end to end (a local bare git repository, the folder method, `--repo`, a root,
+  a sold-out product, and every catalog error signing nothing).
 - `test_safety.py`: invariant 14 (pages carry only text, `<code>`, `<br>`, safe http(s) links) on every vector page.
 - CI (`.github/workflows/tests.yml`), in order: install; viewer build; home build; both Python suites; JS vectors; fuzzing (uploads disagreements on
   failure). Actions are pinned to commits.
@@ -282,7 +287,7 @@ loophole each audit finds.* 23 audits were run:
   both: the page template in `guide/dex/config.json` writes `<body data-title='{0}'>` (indexed format fields), and
   the ledger rules at the end of `guide/dex/styles.css` select those titles. Chromium computed styles were checked
   equal to the ledgdex styles.css alone on the ledger pages, and to the old docs styles on the other pages.
-- Hand-written pages carry the version in install commands (`@v1.0.18#subdirectory=py`); update it by hand on a
+- Hand-written pages carry the version in install commands (`@v1.0.19#subdirectory=py`); update it by hand on a
   release (no test checks it).
 
 ### Home (`home/`) and viewer (`viewer/`)
@@ -362,7 +367,7 @@ simplest secure design (nothing is implemented; build only when the user says so
 - Env vars: `LEDGDEX_HOME` (keys, default `~/.ledgdex`), `LEDGDEX_CACHE` (verification cache, `~/.cache/ledgdex`),
   `LEDGDEX_NO_CACHE=1`, `LEDGDEX_PURE=1`, `LEDGDEX_MAX_BYTES` (read cap, 64 MiB), `LEDGDEX_JS` (examples: where the JS
   core is).
-- Install: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.18#subdirectory=py"`.
+- Install: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.19#subdirectory=py"`.
 - The CLI's full list of commands and options is in SPEC "Command-line tool" and on the docs page Command Line Options.
 - SPEC "Future improvements": encrypted keys at rest, constant-time signing required, state caching at scale, an
   independent third verifier, Web Crypto verifying and locked keys, browser tests in CI, PyPI packaging, delegated

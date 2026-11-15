@@ -650,6 +650,44 @@ A ledgdex is published with dexweb (4.2.5 or later), like any other dex. `ledgde
 
 Two devices that both publish to one dest are safe: git rejects the second push, and step 1 re-sequences its
 entries. Method `"folder"` also honours `append_only`, but has no atomic step, so it is for a single device only.
+
+### 7.5 A shop from a catalog
+
+`ledgdex shop CATALOG [--dex DEX] [--repo OWNER/NAME] [--no-publish]` (and `ledgdex.shop.shop()` in Python) makes or
+updates a whole shop from one JSON file, so a bot or a person with a catalog needs no other command. It only signs
+`open`, `offer` and `withdraw` messages, as the other commands do: nothing in the format changes.
+
+```json
+{"shop": {"name": "Penguin Shop", "currency": "USD",
+          "pay": [{"method": "card", "to": "https://pay.example/penguin"}],
+          "about": "Gear for cold places", "terms": "Delivery in 5 days.", "repo": "OWNER/NAME"},
+ "products": [{"title": "Ice axe", "price": 4999, "quantity": 20, "text": "Steel, 70 cm"},
+              {"title": "Snow boots", "price": 12900, "quantity": 15, "unit": "pair"}]}
+```
+
+- `shop` is necessary, with `name`, `currency` (one currency for the shop) and `pay` (one or more payment methods,
+  each `{"method", "to"}`, the shop's for every offer). Optional: `about`, `url`, `terms`, `unit` (default `unit`),
+  `allow` (default `any`), `arbiter` (default as for `offer`: the root's owner, else the shop itself), `root`, `key`
+  (the key name, made if missing; default: the dex folder name), and where to publish: one of `repo` (a GitHub
+  repository; `dest` becomes `git@github.com:OWNER/NAME.git` and the address `https://OWNER.github.io/NAME`, or
+  `https://OWNER.github.io` for the repository `OWNER.github.io`), `dest` (any git address) or `folder` (dexweb's
+  folder method), with `branch` (default `main`) and `site_path` for `repo` and `dest`. `--repo` replaces the
+  catalog's `repo`, `dest`, `folder` and `url`.
+- `products` is optional. Each product needs `title` (unique in the catalog), `price` (an integer of 0 or more, in
+  minor units) and `quantity` (an integer of 1 or more). Optional: `text`, `media`, `unit`, `terms`, `allow`,
+  `expires`; `unit`, `terms` and `allow` default to the shop's.
+- A field that is not listed is refused, and every product is checked as an offer body (5.2) before anything is
+  signed. A wrong catalog signs nothing, and the error names the shop or the product.
+
+The run: make the dex (7.1) if `DEX` (default: the shop name in lowercase, with `-` between words) has no ledger;
+refuse a dex whose ledger has another name; write the publish settings and the root into `config.json` (a root is
+pinned, 5.7, and another root is refused); then compare. An offer that is `open` or `sold` and whose body is exactly
+a product's body is kept: a sold-out product is not offered again unless the catalog changes it. Every other `open`
+offer is withdrawn, and each product with no kept offer gets a new offer. So a changed product (price, quantity,
+text...) is withdrawn and offered again, and a product the catalog no longer has is withdrawn. All the new messages
+are signed at one time (`next_at`), so a large catalog never goes past the clock skew (9.2). Then render (7.3) and,
+unless `--no-publish` or the catalog names no publish settings, publish (7.4). The same catalog run again signs
+nothing.
 ## 8. Transport
 
 Reading: fetch `<dex url>/ledgdex.jsonl` over HTTP (7.1), or clone the dex's git repository, or copy the file. Verification
@@ -900,6 +938,8 @@ ledgdex keygen NAME                              write ~/.ledgdex/NAME.key and p
 ledgdex init DEX --name N --key K [--about A] [--url U] [--dest D] [--branch B] [--site-path P]
                                                  create a complete dex (7.1) with its ledger and "open" entry, then render
 seller
+ledgdex shop CATALOG [--dex DEX] [--repo OWNER/NAME] [--no-publish]
+                                                 make or update a whole shop from a JSON catalog (7.5)
 ledgdex offer DEX offer.json                     sign and record an offer (body from file; unit, allow, pay, terms,
                                                  arbiter, item.text and item.media get defaults)
 ledgdex withdraw DEX OFFER_ID
@@ -1086,6 +1126,11 @@ viewer's "Download your dex" uses the same file. A command that cannot read an a
 connection, an unknown host) now writes one line and stops with exit code 1, not a traceback. The viewer opens a
 ledger file dropped anywhere on its page, and moves to https://ledgdex.github.io/viewer/index.html (the old address
 sends you there); the home pages are a dex of their own (`home/`) that runs no scripts. Nothing in the format changes.
+
+**v1.0.19**: `ledgdex shop CATALOG` (7.5) makes or updates a whole shop from one JSON catalog: it makes the ledgdex
+when it is missing, signs one offer for each product, withdraws the offers of products that changed or that the
+catalog no longer has, renders and publishes with dexweb (`--repo OWNER/NAME` for GitHub). The same function is
+`ledgdex.shop.shop()` in Python, for bots. Nothing in the format changes.
 
 ## Milestones and acceptance tests
 

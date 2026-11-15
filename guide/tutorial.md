@@ -39,7 +39,7 @@ You work in one folder, `ledgdex-tutorial`. Nothing goes on the internet:
 
 What you need:
 
-- ledgdex 1.0.18 or later, with the `fast` extra: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.18#subdirectory=py"`
+- ledgdex 1.0.19 or later, with the `fast` extra: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.19#subdirectory=py"`
 - python3, for its built-in web server (one command in step 1)
 - curl, `shasum`, `awk`, `grep` and `sed`
 - GNU `date` and `timeout`. On macOS, steps 10, 13 and 16 show the commands to use instead.
@@ -832,7 +832,75 @@ cron: "17 6 * * *"
 --media
 ```
 
-## 18. Clean up
+## 18. Make a whole shop from a catalog: `shop`
+
+`shop` makes a complete shop from one JSON file, the catalog. If the shop does not exist, `shop` makes the ledgdex. Then it signs one offer for each product, and publishes. You do not write offer files. A bot can make a shop with one command.
+
+The catalog has two parts:
+
+- `shop`: `name`, `currency` and `pay` (one or more payment methods) are necessary. `about`, `terms`, `unit`, `allow`, `arbiter`, `url`, `root` and `key` are optional. To publish, give one of `repo` (a GitHub repository), `dest` (a git address) or `folder` (a folder).
+- `products`: optional. Each product must have `title`, `price` and `quantity`. `text`, `media`, `unit`, `terms`, `allow` and `expires` are optional.
+
+Ledgdex refuses a field that is not in these lists. If one product is wrong, ledgdex signs nothing, and the error names the product.
+
+Osteobot sells three models. Write its catalog. The shop publishes into the folder `site/osteobot`:
+
+```sh
+cat > osteobot-catalog.json <<JSON
+{"shop": {"name": "osteobot", "currency": "USD", "about": "Models for bone health", "root": "exchange",
+          "pay": [{"method": "card", "to": "https://pay.example/osteobot"}], "terms": "One license for each clinic.",
+          "url": "$WEB/site/osteobot", "folder": "../site/osteobot"},
+ "products": [{"title": "Osteoscan v1 weights", "text": "Finds low bone density", "quantity": 5, "price": 180000, "unit": "license"},
+              {"title": "Osteoscan v2 weights", "quantity": 5, "price": 240000, "unit": "license"},
+              {"title": "Osteoscan mini weights", "quantity": 10, "price": 50000, "unit": "license"}]}
+JSON
+ledgdex shop osteobot-catalog.json --dex osteobot
+ledgdex verify "$WEB/site/osteobot"
+```
+
+```expect
+shop created in osteobot
+shop: 0 offers kept, 3 offered, 0 withdrawn
+shop published
+whole:
+```
+
+Change the catalog: v2 gets a new price, the mini model goes out, and a v3 model comes in. Run `shop` again. Ledgdex keeps the offer that did not change. It withdraws the old v2 offer and the mini offer, and it signs the new offers.
+
+```sh
+cat > osteobot-catalog.json <<JSON
+{"shop": {"name": "osteobot", "currency": "USD", "about": "Models for bone health", "root": "exchange",
+          "pay": [{"method": "card", "to": "https://pay.example/osteobot"}], "terms": "One license for each clinic.",
+          "url": "$WEB/site/osteobot", "folder": "../site/osteobot"},
+ "products": [{"title": "Osteoscan v1 weights", "text": "Finds low bone density", "quantity": 5, "price": 180000, "unit": "license"},
+              {"title": "Osteoscan v2 weights", "quantity": 5, "price": 210000, "unit": "license"},
+              {"title": "Osteoscan v3 weights", "quantity": 5, "price": 300000, "unit": "license"}]}
+JSON
+ledgdex shop osteobot-catalog.json --dex osteobot
+ledgdex shop osteobot-catalog.json --dex osteobot
+```
+
+```expect
+shop: 1 offers kept, 2 offered, 2 withdrawn
+shop: 3 offers kept, 0 offered, 0 withdrawn
+```
+
+The second run signs nothing, because the shop is the same as the catalog. A bot can run `shop` each day with its current catalog.
+
+To publish on GitHub Pages, give `--repo OWNER/NAME`. It replaces the catalog's `repo`, `dest`, `folder` and `url`. The shop is then at `https://OWNER.github.io/NAME`. `--no-publish` makes or updates the shop, but does not publish it. Here, you only see what `--repo` writes into `config.json`. Nothing goes to GitHub.
+
+```sh
+ledgdex shop osteobot-catalog.json --dex osteobot-github-demo --repo osteobot/osteobot-shop --no-publish
+grep -A4 '"publish"' osteobot-github-demo/config.json
+grep -o 'https://osteobot[^"]*' osteobot-github-demo/ledgdex.jsonl
+```
+
+```expect
+"dest": "git@github.com:osteobot/osteobot-shop.git"
+https://osteobot.github.io/osteobot-shop
+```
+
+## 19. Clean up
 
 Stop the web server.
 
@@ -885,6 +953,7 @@ To start again, remove the folder: `cd "$TOP/.." && rm -rf ledgdex-tutorial`.
 | `recovered` | `--root`, `--key` | 15 |
 | `check` | `--published`, `--root`, `--state`, `--json`, `--quiet`, `--media`, `--every` | 13, 16 |
 | `workflow` | `--cron`, `--media` | 17 |
+| `shop` | `--dex`, `--repo`, `--no-publish` | 18 |
 
 Environment variables in this tutorial: `LEDGDEX_HOME` (where the keys are) and `LEDGDEX_CACHE` (where the verification cache is). The docs page Configuration lists all environment variables.
 
@@ -900,3 +969,4 @@ If the output of each step contained its expected lines, you passed the tutorial
 - Sell in a sealed-bid auction, and bid in one.
 - Publish a ledgdex, keep keys safe, and recover a lost key.
 - Find tampering and rewrites, and run checks each day.
+- Make a whole shop from a catalog with one command, and keep it the same as the catalog.

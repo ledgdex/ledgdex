@@ -106,6 +106,8 @@ API = [
      ['render', 'create_dex', 'pages', 'dex_name', 'safe_url', 'esc', 'amount', 'MARKER']),
     ('ledgdex.check', 'Tamper checks over time (spec 9.1).', ['check', 'Checker', 'workflow']),
     ('ledgdex.publish', 'Publishing with dexweb, from one or more devices (spec 7.4).', ['publish', 'catch_up']),
+    ('ledgdex.shop', 'A whole shop from one JSON catalog: made, kept the same as the catalog, published (spec 7.5).',
+     ['shop', 'check_catalog', 'offers']),
     ('ledgdex.cli', 'The command line, also callable from Python.', ['main', 'parser', 'next_at']),
     ('ledgdex.sig', 'Ed25519 backends: the cryptography package when present, else the built-in code.',
      ['backend', 'pure', 'sign']),
@@ -319,7 +321,7 @@ def certificate():
             "outputs completes Ledgdex CLI tutorial.</span>"
             "<span class='cert-text'>The holder can operate Ledgdex with all commands and options to list items for "
             "sale and buy items on ledgdexs.</span>"
-            "<span class='cert-foot'>LEDGDEX " + html.escape(version()) + " &middot; 33 COMMANDS &middot; "
+            "<span class='cert-foot'>LEDGDEX " + html.escape(version()) + " &middot; " + str(len(cli_pages()[0])) + " COMMANDS &middot; "
             "ALL OPTIONS</span>"
             "<span class='cert-sign'><span class='cert-signer'>Research Engine</span>"
             "<span class='cert-signer'>The Matrix Dex</span></span></span>")

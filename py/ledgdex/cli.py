@@ -149,6 +149,11 @@ def c_offer(a):
     add(a.dex, 'offer', with_defaults(a.dex, read_json(a.file), {'unit': 'unit', 'allow': 'any', 'pay': [], 'terms': ''}))
 
 
+def c_shop(a):
+    from .shop import shop
+    shop(a.catalog, dex=a.dex, repo=a.repo, publish=not a.no_publish)
+
+
 def c_auction(a):
     add(a.dex, 'auction', with_defaults(a.dex, read_json(a.file),
                                         {'allow': 'any', 'terms': '', 'best': 'highest', 'reserve': 0}))
@@ -507,6 +512,12 @@ def parser():
         (['--seller'], {'help': "buyer: the seller's dex (without it, a dispute in your own ledger)"}), O)
     cmd('ruling', c_ruling, "arbiter: rule on a dispute in a seller's ledger", D, S, (['dispute'], {'type': id_arg}),
         (['--outcome'], {'required': True, 'choices': ['release', 'refund', 'split']}), (['--text'], {'default': ''}), O)
+    cmd('shop', c_shop, 'make or update a whole shop from a JSON catalog: one offer for each product, then publish',
+        (['catalog'], {'help': 'the catalog file (JSON)'}),
+        (['--dex'], {'help': 'the dex folder (default: the shop name in lowercase, with "-" between words)'}),
+        (['--repo'], {'help': 'GitHub repository OWNER/NAME to publish to (replaces the catalog\'s repo, dest, '
+                              'folder and url)'}),
+        (['--no-publish'], dict(flag, dest='no_publish', help='make or update the shop, but do not publish it')))
     cmd('auction', c_auction, 'start a sealed-bid auction from a JSON file', D, (['file'], {}))
     cmd('bid', c_bid, "bid in a seller's auction (the amount stays secret until you reveal)", D, S, (['auction'], {'type': id_arg}),
         (['--amount'], {'type': int, 'required': True}), O)

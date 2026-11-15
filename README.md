@@ -35,6 +35,26 @@ ledgdex publish shop
 
 Prices are integers in the currency's smallest unit (120000 is INR 1,200.00). Left out: `allow` is `"any"`, `terms` is empty, and the arbiter is the seller.
 
+## A whole shop from a catalog
+
+```
+ledgdex shop catalog.json --repo OWNER/NAME
+```
+
+One command makes the shop from a JSON catalog: the ledgdex (if it is missing), one offer for each product, and the
+publish with dexweb to GitHub. Run it again after the catalog changes: unchanged products keep their offers, new and
+changed products get new offers, and the offers of changed and removed products are withdrawn. The same catalog again
+signs nothing. In Python: `from ledgdex.shop import shop; shop("catalog.json", repo="OWNER/NAME")`.
+
+```json
+{"shop": {"name": "Penguin Shop", "currency": "USD", "pay": [{"method": "card", "to": "https://pay.example/penguin"}]},
+ "products": [{"title": "Ice axe", "price": 4999, "quantity": 20, "text": "Steel, 70 cm"}]}
+```
+
+`shop.name`, `shop.currency` and `shop.pay` (one or more methods) are necessary; each product needs `title`, `price`
+and `quantity`. Unknown fields are refused, and a wrong product stops the run before anything is signed. The full
+format is in spec 7.5. GitHub Pages must be on for the repository (`OWNER.github.io` always has it).
+
 ## Buy
 
 ```

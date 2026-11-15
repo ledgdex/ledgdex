@@ -80,8 +80,12 @@ def run(workdir, path=TUTORIAL, timeout=900):
     env.pop('LEDGDEX_CACHE', None)
     env['PATH'] = shims(os.path.join(workdir, '.bin'), python3=os.name != 'nt') + os.pathsep + env.get('PATH', '')
     env['PYTHONPATH'] = os.path.abspath(os.path.join(HERE, '..')) + os.pathsep + env.get('PYTHONPATH', '')
+    # a file, not "bash -c": Windows cuts a command line at about 32,000 characters, and the tutorial is longer
+    path_sh = os.path.join(workdir, 'tutorial.sh')
+    with open(path_sh, 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(script) + '\n')
     try:
-        r = subprocess.run([bash(), '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
+        r = subprocess.run([bash(), path_sh], cwd=workdir, env=env, capture_output=True, text=True,
                            encoding='utf-8', errors='replace', timeout=timeout)
     finally:
         stop_leftovers()

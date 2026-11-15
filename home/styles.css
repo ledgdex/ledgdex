@@ -23,7 +23,7 @@ a:hover {
   text-decoration: underline;
 }
 .indexlink {
-  color: rgb(240, 240, 240); font-family:arial; font-size: 20px; letter-spacing: 0.05em; padding: 0px 0px;
+  color: rgb(240, 240, 240); font-family:arial; font-size: 20px; letter-spacing: 0.05em; padding: 10px 0px;
 }
 img {
     display: block;

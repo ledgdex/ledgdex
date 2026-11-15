@@ -13,12 +13,27 @@
         "title": "About",
         "body": [
             "Ledgdex is a simple market on a dex. Each self keeps a signed ledger that only grows, in its own dex.",
-            "A trade has three records:",
-            "- the claim that the buyer signs",
-            "- the record of the claim that the seller signs",
-            "- the copy of that record that the buyer keeps",
-            "<a href='viewer/index.html'>The viewer</a> verifies ledgers and keeps your ledger in this browser. It builds its own pages, and the dex that it downloads for you, in the same way as dexweb.",
-            "<a href='docs/index.html'>Docs</a> · <a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>Specification</a> · <a href='https://github.com/ledgdex/ledgdex'>Code</a> · <a href='https://matrixdex.github.io/dexweb'>dexweb</a>"
+            "A trade has three records (triple-entry accounting):",
+            "1. Claim that the buyer signs",
+            "2. Record of the claim that the seller signs",
+            "3. Copy of that record that the buyer keeps",
+            "<a href='viewer/index.html'>Viewer</a> verifies ledgers and keeps your ledger in this browser. It builds its own pages, and the dex that it downloads for you, in the same way as dexweb.",
+            "<a href='docs/index.html'>Docs</a>",
+            "<a href='https://github.com/ledgdex/ledgdex/blob/main/architecture/SPEC.md'>Specification</a>",
+            "<a href='https://github.com/ledgdex/ledgdex'>Code</a>",
+            "<a href='https://matrixdex.github.io/dexweb'>dexweb</a>"
+        ]
+    },
+    {
+        "title": "Documentation",
+        "body": [
+            "<a href='docs/index.html'>Documentation</a>"
+        ]
+    },
+    {
+        "title": "Viewer",
+        "body": [
+            "<a href='viewer/index.html'>Viewer</a>"
         ]
     }
 ]

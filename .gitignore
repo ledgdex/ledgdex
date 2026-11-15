@@ -15,3 +15,4 @@ home/gen/
 home/backup/
 home/to_add/
 home/.publish/
+py/fuzz-out/

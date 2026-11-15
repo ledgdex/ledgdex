@@ -1,13 +1,34 @@
-# Python and JavaScript must agree: both suites, and the shared vectors must be current (py/tests/test_vectors.py).
+# Two suites (run_tests.py): the essential one on every push, on Linux, macOS and Windows; the full one (both Ed25519
+# backends, the docs examples and the tutorial, fuzzing) for releases, by hand, once a week, and for a push whose
+# commit message contains "[full tests]".
 name: tests
 on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "23 5 * * 1"
 permissions:
   contents: read
 jobs:
-  test:
+  essential:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
+        with:
+          node-version: "22"
+      - run: pip install -e ".[fast]"
+      - run: python run_tests.py
+  # The sites build, and the PyPI packages are right: the wheel holds only the package; the source package runs the tests.
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -22,33 +43,21 @@ jobs:
         run: cd viewer && python run.py --build-only && git diff --exit-code . && test -z "$(git status --porcelain .)"
       - name: The home pages build (published to ledgdex.github.io with "cd home && python run.py")
         run: cd home && python run.py --build-only && git diff --exit-code . && test -z "$(git status --porcelain .)"
-      - name: Python (cryptography backend)
-        run: cd py && python -m unittest discover -s tests -v
-      - name: Python (pure Ed25519, no verification cache)
-        run: cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests
-      - name: JavaScript against the shared vectors
-        run: node js/test.mjs
-      - name: The PyPI packages (the wheel holds only the package; the source package runs the tests)
+      - name: The PyPI packages
         run: |
           python -m build --outdir "$RUNNER_TEMP/dist"
           # the wheel holds only the package and its metadata: nothing else from the repository
           ! python -m zipfile -l "$RUNNER_TEMP"/dist/*.whl | awk 'NR>1 {print $1}' | grep -vE '^ledgdex/[a-z0-9_]+\.(py|css)$|^ledgdex-[0-9.]+\.dist-info/'
           mkdir "$RUNNER_TEMP/sdist" && tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/sdist"
-          cd "$RUNNER_TEMP"/sdist/ledgdex-* && python run_tests.py --quick
-      - name: Differential fuzzing (a new seed every run; rerun one with --seed N)
-        run: cd py && python tests/fuzz.py --seed ${{ github.run_number }} --ledgers 200 --texts 3000 --keep fuzz-out
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        if: failure()
-        with:
-          name: fuzz-differences
-          path: py/fuzz-out/
-          if-no-files-found: ignore
-  # The same tests on macOS and Windows: python run_tests.py, as a user runs it before an upload.
-  platforms:
+          cd "$RUNNER_TEMP"/sdist/ledgdex-* && python run_tests.py
+  full:
+    if: >-
+      github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
+      startsWith(github.ref, 'refs/tags/v') || contains(github.event.head_commit.message, '[full tests]')
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -59,4 +68,11 @@ jobs:
         with:
           node-version: "22"
       - run: pip install -e ".[fast]"
-      - run: python run_tests.py --seed ${{ github.run_number }}
+      - name: The full suite (a new fuzzing seed every run; rerun one with --seed N)
+        run: python run_tests.py --full --seed ${{ github.run_number }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        if: failure()
+        with:
+          name: fuzz-differences-${{ matrix.os }}
+          path: py/fuzz-out/
+          if-no-files-found: ignore

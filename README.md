@@ -217,8 +217,12 @@ Before you trade for real, read [SECURITY.md](SECURITY.md). In short:
 
 ## Tests
 
-`python run_tests.py` runs every test: the Python tests on both Ed25519 backends, the JavaScript core against the
-shared vectors, and a round of differential fuzzing (`--quick` runs only the first two). It works in a clone and in
+Two suites. `python run_tests.py` is the essential one (about 30 s): every Python test except the docs examples and
+the tutorial, with the fast backend, and the JavaScript core against the shared vectors; run it after small changes.
+`python run_tests.py --full` is the full one (about 10 min): every Python test on both Ed25519 backends, the
+JavaScript vectors, and a round of differential fuzzing; run it after larger changes and before a release. CI runs
+the essential suite on every push (Linux, macOS, Windows), and the full suite for release tags, by hand, weekly, and
+for a push whose commit message contains `[full tests]`. Both work in a clone and in
 the source package on PyPI, which holds the tests and their data; the wheel holds only the code. Steps:
 https://ledgdex.github.io/docs/testlocalledgdexinstallation.html. It needs git and node 20 or later. The parts one by one:
 

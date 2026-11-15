@@ -53,7 +53,7 @@
             "3. To test ledgdex on your computer with all its tests, see <a href='testlocalledgdexinstallation.html'>Test Local Ledgdex Installation</a>.",
             "Other ways to install:",
             "- From the source on GitHub, at a release tag: <pre><code>pip install \"ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.20\"</code></pre>",
-            "- From a clone, to work on ledgdex itself. The last command runs all the tests: <pre><code>git clone https://github.com/ledgdex/ledgdex\ncd ledgdex\npip install -e \".[fast]\"\npython run_tests.py</code></pre>",
+            "- From a clone, to work on ledgdex itself. The last command runs the full test suite: <pre><code>git clone https://github.com/ledgdex/ledgdex\ncd ledgdex\npip install -e \".[fast]\"\npython run_tests.py</code></pre>",
             "Releases before 1.0.20 are not on PyPI. They are on GitHub only, as tags. For these releases, add <code>#subdirectory=py</code> to the GitHub address, for example <code>pip install \"ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.19#subdirectory=py\"</code>.",
             "You do not install the JavaScript core. It is plain ES modules in <code>js/</code>. The site also serves these modules next to the <a href='https://ledgdex.github.io/viewer/index.html'>viewer</a>. See <a href='javascriptcore.html'>JavaScript Core</a> and the <a href='apireference.html'>API Reference</a>.",
             "Ledgdex keeps keys in <code>~/.ledgdex</code>, or in <code>$LEDGDEX_HOME</code> when you set it. It keeps the verification cache in <code>~/.cache/ledgdex</code>, or in <code>$LEDGDEX_CACHE</code>. See <a href='configuration.html'>Configuration</a>."
@@ -69,17 +69,17 @@
             "1. Make a new folder and a new Python environment: <pre><code>mkdir ledgdex-test &amp;&amp; cd ledgdex-test\npython3 -m venv .venv\nsource .venv/bin/activate</code></pre>On Windows, use <code>python -m venv .venv</code> and <code>.venv\\Scripts\\activate</code>. Windows 10 and later have <code>tar</code>.",
             "2. Download the source package of the version that you want, and open it: <pre><code>pip download \"ledgdex==1.0.20\" --no-deps --no-binary ledgdex\ntar -xzf ledgdex-1.0.20.tar.gz\ncd ledgdex-1.0.20</code></pre>",
             "3. Install ledgdex from this folder, with the <code>fast</code> extra: <pre><code>pip install \".[fast]\"</code></pre>",
-            "4. Run all the tests: <pre><code>python run_tests.py</code></pre>",
-            "Expected output: one line for each part, and <code>all tests passed</code> at the end: <pre><code>passed: Python tests, fast backend (cryptography) (160 s)\npassed: JavaScript core against the shared vectors (5 s)\npassed: Python tests, pure Ed25519, no verification cache (240 s)\npassed: Differential fuzzing, Python against JavaScript (seed 1) (15 s)\nall tests passed</code></pre>",
-            "All the tests take approximately 7 minutes. For a shorter run of approximately 3 minutes, use <code>python run_tests.py --quick</code>. It runs only the Python tests with the fast backend, and the JavaScript vectors.",
+            "4. Run the full test suite: <pre><code>python run_tests.py --full</code></pre>",
+            "Expected output: one line for each part, and <code>all tests passed</code> at the end: <pre><code>passed: Python tests, all, fast backend (cryptography) (200 s)\npassed: JavaScript core against the shared vectors (5 s)\npassed: Python tests, all, pure Ed25519, no verification cache (280 s)\npassed: Differential fuzzing, Python against JavaScript (seed 1) (15 s)\nall tests passed</code></pre>",
+            "The full suite takes approximately 10 minutes. The essential suite, <code>python run_tests.py</code>, takes approximately 30 seconds. It runs all Python tests with the fast backend, but not the docs examples and the tutorial. It also runs the JavaScript vectors. Use the essential suite after small changes. Use the full suite after larger changes and before a release.",
             "If a part fails, <code>run_tests.py</code> shows the end of the output of that part, and stops with exit code 1. <code>--verbose</code> shows all the output. <code>--seed N</code> sets a different fuzzing seed.",
-            "The parts of the test:",
+            "The parts of the full suite:",
             "- The Python tests: the format, the signatures, the ledgers and the state rules. Also the checks for tampering, the command line, the shop from a catalog, the 15 examples of the docs and the tutorial.",
             "- The JavaScript vectors: the JavaScript core must give the same bytes, ids, signatures, state and pages as the Python package.",
             "- The pure backend: the same Python tests with the built-in Ed25519 code, and with no verification cache.",
             "- The fuzzing: random ledgers, damaged in many ways. Python and JavaScript must give the same result for each ledger.",
             "The tests keep their keys in temporary folders. They do not change your keys in <code>~/.ledgdex</code>.",
-            "To test a clone of the repository, run <code>python run_tests.py</code> in the clone. See <a href='installation.html'>Installation</a>."
+            "To test a clone of the repository, run <code>python run_tests.py --full</code> in the clone. See <a href='installation.html'>Installation</a>."
         ]
     },
     {

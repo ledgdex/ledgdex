@@ -1,7 +1,10 @@
-"""Run every ledgdex test, from a clone of the repository or from the source package on PyPI:
+"""Run the ledgdex tests, from a clone of the repository or from the source package on PyPI. Two suites:
 
-    python run_tests.py            all parts
-    python run_tests.py --quick    only the Python tests with the fast backend, and the JavaScript vectors
+    python run_tests.py            essential (about 30 s): every Python test except the docs examples and the
+                                   tutorial, with the fast backend, and the JavaScript vectors. For small changes.
+    python run_tests.py --full     full (about 10 min): every Python test, with the examples and the tutorial, on
+                                   both Ed25519 backends; the JavaScript vectors; differential fuzzing. For bigger
+                                   changes, before a release, and before an upload to PyPI.
 
 Install ledgdex first ("pip install -e .[fast]" in this folder). The tests also need git and node 20 or later. Each
 part prints one line; the exit code is 0 only when every part passed."""
@@ -11,17 +14,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PY = os.path.join(HERE, 'py')
 
 
-def parts(quick, seed):
+SLOW = {'test_guide'}   # the 15 docs examples and the tutorial: most of the time of the Python tests
+
+
+def parts(full, seed):
+    js = ('JavaScript core against the shared vectors', ['node', os.path.join(HERE, 'js', 'test.mjs')], HERE, {})
+    if not full:
+        names = sorted(f[:-3] for f in os.listdir(os.path.join(PY, 'tests'))
+                       if f.startswith('test_') and f.endswith('.py') and f[:-3] not in SLOW)
+        return [('Python tests, essential (fast backend, without the docs examples and the tutorial)',
+                 [sys.executable, '-m', 'unittest'] + names, os.path.join(PY, 'tests'), {}), js]
     unit = [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
-    out = [('Python tests, fast backend (cryptography)', unit, PY, {}),
-           ('JavaScript core against the shared vectors', ['node', os.path.join(HERE, 'js', 'test.mjs')], HERE, {})]
-    if not quick:
-        out += [('Python tests, pure Ed25519, no verification cache', unit, PY,
-                 {'LEDGDEX_PURE': '1', 'LEDGDEX_NO_CACHE': '1'}),
-                ('Differential fuzzing, Python against JavaScript (seed ' + str(seed) + ')',
-                 [sys.executable, os.path.join('tests', 'fuzz.py'), '--seed', str(seed), '--ledgers', '100',
-                  '--texts', '1000'], PY, {})]
-    return out
+    return [('Python tests, all, fast backend (cryptography)', unit, PY, {}), js,
+            ('Python tests, all, pure Ed25519, no verification cache', unit, PY,
+             {'LEDGDEX_PURE': '1', 'LEDGDEX_NO_CACHE': '1'}),
+            ('Differential fuzzing, Python against JavaScript (seed ' + str(seed) + ')',
+             [sys.executable, os.path.join('tests', 'fuzz.py'), '--seed', str(seed), '--ledgers', '100',
+              '--texts', '1000', '--keep', 'fuzz-out'], PY, {})]
 
 
 def missing():
@@ -40,8 +49,8 @@ def missing():
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description='Run every ledgdex test.')
-    ap.add_argument('--quick', action='store_true', help='only the fast backend and the JavaScript vectors')
+    ap = argparse.ArgumentParser(description='Run the ledgdex tests: the essential suite, or with --full all of them.')
+    ap.add_argument('--full', action='store_true', help='the full suite (about 10 min): for bigger changes and releases')
     ap.add_argument('--seed', type=int, default=1, help='the fuzzing seed (default 1)')
     ap.add_argument('--verbose', action='store_true', help='show the output of each part')
     a = ap.parse_args(argv)
@@ -53,7 +62,8 @@ def main(argv=None):
     print('testing the code in ' + os.path.join(PY, 'ledgdex') + '. The ledgdex command here is ' +
           ledgdex.__version__ + ' from ' + os.path.dirname(ledgdex.__file__), flush=True)
     failed = 0
-    for name, cmd, cwd, env in parts(a.quick, a.seed):
+    print(('full' if a.full else 'essential') + ' suite', flush=True)
+    for name, cmd, cwd, env in parts(a.full, a.seed):
         start = time.time()
         r = subprocess.run(cmd, cwd=cwd, env=dict(os.environ, **env), capture_output=not a.verbose, text=True)
         ok = r.returncode == 0

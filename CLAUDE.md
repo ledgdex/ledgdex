@@ -94,7 +94,7 @@ SECURITY.md            what the guarantees mean for users; version line; reporti
 README.md              overview, install, running a root, viewer, checking, tests
 pyproject.toml         the package build, at the root since 1.0.20 (package-dir py/); MANIFEST.in puts the tests and
                        their data into the source package only; the wheel holds only py/ledgdex
-run_tests.py           runs every test (both backends, JS vectors, fuzzing; --quick); works in the sdist too
+run_tests.py           two suites: essential (default, ~30 s) and --full (~10 min); works in the sdist too
 py/ledgdex/            the Python package (pip install -e ".[fast]" from the repository root)
   canon.py             canonical JSON (parse/canon/hash_), limits
   core.py              keys, messages, entries, Ledger (verification, cache), BODIES (message schemas)
@@ -185,7 +185,8 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 Setup: `pip install -e ".[fast]"` at the repository root (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
-python run_tests.py                                                    # everything below in one command (--quick: less)
+python run_tests.py                                                    # essential suite (~30 s): small changes
+python run_tests.py --full                                             # full suite (~10 min): bigger changes, releases
 cd py && python -m unittest discover -s tests -v                       # cryptography backend (145 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
@@ -208,10 +209,14 @@ cd viewer && python run.py --build-only                                # viewer 
 - `test_shop.py`: `ledgdex shop` end to end (a local bare git repository, the folder method, `--repo`, a root,
   a sold-out product, and every catalog error signing nothing).
 - `test_safety.py`: invariant 14 (pages carry only text, `<code>`, `<br>`, safe http(s) links) on every vector page.
-- CI (`.github/workflows/tests.yml`), job `test` (Linux), in order: install; viewer build; home build; both Python
-  suites; JS vectors; the PyPI packages (build; the wheel holds only `ledgdex/` and its metadata, a guard refuses
-  anything else; `run_tests.py --quick` from the extracted sdist); fuzzing. Job `platforms`: `python run_tests.py`
-  on macOS and Windows. The user requires the tests to pass on Windows, macOS and Linux. Keep them portable:
+- **Two suites (the user's rule, 2026-11-15):** the essential suite (`python run_tests.py`: all Python tests but
+  `test_guide`, fast backend, plus the JS vectors; ~30 s) after small changes; the full suite (`--full`: everything on
+  both backends, the docs examples, the tutorial, fuzzing; ~10 min) after bigger changes and before major pushes and
+  releases. Put `[full tests]` in the commit message of a bigger change so that CI runs the full suite too.
+- CI (`.github/workflows/tests.yml`): job `essential` (`python run_tests.py`) on Linux, macOS and Windows for every
+  push; job `build` (Linux): viewer and home builds, the PyPI packages (the wheel holds only `ledgdex/` and its
+  metadata, a guard refuses anything else; the essential suite from the extracted sdist); job `full`
+  (`--full`, all three systems) for `v*` tags, workflow_dispatch, Mondays, and `[full tests]` commits. The user requires the tests to pass on Windows, macOS and Linux. Keep them portable:
   - every text file ledgdex reads or writes is opened with `encoding='utf-8'`, and writes with `newline='\n'`;
     `render.dexweb_utf8()` makes dexweb (which uses the system encoding) do the same while ledgdex runs it;
   - `.gitattributes` (`* -text`) keeps line endings byte for byte (vectors and ledgers are compared exactly);
@@ -220,10 +225,10 @@ cd viewer && python run.py --build-only                                # viewer 
     `-v` fallback, `sed -i.bak`, background `&` + `kill` instead of `timeout`, `sha256` helper for sha256sum/shasum);
   - `dex.locked()` locks with `fcntl` on POSIX and `msvcrt.locking` on Windows; key file modes are checked only where
     POSIX modes exist.
-  Fuzzing uploads disagreements on failure. Actions are pinned to commits.
+  The full job uploads fuzzing disagreements on failure. Actions are pinned to commits.
 
-Before every push: run the relevant suites locally on BOTH backends, re-read your diff adversarially, then push; check
-CI after.
+Before every push: run the suite that fits the change (essential for small changes, full for bigger ones), re-read
+your diff adversarially, then push; check CI after.
 
 ## 7. The security audits (how "production ready" was reached)
 
@@ -312,7 +317,7 @@ loophole each audit finds.* 23 audits were run:
   Installation; the GitHub alternative `@v1.0.20` (no `#subdirectory=py` since 1.0.20) on Installation; `1.0.20 or
   later` in the tutorial; the tag on JavaScript Core. Update by hand on a release (no test checks it). The page
   "Test Local Ledgdex Installation" (the user's request) shows `pip download "ledgdex==X" --no-deps --no-binary
-  ledgdex`, extract, `pip install ".[fast]"`, `python run_tests.py`: update its version on a release.
+  ledgdex`, extract, `pip install ".[fast]"`, `python run_tests.py --full`: update its version on a release.
 
 ### Home (`home/`) and viewer (`viewer/`)
 - The home dex has the pages Live Markets and About. Its index lists Viewer and Docs too. It runs no scripts (its CSP
@@ -378,7 +383,7 @@ simplest secure design (nothing is implemented; build only when the user says so
   `Co-Authored-By` line in its message (the user's standing instruction). The user makes lightweight tags, so GitHub
   shows that commit's message on the tag. Other commits keep the trailer lines.
 - Releases: bump the version in `py/ledgdex/__init__.py`, `pyproject.toml` (root), `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json` and the test page, add a SPEC release note, run `python run_tests.py`, push, then
+  commands in `guide/dex/data.json` and the test page, add a SPEC release note, run `python run_tests.py --full`, push, then
   ask the user to create the tag (you cannot push tags) and to upload to PyPI from the tag (`python -m build`, `twine
   upload dist/*`), then update ledgdex-live's workflow to `ledgdex==X.Y.Z`.
 - When the user says "planning mode" or "make no edits", answer only; edit only when they say go ahead.

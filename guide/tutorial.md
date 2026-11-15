@@ -40,7 +40,7 @@ You work in one folder, `ledgdex-tutorial`. Nothing goes on the internet:
 What you need:
 
 - ledgdex 1.0.20 or later, with the `fast` extra: `pip install "ledgdex[fast]"`
-- python3, for its built-in web server (one command in step 1)
+- python3 (or python), for its built-in web server (one command in step 1)
 - curl, `shasum`, `awk`, `grep` and `sed`
 - Linux or macOS. The commands work with the GNU tools of Linux and with the BSD tools of macOS.
 
@@ -76,7 +76,7 @@ usage: ledgdex offer
 Start the web server in the background. It serves only `www`. Never let a web server serve a folder that holds keys.
 
 ```sh
-python3 -m http.server 8642 --bind 127.0.0.1 > server.log 2>&1 &
+"$(command -v python3 || command -v python)" -m http.server 8642 --bind 127.0.0.1 > server.log 2>&1 &
 SERVER=$!
 WEB=http://127.0.0.1:8642
 sleep 1
@@ -89,7 +89,7 @@ web server: 200
 
 ## 2. Make a key: `keygen`
 
-`keygen` makes a secret key in `$LEDGDEX_HOME` and prints its public key. The key file has mode 600. Ledgdex refuses a key file that other users can read.
+`keygen` makes a secret key in `$LEDGDEX_HOME` and prints its public key. On Linux and macOS, the key file has mode 600, and `ls -l` shows `-rw-------`. Ledgdex refuses a key file that other users can read. Windows has no such modes: your user folder keeps the key private.
 
 ```sh
 ledgdex keygen exchange
@@ -98,7 +98,6 @@ ls -l "$LEDGDEX_HOME"
 
 ```expect
 ed25519:
--rw------- 
 exchange.key
 ```
 

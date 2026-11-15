@@ -56,6 +56,7 @@ class Examples(unittest.TestCase):
 
 
 class Tutorial(unittest.TestCase):
+    maxDiff = None   # show every problem
     """The Tutorial page (guide/tutorial.md) is run as a reader runs it: its command blocks in order in one shell,
     in an empty folder, and the output must contain every line of its expected-output blocks. So a reader who passes
     the tutorial ran commands that work."""

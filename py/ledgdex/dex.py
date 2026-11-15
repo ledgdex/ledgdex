@@ -122,8 +122,20 @@ def locked(dex):
     with open(os.path.join(dex, '.ledgdex.lock'), 'a', encoding='utf-8') as f:
         try:
             import fcntl
-        except ImportError:  # Windows: no lock
-            yield
+        except ImportError:  # Windows: lock the first byte of the file (a lock may lie past its end)
+            import msvcrt, time
+            f.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    time.sleep(0.05)
+            try:
+                yield
+            finally:
+                f.seek(0)
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
             return
         fcntl.flock(f, fcntl.LOCK_EX)
         try:

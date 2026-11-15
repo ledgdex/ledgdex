@@ -473,7 +473,11 @@ def dex_files(dex, prefix):
         for n in names:
             full = os.path.join(base, n)
             with open(full, 'rb') as f:
-                out[prefix + os.path.relpath(full, dex)] = f.read()
+                data = f.read()
+            rel = os.path.relpath(full, dex).replace(os.sep, '/')
+            if rel.startswith(('gen/', 'backup/')) and rel.endswith(('.html', '.json')):
+                data = data.replace(b'\r\n', b'\n')   # dexweb writes its pages in text mode: "\r\n" on Windows
+            out[prefix + rel] = data
     return out
 
 

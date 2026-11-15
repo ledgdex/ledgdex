@@ -81,8 +81,8 @@ for (const [raw, want] of json('dexnames.json')) ok(dexName(raw) === want, 'dex 
 
 // whole dexs: dexweb.js must build every file dexweb built (vectors/dex/)
 const template = JSON.parse(readFileSync(join(V, '..', 'js', 'dexweb-template.json'), 'utf8'));
-const walk = (dir, base = dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
-  d.isDirectory() ? walk(join(dir, d.name), base) : [join(dir, d.name).slice(base.length + 1)]);
+const walk = (dir, base = dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) =>   // '/' on every system
+  d.isDirectory() ? walk(dir + '/' + d.name, base) : [(dir + '/' + d.name).slice(base.length + 1)]);
 for (const name of readdirSync(join(V, 'dex'))) {
   const dir = join(V, 'dex', name), want = walk(dir).sort();
   let got;

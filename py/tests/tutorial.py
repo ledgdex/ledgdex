@@ -33,12 +33,19 @@ def bash():
     return 'bash'
 
 
-def shims(folder):
+def shims(folder, python3=True):
     """A folder with "python3" and "ledgdex" commands that run this Python and this ledgdex, for the shell (python3
-    is often missing on Windows, and the ledgdex on the PATH can be another one). Returns the folder."""
+    is often missing on Windows, and the ledgdex on the PATH can be another one). Returns the folder.
+
+    On Windows a script that runs a program stays between the shell and that program, so "kill" would stop the
+    script and leave the program running. There the installed ledgdex.exe is used, and python3=False leaves out
+    "python3", so that a command the tutorial stops (its web server) is the real program."""
     os.makedirs(folder, exist_ok=True)
     py = sys.executable.replace('\\', '/')
-    for name, line in (('python3', 'exec "' + py + '" "$@"'), ('ledgdex', 'exec "' + py + '" -m ledgdex.cli "$@"')):
+    want = [('python3', 'exec "' + py + '" "$@"')] if python3 else []
+    if os.name != 'nt':
+        want.append(('ledgdex', 'exec "' + py + '" -m ledgdex.cli "$@"'))
+    for name, line in want:
         p = os.path.join(folder, name)
         with open(p, 'w', encoding='utf-8', newline='\n') as f:
             f.write('#!/bin/sh\n' + line + '\n')
@@ -59,7 +66,7 @@ def run(workdir, path=TUTORIAL, timeout=900):
     env = dict(os.environ)
     env.pop('LEDGDEX_HOME', None)
     env.pop('LEDGDEX_CACHE', None)
-    env['PATH'] = shims(os.path.join(workdir, '.bin')) + os.pathsep + env.get('PATH', '')
+    env['PATH'] = shims(os.path.join(workdir, '.bin'), python3=os.name != 'nt') + os.pathsep + env.get('PATH', '')
     env['PYTHONPATH'] = os.path.abspath(os.path.join(HERE, '..')) + os.pathsep + env.get('PYTHONPATH', '')
     r = subprocess.run([bash(), '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
                        encoding='utf-8', errors='replace', timeout=timeout)

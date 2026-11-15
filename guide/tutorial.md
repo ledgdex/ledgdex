@@ -42,7 +42,7 @@ What you need:
 - ledgdex 1.0.20 or later, with the `fast` extra: `pip install "ledgdex[fast]"`
 - python3 (or python), for its built-in web server (one command in step 1)
 - curl, `sha256sum` or `shasum`, `awk`, `grep` and `sed`
-- Linux or macOS. The commands work with the GNU tools of Linux and with the BSD tools of macOS.
+- Linux, macOS, or Windows with Git Bash (from Git for Windows). The commands work with the GNU tools of Linux and Git Bash, and with the BSD tools of macOS.
 
 ## 1. Prepare the folder
 

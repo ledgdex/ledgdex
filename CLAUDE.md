@@ -208,8 +208,18 @@ cd viewer && python run.py --build-only                                # viewer 
 - `test_shop.py`: `ledgdex shop` end to end (a local bare git repository, the folder method, `--repo`, a root,
   a sold-out product, and every catalog error signing nothing).
 - `test_safety.py`: invariant 14 (pages carry only text, `<code>`, `<br>`, safe http(s) links) on every vector page.
-- CI (`.github/workflows/tests.yml`), in order: install; viewer build; home build; both Python suites; JS vectors; the
-  PyPI packages (build; the wheel has no tests; `run_tests.py --quick` from the extracted sdist); fuzzing (uploads disagreements on
+- CI (`.github/workflows/tests.yml`), job `test` (Linux), in order: install; viewer build; home build; both Python
+  suites; JS vectors; the PyPI packages (build; the wheel holds only `ledgdex/` and its metadata, a guard refuses
+  anything else; `run_tests.py --quick` from the extracted sdist); fuzzing. Job `platforms`: `python run_tests.py`
+  on macOS and Windows. The user requires the tests to pass on Windows, macOS and Linux. Keep them portable:
+  - every text file ledgdex reads or writes is opened with `encoding='utf-8'`, and writes with `newline='\n'`;
+    `render.dexweb_utf8()` makes dexweb (which uses the system encoding) do the same while ledgdex runs it;
+  - `.gitattributes` (`* -text`) keeps line endings byte for byte (vectors and ledgers are compared exactly);
+  - shell tests and examples run with Git for Windows' bash (`tutorial.bash()`), the tutorial from a script file
+    (Windows cuts long command lines), with `tutorial.shims()`; no `git init -b`, no GNU-only flags (`date -d` has a
+    `-v` fallback, `sed -i.bak`, background `&` + `kill` instead of `timeout`, `sha256` helper for sha256sum/shasum);
+  - `dex.locked()` locks with `fcntl` on POSIX and `msvcrt.locking` on Windows; key file modes are checked only where
+    POSIX modes exist. (uploads disagreements on
   failure). Actions are pinned to commits.
 
 Before every push: run the relevant suites locally on BOTH backends, re-read your diff adversarially, then push; check

@@ -1137,7 +1137,12 @@ are git tags only. `pyproject.toml` moves to the root of the repository (the cod
 install no longer needs `#subdirectory=py`. The wheel holds only the package. The source package also holds the
 tests, the shared vectors, the JavaScript core, the docs examples and the tutorial, and `python run_tests.py` runs
 them all from it (or from a clone). Workflows that `ledgdex workflow` makes install `ledgdex==VERSION` from PyPI.
-Nothing in the format changes.
+
+The tests pass on Linux, macOS and Windows, and CI runs them on all three. Fixes on the way: on Windows, `locked()`
+had no lock, so two writers at one time could break a ledger (it now uses `msvcrt.locking`); ledgdex and dexweb read
+and wrote text files with the system encoding (cp1252 on Windows), which broke names in other scripts, and with
+`"\r\n"` (all text files are now UTF-8 with `"\n"`, and ledgdex makes dexweb do the same while it runs it). The
+tests no longer need `git init -b` (git 2.28) or GNU-only commands. Nothing in the format changes.
 
 ## Milestones and acceptance tests
 

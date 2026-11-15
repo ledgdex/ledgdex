@@ -1,6 +1,5 @@
-# The source package (sdist) holds what "python run_tests.py" needs. The wheel holds only py/ledgdex.
-include README.md SECURITY.md LICENSE run_tests.py
-include architecture/SPEC.md
+# The source package (sdist) holds only what "python run_tests.py" needs. The wheel holds only py/ledgdex.
+include README.md LICENSE run_tests.py
 recursive-include py/tests *.py *.mjs
 recursive-include vectors *
 recursive-include js *.js *.mjs *.json

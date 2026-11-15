@@ -31,7 +31,8 @@ jobs:
       - name: The PyPI packages (the wheel holds only the package; the source package runs the tests)
         run: |
           python -m build --outdir "$RUNNER_TEMP/dist"
-          ! python -m zipfile -l "$RUNNER_TEMP"/dist/*.whl | grep -E 'tests/|vectors/|run_tests'
+          # the wheel holds only the package and its metadata: nothing else from the repository
+          ! python -m zipfile -l "$RUNNER_TEMP"/dist/*.whl | awk 'NR>1 {print $1}' | grep -vE '^ledgdex/[a-z0-9_]+\.(py|css)$|^ledgdex-[0-9.]+\.dist-info/'
           mkdir "$RUNNER_TEMP/sdist" && tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/sdist"
           cd "$RUNNER_TEMP"/sdist/ledgdex-* && python run_tests.py --quick
       - name: Differential fuzzing (a new seed every run; rerun one with --seed N)

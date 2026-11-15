@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
         with:
           node-version: "22"
-      - run: pip install -e "py[fast]"
+      - run: pip install -e ".[fast]" build
       - name: The viewer builds (published to ledgdex.github.io/viewer/ with "cd viewer && python run.py")
         run: cd viewer && python run.py --build-only && git diff --exit-code . && test -z "$(git status --porcelain .)"
       - name: The home pages build (published to ledgdex.github.io with "cd home && python run.py")
@@ -28,6 +28,12 @@ jobs:
         run: cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests
       - name: JavaScript against the shared vectors
         run: node js/test.mjs
+      - name: The PyPI packages (the wheel holds only the package; the source package runs the tests)
+        run: |
+          python -m build --outdir "$RUNNER_TEMP/dist"
+          ! python -m zipfile -l "$RUNNER_TEMP"/dist/*.whl | grep -E 'tests/|vectors/|run_tests'
+          mkdir "$RUNNER_TEMP/sdist" && tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/sdist"
+          cd "$RUNNER_TEMP"/sdist/ledgdex-* && python run_tests.py --quick
       - name: Differential fuzzing (a new seed every run; rerun one with --seed N)
         run: cd py && python tests/fuzz.py --seed ${{ github.run_number }} --ledgers 200 --texts 3000 --keep fuzz-out
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1

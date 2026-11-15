@@ -1132,6 +1132,13 @@ when it is missing, signs one offer for each product, withdraws the offers of pr
 catalog no longer has, renders and publishes with dexweb (`--repo OWNER/NAME` for GitHub). The same function is
 `ledgdex.shop.shop()` in Python, for bots. Nothing in the format changes.
 
+**v1.0.20**: ledgdex is on PyPI: `pip install "ledgdex[fast]"`. This is the first release there; earlier releases
+are git tags only. `pyproject.toml` moves to the root of the repository (the code stays in `py/ledgdex`), so a git
+install no longer needs `#subdirectory=py`. The wheel holds only the package. The source package also holds the
+tests, the shared vectors, the JavaScript core, the docs examples and the tutorial, and `python run_tests.py` runs
+them all from it (or from a clone). Workflows that `ledgdex workflow` makes install `ledgdex==VERSION` from PyPI.
+Nothing in the format changes.
+
 ## Milestones and acceptance tests
 
 1. **Encoding.** Canonical JSON and hashing. Vectors: nested objects, key order, every escape case, Unicode
@@ -1199,7 +1206,7 @@ Hardening that is not built yet:
    Crypto can also hold a key that pages can use but never read: offer that for browsers left unattended (a shop's
    screen, a robot's dashboard), with the trade-off that such a key cannot be backed up.
 6. **Browser tests in CI.** Run the viewer's end-to-end tests (in Chromium) on every push, not only by hand.
-7. **Packaging.** Publish ledgdex on PyPI so `pip install ledgdex` works, and so the check workflow installs a release.
+7. **Packaging.** Done in 1.0.20: ledgdex is on PyPI, and the check workflow installs a release from there.
 8. **Delegated admission.** A `delegate` type, letting the root name other ledgers that may admit (Decision 4).
 
 ## Out of scope for v1

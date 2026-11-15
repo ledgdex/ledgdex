@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ledgdex"
+version = "1.0.20"
+description = "A simple market on a dex: signed, append-only ledgers with triple-entry accounting"
+readme = "README.md"
+authors = [{name = "Noorul Ali"}]
+requires-python = ">=3.8"
+license = {text = "CC0-1.0"}
+dependencies = ["dexweb>=4.2.5,<5"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+
+[project.optional-dependencies]
+fast = ["cryptography>=42"]
+
+[project.urls]
+Homepage = "https://ledgdex.github.io"
+Documentation = "https://ledgdex.github.io/docs/"
+Source = "https://github.com/ledgdex/ledgdex"
+
+[project.scripts]
+ledgdex = "ledgdex.cli:main"
+
+# The wheel holds only the package. The source package (sdist) also holds the tests and the files they read
+# (MANIFEST.in), so that anyone can run "python run_tests.py" from it.
+[tool.setuptools]
+package-dir = {"" = "py"}
+packages = ["ledgdex"]
+
+[tool.setuptools.package-data]
+ledgdex = ["styles.css"]

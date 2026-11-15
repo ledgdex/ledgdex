@@ -9,12 +9,16 @@ The specification is [architecture/SPEC.md](architecture/SPEC.md). Everything in
 ## Install
 
 ```
-pip install -e py
+pip install "ledgdex[fast]"
 ```
+
+From the source on GitHub: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.20"`. From a clone,
+to work on ledgdex: `pip install -e ".[fast]"`. Releases before 1.0.20 are on GitHub only, as tags; add
+`#subdirectory=py` to their address.
 
 Python 3.8 or later. The only dependency is dexweb (4.2.5 or later, before 5). Private keys live in `~/.ledgdex` (or `$LEDGDEX_HOME`), never in a dex, with mode 600: ledgdex refuses a key file others can read.
 
-For speed, `pip install -e "py[fast]"` adds the `cryptography` package: signing and verifying get about 20 to 25 times faster. Without it ledgdex uses its own pure-Python Ed25519, with the same results. Verified ledgers are also cached (in `~/.cache/ledgdex`, or `$LEDGDEX_CACHE`) by the exact bytes already verified, so a ledger that grew is only verified from where it was verified before; any changed byte is verified in full. `ledgdex verify --full` and `LEDGDEX_NO_CACHE=1` skip the cache, and `LEDGDEX_PURE=1` forces the pure-Python Ed25519.
+The `fast` extra adds the `cryptography` package: signing and verifying get about 20 to 25 times faster. Without it ledgdex uses its own pure-Python Ed25519, with the same results. Verified ledgers are also cached (in `~/.cache/ledgdex`, or `$LEDGDEX_CACHE`) by the exact bytes already verified, so a ledger that grew is only verified from where it was verified before; any changed byte is verified in full. `ledgdex verify --full` and `LEDGDEX_NO_CACHE=1` skip the cache, and `LEDGDEX_PURE=1` forces the pure-Python Ed25519.
 
 ## Sell
 
@@ -205,13 +209,18 @@ Each command rewrites the ledgdex pages in `data.json` (pages whose first paragr
 
 Before you trade for real, read [SECURITY.md](SECURITY.md). In short:
 
-- Install the `fast` extra (`pip install -e "py[fast]"`) on every machine that signs: it signs in constant time. ledgdex warns when it signs without it.
+- Install the `fast` extra (`pip install "ledgdex[fast]"`) on every machine that signs: it signs in constant time. ledgdex warns when it signs without it.
 - Keep owner keys offline (backed up), and use device keys day to day. Revoke a lost device at once.
 - Run `ledgdex check` on your ledger and the ledgers you trade with, daily (the workflow, cron or a worker). An error there is tampering, with proof.
 - In the browser, keep your key sealed with a long passphrase and download a backup. Use the viewer at https://ledgdex.github.io/viewer/index.html, or host it on an address of its own: every page on one origin can read what pages there store.
 - Generated workflows install ledgdex from the release tag and pin each action to a commit.
 
 ## Tests
+
+`python run_tests.py` runs every test: the Python tests on both Ed25519 backends, the JavaScript core against the
+shared vectors, and a round of differential fuzzing (`--quick` runs only the first two). It works in a clone and in
+the source package on PyPI, which holds the tests and their data; the wheel holds only the code. Steps:
+https://ledgdex.github.io/docs/testlocalledgdexinstallation.html. It needs git and node 20 or later. The parts one by one:
 
 ```
 cd py && python -m unittest discover -s tests

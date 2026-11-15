@@ -39,7 +39,7 @@ You work in one folder, `ledgdex-tutorial`. Nothing goes on the internet:
 
 What you need:
 
-- ledgdex 1.0.19 or later, with the `fast` extra: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.19#subdirectory=py"`
+- ledgdex 1.0.20 or later, with the `fast` extra: `pip install "ledgdex[fast]"`
 - python3, for its built-in web server (one command in step 1)
 - curl, `shasum`, `awk`, `grep` and `sed`
 - GNU `date` and `timeout`. On macOS, steps 10, 13 and 16 show the commands to use instead.

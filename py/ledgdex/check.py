@@ -313,7 +313,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - run: pip install "ledgdex @ git+https://github.com/ledgdex/ledgdex@{version}#subdirectory=py"
+      - run: pip install "ledgdex=={version}"
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .ledgdex-check
@@ -338,7 +338,7 @@ jobs:
 
 def workflow(sources, cron='17 6 * * *', media=False, version=None):
     """The workflow file. Sources are shell-quoted and the cron is checked, so neither can add steps; ledgdex is
-    installed from a release tag, not from a moving branch."""
+    installed from PyPI at this exact version, not from a moving branch."""
     import shlex
     from . import __version__
     if not re.match(r'[0-9*/,-]+( [0-9*/,A-Za-z-]+){4}\Z', cron):
@@ -347,4 +347,4 @@ def workflow(sources, cron='17 6 * * *', media=False, version=None):
         if not src or src.startswith('-') or any(c in src for c in '\n\r'):
             raise Invalid('not a ledger source: ' + repr(src))
     return WORKFLOW.format(cron=cron, sources=' '.join(shlex.quote(x) for x in sources), media=' --media' if media else '',
-                           version=version or 'v' + __version__)
+                           version=version or __version__)

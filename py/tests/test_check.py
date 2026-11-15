@@ -295,7 +295,7 @@ class Check(unittest.TestCase):
         from ledgdex.core import Invalid
         w = workflow(['a b.jsonl', '$(curl evil)', 'x;rm -rf /'])
         self.assertIn("ledgdex check 'a b.jsonl' '$(curl evil)' 'x;rm -rf /' --json", w)
-        self.assertIn('ledgdex@v' + __import__('ledgdex').__version__ + '#subdirectory=py', w)
+        self.assertIn('pip install "ledgdex==' + __import__('ledgdex').__version__ + '"', w)
         for bad in ([['a\n      - run: evil']], [['--json=/etc/x']]):
             with self.assertRaises(Invalid):
                 workflow(*bad)

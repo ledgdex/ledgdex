@@ -49,10 +49,13 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 ### State at handoff (October 2026)
 
-- Version **1.0.19** in code (`py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json` and `guide/tutorial.md`, and the example tag on the JavaScript Core page). 1.0.19
-  adds `ledgdex shop` (SPEC 7.5). Its tag is not made yet: ask the user to create `v1.0.19`, then update the
-  ledgdex-live workflow. The tag `v1.0.18` exists (at `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
+- Version **1.0.20** in code (`py/ledgdex/__init__.py`, `pyproject.toml` at the repository root, `SECURITY.md` line 3,
+  the install commands in `guide/dex/data.json` and `guide/tutorial.md`, and the example tag on the JavaScript Core
+  page). 1.0.20 is the first PyPI release (the user uploads it; no earlier version may ever be on PyPI): the
+  default install is `pip install "ledgdex[fast]"`, git installs are the alternative. Its tag is not made yet: ask the
+  user to create `v1.0.20`. After the user uploads to PyPI, update the ledgdex-live workflow to
+  `pip install "ledgdex==1.0.20"` (generated workflows now install from PyPI). `v1.0.19` (at `b9ae141`) added
+  `ledgdex shop` (SPEC 7.5); ledgdex-live installs it (`f2df685`, run passed). The tag `v1.0.18` exists (at `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
   (`c873a22` in `ledgdex.github.io`). The docs with the Tutorial and the biobot story are published (`62ff19d` in `ledgdex.github.io`; the old
   docs ledger and old example pages were removed there by hand in `e756764` and `ae7b026`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
   `ledgdex/ledgdex` (confirmed by the user).
@@ -89,7 +92,10 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 architecture/SPEC.md   the specification (format, state rules, invariants, CLI, release notes, decisions)
 SECURITY.md            what the guarantees mean for users; version line; reporting
 README.md              overview, install, running a root, viewer, checking, tests
-py/ledgdex/            the Python package (pip install -e "py[fast]")
+pyproject.toml         the package build, at the root since 1.0.20 (package-dir py/); MANIFEST.in puts the tests and
+                       their data into the source package only; the wheel holds only py/ledgdex
+run_tests.py           runs every test (both backends, JS vectors, fuzzing; --quick); works in the sdist too
+py/ledgdex/            the Python package (pip install -e ".[fast]" from the repository root)
   canon.py             canonical JSON (parse/canon/hash_), limits
   core.py              keys, messages, entries, Ledger (verification, cache), BODIES (message schemas)
   ed25519.py           vendored pure-Python Ed25519 (strict; refuses small-order keys)
@@ -176,9 +182,10 @@ guide/                 the docs: dex/ (the docs dex, a ledgdex), examples/ (15 t
 
 ## 6. Tests: what to run, every time
 
-Setup: `pip install -e "py[fast]"` (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
+Setup: `pip install -e ".[fast]"` at the repository root (Python 3.8+; `cryptography` for the fast backend; dexweb and git needed), node 22.
 
 ```
+python run_tests.py                                                    # everything below in one command (--quick: less)
 cd py && python -m unittest discover -s tests -v                       # cryptography backend (145 tests)
 cd py && LEDGDEX_PURE=1 LEDGDEX_NO_CACHE=1 python -m unittest discover -s tests   # pure Ed25519, no cache (2 skips)
 node js/test.mjs                                                       # JS against the shared vectors (289 checks)
@@ -201,7 +208,8 @@ cd viewer && python run.py --build-only                                # viewer 
 - `test_shop.py`: `ledgdex shop` end to end (a local bare git repository, the folder method, `--repo`, a root,
   a sold-out product, and every catalog error signing nothing).
 - `test_safety.py`: invariant 14 (pages carry only text, `<code>`, `<br>`, safe http(s) links) on every vector page.
-- CI (`.github/workflows/tests.yml`), in order: install; viewer build; home build; both Python suites; JS vectors; fuzzing (uploads disagreements on
+- CI (`.github/workflows/tests.yml`), in order: install; viewer build; home build; both Python suites; JS vectors; the
+  PyPI packages (build; the wheel has no tests; `run_tests.py --quick` from the extracted sdist); fuzzing (uploads disagreements on
   failure). Actions are pinned to commits.
 
 Before every push: run the relevant suites locally on BOTH backends, re-read your diff adversarially, then push; check
@@ -290,8 +298,11 @@ loophole each audit finds.* 23 audits were run:
   both: the page template in `guide/dex/config.json` writes `<body data-title='{0}'>` (indexed format fields), and
   the ledger rules at the end of `guide/dex/styles.css` select those titles. Chromium computed styles were checked
   equal to the ledgdex styles.css alone on the ledger pages, and to the old docs styles on the other pages.
-- Hand-written pages carry the version in install commands (`@v1.0.19#subdirectory=py`); update it by hand on a
-  release (no test checks it).
+- Install commands in the docs: `pip install "ledgdex[fast]"` (PyPI, the default) on Getting Started and
+  Installation; the GitHub alternative `@v1.0.20` (no `#subdirectory=py` since 1.0.20) on Installation; `1.0.20 or
+  later` in the tutorial; the tag on JavaScript Core. Update by hand on a release (no test checks it). The page
+  "Test Local Ledgdex Installation" (the user's request) shows `pip download "ledgdex==X" --no-deps --no-binary
+  ledgdex`, extract, `pip install ".[fast]"`, `python run_tests.py`: update its version on a release.
 
 ### Home (`home/`) and viewer (`viewer/`)
 - The home dex has the pages Live Markets and About. Its index lists Viewer and Docs too. It runs no scripts (its CSP
@@ -357,8 +368,9 @@ simplest secure design (nothing is implemented; build only when the user says so
   `Co-Authored-By` line in its message (the user's standing instruction). The user makes lightweight tags, so GitHub
   shows that commit's message on the tag. Other commits keep the trailer lines.
 - Releases: bump the version in `py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
-  commands in `guide/dex/data.json` (`@vX.Y.Z#subdirectory=py`), add a SPEC release note, push, then ask the user to
-  create the tag (you cannot push tags), then update ledgdex-live's workflow to the new tag.
+  commands in `guide/dex/data.json` and the test page, add a SPEC release note, run `python run_tests.py`, push, then
+  ask the user to create the tag (you cannot push tags) and to upload to PyPI from the tag (`python -m build`, `twine
+  upload dist/*`), then update ledgdex-live's workflow to `ledgdex==X.Y.Z`.
 - When the user says "planning mode" or "make no edits", answer only; edit only when they say go ahead.
 - Prefer the simplest design that is secure; explain trade-offs plainly; say when something is not done or not tested.
 - Don't use `pkill -f` with a pattern that matches your own command line (it killed the shell once, exit 144).
@@ -370,7 +382,7 @@ simplest secure design (nothing is implemented; build only when the user says so
 - Env vars: `LEDGDEX_HOME` (keys, default `~/.ledgdex`), `LEDGDEX_CACHE` (verification cache, `~/.cache/ledgdex`),
   `LEDGDEX_NO_CACHE=1`, `LEDGDEX_PURE=1`, `LEDGDEX_MAX_BYTES` (read cap, 64 MiB), `LEDGDEX_JS` (examples: where the JS
   core is).
-- Install: `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.19#subdirectory=py"`.
+- Install: `pip install "ledgdex[fast]"` (PyPI, from 1.0.20), or `pip install "ledgdex[fast] @ git+https://github.com/ledgdex/ledgdex@v1.0.20"`.
 - The CLI's full list of commands and options is in SPEC "Command-line tool" and on the docs page Command Line Options.
 - SPEC "Future improvements": encrypted keys at rest, constant-time signing required, state caching at scale, an
   independent third verifier, Web Crypto verifying and locked keys, browser tests in CI, PyPI packaging, delegated

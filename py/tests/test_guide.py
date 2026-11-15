@@ -63,8 +63,9 @@ class Tutorial(unittest.TestCase):
 
     def test_the_tutorial_runs_and_prints_what_it_expects(self):
         import tutorial
-        with tempfile.TemporaryDirectory(prefix='ledgdex-tutorial-') as tmp:
-            code, problems = tutorial.run(tmp)
+        tmp = tempfile.mkdtemp(prefix='ledgdex-tutorial-')
+        self.addCleanup(shutil.rmtree, tmp, True)
+        code, problems = tutorial.run(tmp)
         self.assertEqual([], problems)
         self.assertEqual(0, code)
 

@@ -41,18 +41,19 @@ What you need:
 
 - ledgdex 1.0.20 or later, with the `fast` extra: `pip install "ledgdex[fast]"`
 - python3 (or python), for its built-in web server (one command in step 1)
-- curl, `shasum`, `awk`, `grep` and `sed`
+- curl, `sha256sum` or `shasum`, `awk`, `grep` and `sed`
 - Linux or macOS. The commands work with the GNU tools of Linux and with the BSD tools of macOS.
 
 ## 1. Prepare the folder
 
-Make the folder and its subfolder `www`. Tell ledgdex to keep the keys and the verification cache outside `www`. `$TOP` keeps the path of `ledgdex-tutorial`. Then go into `www`. Run all other commands there.
+Make the folder and its subfolder `www`. Tell ledgdex to keep the keys and the verification cache outside `www`. `$TOP` keeps the path of `ledgdex-tutorial`. The `sha256` command prints the SHA-256 of a file. It uses `sha256sum` (Linux, Windows) or `shasum` (macOS). Then go into `www`. Run all other commands there.
 
 ```sh
 mkdir -p ledgdex-tutorial/www && cd ledgdex-tutorial
 TOP="$PWD"
 export LEDGDEX_HOME="$TOP/keys"
 export LEDGDEX_CACHE="$TOP/cache"
+sha256() { if command -v sha256sum >/dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi; }
 cd www
 pwd
 ```
@@ -207,7 +208,7 @@ Biobot keeps the weights file private, in `$TOP/private`. The web server does no
 ```sh
 mkdir "$TOP/private"
 printf 'Penjointu v1 weights (a stand-in for the real file)' > "$TOP/private/penjointu-v1.weights"
-HASH="sha256:$(shasum -a 256 "$TOP/private/penjointu-v1.weights" | cut -d' ' -f1)"
+HASH="sha256:$(sha256 "$TOP/private/penjointu-v1.weights" | cut -d' ' -f1)"
 echo "$HASH"
 ```
 
@@ -400,7 +401,7 @@ Orthonalyzebot reads the hash from the offer that it bought, and only from a ver
 curl -s "$WEB/biobot/gen/ledgdex.jsonl" -o "$TOP/orthonalyzebot-inbox/biobot-ledger.jsonl"
 ledgdex verify "$TOP/orthonalyzebot-inbox/biobot-ledger.jsonl"
 OFFER_LINE=$(while IFS= read -r line; do
-  if [ "sha256:$(printf '%s' "$line" | shasum -a 256 | cut -d' ' -f1)" = "$OFFER" ]; then printf '%s\n' "$line"; fi
+  if [ "sha256:$(printf '%s' "$line" | sha256 | cut -d' ' -f1)" = "$OFFER" ]; then printf '%s\n' "$line"; fi
 done < "$TOP/orthonalyzebot-inbox/biobot-ledger.jsonl")
 SIGNED=$(printf '%s' "$OFFER_LINE" | grep -o 'Weights (SHA256 hash): sha256:[0-9a-f]\{64\}' | grep -o 'sha256:[0-9a-f]\{64\}')
 echo "signed: $SIGNED"
@@ -414,7 +415,7 @@ signed: sha256:828a9800a669adfbbf8cb12db82d7fe4c48eb8a13baa1ca33afd74c58d1a49b3
 Then orthonalyzebot compares that hash with the hash of the file that it got.
 
 ```sh
-GOT="sha256:$(shasum -a 256 "$TOP/orthonalyzebot-inbox/penjointu-v1.weights" | cut -d' ' -f1)"
+GOT="sha256:$(sha256 "$TOP/orthonalyzebot-inbox/penjointu-v1.weights" | cut -d' ' -f1)"
 echo "got:    $GOT"
 [ "$GOT" = "$SIGNED" ] && echo "the weights match the signed offer"
 ```
@@ -787,7 +788,7 @@ ok: 1 ledgers checked, 0 errors
 
 ```sh
 printf 'different weights' > "$TOP/orthonalyzebot-inbox/penjointu-v1.weights"
-GOT="sha256:$(shasum -a 256 "$TOP/orthonalyzebot-inbox/penjointu-v1.weights" | cut -d' ' -f1)"
+GOT="sha256:$(sha256 "$TOP/orthonalyzebot-inbox/penjointu-v1.weights" | cut -d' ' -f1)"
 [ "$GOT" = "$SIGNED" ] && echo "the weights match the signed offer" || echo "the weights do not match the signed offer"
 ```
 

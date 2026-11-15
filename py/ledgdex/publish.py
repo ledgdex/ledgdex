@@ -52,6 +52,8 @@ def _catch_up(dex, old, at):
 def publish(dex, at=None):
     """Spec 7.4. True when every entry in the ledger is published."""
     from dexweb import dexweb
+    from .render import dexweb_utf8
+    dexweb_utf8()
     check_config(dex)
     dex = os.path.abspath(dex)
     with inside(dex):

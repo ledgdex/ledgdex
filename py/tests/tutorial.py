@@ -53,6 +53,18 @@ def shims(folder, python3=True):
     return folder
 
 
+def stop_leftovers():
+    """On Windows, "kill" in Git Bash can stop a launcher and leave the Python program that it started running: the
+    tutorial's web server or its check worker. Stop them, so that the folder can be deleted and the next run can use
+    the port."""
+    if os.name != 'nt':
+        return
+    script = ("Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -and "
+              "($_.CommandLine -like '*http.server 8642*' -or $_.CommandLine -like '*ledgdex*--every*') } | "
+              "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }")
+    subprocess.run(['powershell', '-NoProfile', '-Command', script], capture_output=True)
+
+
 def run(workdir, path=TUTORIAL, timeout=900):
     """Run the tutorial in workdir. Returns (exit code, [problems]); no problems means the reader passed."""
     script = ['set -euo pipefail', 'trap \'[ -n "${SERVER:-}" ] && kill "$SERVER" 2>/dev/null || true\' EXIT']
@@ -68,8 +80,11 @@ def run(workdir, path=TUTORIAL, timeout=900):
     env.pop('LEDGDEX_CACHE', None)
     env['PATH'] = shims(os.path.join(workdir, '.bin'), python3=os.name != 'nt') + os.pathsep + env.get('PATH', '')
     env['PYTHONPATH'] = os.path.abspath(os.path.join(HERE, '..')) + os.pathsep + env.get('PYTHONPATH', '')
-    r = subprocess.run([bash(), '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
-                       encoding='utf-8', errors='replace', timeout=timeout)
+    try:
+        r = subprocess.run([bash(), '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
+                           encoding='utf-8', errors='replace', timeout=timeout)
+    finally:
+        stop_leftovers()
     out = r.stdout + r.stderr
     parts = re.split(r'@@ledgdex-tutorial-block (\d+)@@\n', r.stdout)
     by_block = {int(parts[i]): parts[i + 1] for i in range(1, len(parts) - 1, 2)}
@@ -86,7 +101,10 @@ def run(workdir, path=TUTORIAL, timeout=900):
 
 
 if __name__ == '__main__':
-    with tempfile.TemporaryDirectory(prefix='ledgdex-tutorial-') as tmp:
+    tmp = tempfile.mkdtemp(prefix='ledgdex-tutorial-')
+    try:
         code, problems = run(tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     print('\n'.join(problems) if problems else 'passed: every expected line was in the output')
     sys.exit(1 if problems else 0)

@@ -276,11 +276,28 @@ def dex_name(name):
     return ''.join(c for c in name if c not in '<>&"\'' and ' ' <= c != '\x7f') or 'Ledgdex'
 
 
+def _utf8_open(file, mode='r', *args, **kw):
+    if 'b' not in mode and not args:
+        kw.setdefault('encoding', 'utf-8')
+        if any(c in mode for c in 'wax'):
+            kw.setdefault('newline', '\n')
+    return open(file, mode, *args, **kw)
+
+
+def dexweb_utf8():
+    """dexweb (4.2.5) opens most of its text files with the system's default encoding and line endings: on Windows
+    that is cp1252 and "\r\n", which breaks names in other scripts (data.json is UTF-8) and makes the pages differ
+    from system to system. While ledgdex runs it, dexweb opens text files as UTF-8 with "\n", as ledgdex does."""
+    from dexweb import dexgen, dexweb
+    dexgen.open = dexweb.open = _utf8_open
+
+
 def create_dex(dex, data, dexname, publish=None):
     """A complete dex (spec 7.1) around the ledger bytes `data`: config.json with dexweb's own template and
     "publish" with "append_only", data.json, run.py, the ledgdex styles.css, then render. Keeps each of these files
     that is already there."""
     from dexweb import dexgen
+    dexweb_utf8()
     dexname = dex_name(dexname)
     from .dex import write
     os.makedirs(dex, exist_ok=True)
@@ -330,5 +347,6 @@ def render(dex, build=True):
 
 def dexgen_build(dex):
     from dexweb import dexgen
+    dexweb_utf8()
     with inside(dex), contextlib.redirect_stdout(io.StringIO()):
         dexgen.Dexgen()

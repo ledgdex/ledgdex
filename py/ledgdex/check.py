@@ -255,6 +255,8 @@ class Checker:
             if not isinstance(json.load(f).get('publish'), dict):
                 return
         from dexweb import dexweb
+        from .render import dexweb_utf8
+        dexweb_utf8()
         with inside(os.path.abspath(dex)):
             pub = dexweb.Dexweb().published(LEDGER)
         if pub is None:

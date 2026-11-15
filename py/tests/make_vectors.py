@@ -475,8 +475,6 @@ def dex_files(dex, prefix):
             with open(full, 'rb') as f:
                 data = f.read()
             rel = os.path.relpath(full, dex).replace(os.sep, '/')
-            if rel.startswith(('gen/', 'backup/')) and rel.endswith(('.html', '.json')):
-                data = data.replace(b'\r\n', b'\n')   # dexweb writes its pages in text mode: "\r\n" on Windows
             out[prefix + rel] = data
     return out
 

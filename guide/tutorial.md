@@ -517,11 +517,11 @@ ruling recorded: sha256:
 
 ## 10. Sealed-bid auctions: `auction`, `bid`, `reveal`
 
-Biobot sells early access to Penjointu v2 in an auction. Set the times. Bids close in 30 seconds. Reveals close in 50 seconds. The first form of `date` is for Linux. The second form, after `||`, is for macOS.
+Biobot sells early access to Penjointu v2 in an auction. Set the times. Bids close in 60 seconds. Reveals close in 120 seconds. The first form of `date` is for Linux. The second form, after `||`, is for macOS.
 
 ```sh
-CLOSE=$(date -u -d '+30 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+30S +%Y-%m-%dT%H:%M:%SZ)
-UNTIL=$(date -u -d '+50 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+50S +%Y-%m-%dT%H:%M:%SZ)
+CLOSE=$(date -u -d '+60 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+60S +%Y-%m-%dT%H:%M:%SZ)
+UNTIL=$(date -u -d '+120 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+120S +%Y-%m-%dT%H:%M:%SZ)
 echo "bids close at $CLOSE"
 ```
 
@@ -556,10 +556,10 @@ ledgdex record biobot --from "$WEB/orthonalyzebot/gen" --from "$WEB/kneecarebot/
 bid recorded: sha256:
 ```
 
-Wait until bids close. Then each bot reveals its amount.
+Wait until bids close: the loop waits until the time is after `$CLOSE`. Then each bot reveals its amount.
 
 ```sh
-sleep 32
+until [ "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \> "$CLOSE" ]; do sleep 1; done
 ledgdex reveal orthonalyzebot "$WEB/biobot/gen" "$AUCTION" --output reveal-orthonalyzebot.json
 ledgdex reveal kneecarebot "$WEB/biobot/gen" "$AUCTION" -o reveal-kneecarebot.json
 ledgdex record biobot --from "$WEB/orthonalyzebot/gen" --from "$WEB/kneecarebot/gen"
@@ -569,10 +569,10 @@ ledgdex record biobot --from "$WEB/orthonalyzebot/gen" --from "$WEB/kneecarebot/
 reveal recorded: sha256:
 ```
 
-Wait until reveals close. Then biobot adds a note, so that the ledger has an entry after that time. The state shows the key of the winner. The second command shows the key of orthonalyzebot. The two keys are the same.
+Wait until reveals close, after `$UNTIL`. Then biobot adds a note, so that the ledger has an entry after that time. The state shows the key of the winner. The second command shows the key of orthonalyzebot. The two keys are the same.
 
 ```sh
-sleep 20
+until [ "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \> "$UNTIL" ]; do sleep 1; done
 ledgdex note biobot "$AUCTION" "Bidding is over."
 ledgdex state biobot --root exchange | grep -o '"winner":"[^"]*"'
 ledgdex state orthonalyzebot | grep -o '"owner":"[^"]*"'

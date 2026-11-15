@@ -131,7 +131,8 @@ class Dex(unittest.TestCase):
     # ----- publishing (spec 3.5, 7.4) -----
 
     def remote(self):
-        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', 'site.git'], check=True)
+        subprocess.run(['git', 'init', '-q', '--bare', 'site.git'], check=True)   # no -b: git before 2.28 lacks it
+        subprocess.run(['git', '--git-dir=site.git', 'symbolic-ref', 'HEAD', 'refs/heads/main'], check=True)
         return 'file://' + os.path.join(self.tmp, 'site.git')
 
     def published(self):

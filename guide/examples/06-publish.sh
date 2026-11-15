@@ -6,7 +6,7 @@
 set -eu
 
 # You publish a ledgdex like any dex, to a git repository. Online, that is GitHub Pages (`--dest git@github.com:YOU/YOU.github.io.git`). Here, it is a local repository. Biobot publishes its first offer.
-git init -q --bare -b main site.git
+git init -q --bare site.git && git --git-dir=site.git symbolic-ref HEAD refs/heads/main
 ledgdex init biobot --name "biobot" --key biobot --url https://biobot.example --dest "file://$PWD/site.git" --branch main
 printf '%s' '{"item": {"title": "Penjointu v1 weights"}, "quantity": 10, "unit": "license", "currency": "USD", "price": 250000}' > offer.json
 OFFER=$(ledgdex offer biobot offer.json | awk '{print $NF}')

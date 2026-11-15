@@ -55,7 +55,8 @@ class Shop(unittest.TestCase):
         return cat
 
     def test_a_catalog_becomes_a_published_shop_that_follows_the_catalog(self):
-        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', 'site.git'], check=True)
+        subprocess.run(['git', 'init', '-q', '--bare', 'site.git'], check=True)   # no -b: git before 2.28 lacks it
+        subprocess.run(['git', '--git-dir=site.git', 'symbolic-ref', 'HEAD', 'refs/heads/main'], check=True)
         cat = self.catalog(dest='file://' + os.path.join(self.tmp, 'site.git'), url='https://penguin.example')
         r = self.make(cat)
         self.assertEqual((0, 2, 0, True), (r['kept'], r['offered'], r['withdrawn'], r['published']))

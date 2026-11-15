@@ -42,7 +42,7 @@ What you need:
 - ledgdex 1.0.20 or later, with the `fast` extra: `pip install "ledgdex[fast]"`
 - python3, for its built-in web server (one command in step 1)
 - curl, `shasum`, `awk`, `grep` and `sed`
-- GNU `date` and `timeout`. On macOS, steps 10, 13 and 16 show the commands to use instead.
+- Linux or macOS. The commands work with the GNU tools of Linux and with the BSD tools of macOS.
 
 ## 1. Prepare the folder
 
@@ -517,11 +517,11 @@ ruling recorded: sha256:
 
 ## 10. Sealed-bid auctions: `auction`, `bid`, `reveal`
 
-Biobot sells early access to Penjointu v2 in an auction. Set the times. Bids close in 30 seconds. Reveals close in 50 seconds. On macOS, use `date -u -v+30S +%Y-%m-%dT%H:%M:%SZ` and `date -u -v+50S +%Y-%m-%dT%H:%M:%SZ`.
+Biobot sells early access to Penjointu v2 in an auction. Set the times. Bids close in 30 seconds. Reveals close in 50 seconds. The first form of `date` is for Linux. The second form, after `||`, is for macOS.
 
 ```sh
-CLOSE=$(date -u -d '+30 seconds' +%Y-%m-%dT%H:%M:%SZ)
-UNTIL=$(date -u -d '+50 seconds' +%Y-%m-%dT%H:%M:%SZ)
+CLOSE=$(date -u -d '+30 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+30S +%Y-%m-%dT%H:%M:%SZ)
+UNTIL=$(date -u -d '+50 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v+50S +%Y-%m-%dT%H:%M:%SZ)
 echo "bids close at $CLOSE"
 ```
 
@@ -630,10 +630,11 @@ ledgdex sign note note.json --key orthonalyzebot
 - `git`, the default: it pushes `gen/` to the git repository in `config.json`.
 - `folder`: it copies `gen/` into a folder.
 
-`ledgdex init` writes only the settings of the git method. To use the folder method, add `"method"` and `"path"` to the `"publish"` object in `config.json`. The path is relative to the dex folder. This command adds them. On macOS, use `sed -i ''` in place of `sed -i`, or change the file in a text editor.
+`ledgdex init` writes only the settings of the git method. To use the folder method, add `"method"` and `"path"` to the `"publish"` object in `config.json`. The path is relative to the dex folder. This command adds them. `sed -i.bak` works on Linux and on macOS. It keeps a copy of the old file, and `rm` removes the copy.
 
 ```sh
-sed -i 's|"publish": {|"publish": {"method": "folder", "path": "../site/biobot",|' biobot/config.json
+sed -i.bak 's|"publish": {|"publish": {"method": "folder", "path": "../site/biobot",|' biobot/config.json
+rm biobot/config.json.bak
 grep -A8 '"publish"' biobot/config.json
 ```
 
@@ -795,10 +796,14 @@ GOT="sha256:$(shasum -a 256 "$TOP/orthonalyzebot-inbox/penjointu-v1.weights" | c
 the weights do not match the signed offer
 ```
 
-`--every` runs the check again and again, as a worker. Here, `timeout` stops it after 7 seconds. On macOS, push Ctrl+C after 7 seconds.
+`--every` runs the check again and again, as a worker. Here, the worker runs in the background, and `kill` stops it after 7 seconds.
 
 ```sh
-timeout 7 ledgdex check orthonalyzebot --root exchange --state checks --quiet --every 3 || true
+ledgdex check orthonalyzebot --root exchange --state checks --quiet --every 3 &
+WORKER=$!
+sleep 7
+kill "$WORKER"
+wait "$WORKER" 2>/dev/null || true
 ```
 
 ```expect

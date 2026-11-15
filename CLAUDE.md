@@ -219,8 +219,8 @@ cd viewer && python run.py --build-only                                # viewer 
     (Windows cuts long command lines), with `tutorial.shims()`; no `git init -b`, no GNU-only flags (`date -d` has a
     `-v` fallback, `sed -i.bak`, background `&` + `kill` instead of `timeout`, `sha256` helper for sha256sum/shasum);
   - `dex.locked()` locks with `fcntl` on POSIX and `msvcrt.locking` on Windows; key file modes are checked only where
-    POSIX modes exist. (uploads disagreements on
-  failure). Actions are pinned to commits.
+    POSIX modes exist.
+  Fuzzing uploads disagreements on failure. Actions are pinned to commits.
 
 Before every push: run the relevant suites locally on BOTH backends, re-read your diff adversarially, then push; check
 CI after.
@@ -377,7 +377,7 @@ simplest secure design (nothing is implemented; build only when the user says so
 - A commit that the user will tag (a release commit, and any commit after it before the tag) has no
   `Co-Authored-By` line in its message (the user's standing instruction). The user makes lightweight tags, so GitHub
   shows that commit's message on the tag. Other commits keep the trailer lines.
-- Releases: bump the version in `py/ledgdex/__init__.py`, `py/pyproject.toml`, `SECURITY.md` line 3, the install
+- Releases: bump the version in `py/ledgdex/__init__.py`, `pyproject.toml` (root), `SECURITY.md` line 3, the install
   commands in `guide/dex/data.json` and the test page, add a SPEC release note, run `python run_tests.py`, push, then
   ask the user to create the tag (you cannot push tags) and to upload to PyPI from the tag (`python -m build`, `twine
   upload dist/*`), then update ledgdex-live's workflow to `ledgdex==X.Y.Z`.

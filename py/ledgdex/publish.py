@@ -12,7 +12,7 @@ def check_config(dex):
     path = os.path.join(dex, 'config.json')
     if not os.path.exists(path):
         raise Invalid(dex + ' is not a dex: config.json is missing')
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         p = json.load(f).get('publish')
     if not isinstance(p, dict) or LEDGER not in p.get('append_only', []):
         raise Invalid('config.json "publish" must have "append_only": ["' + LEDGER + '"] (spec 7.4)')

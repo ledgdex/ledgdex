@@ -7,7 +7,7 @@ VECTORS = os.path.join(os.path.dirname(__file__), '..', '..', 'vectors', 'ed2551
 
 class Ed25519(unittest.TestCase):
     def test_vectors(self):
-        with open(VECTORS) as f:
+        with open(VECTORS, encoding='utf-8') as f:
             rows = json.load(f)['vectors']
         self.assertEqual(len(rows), 19)
         for r in rows:

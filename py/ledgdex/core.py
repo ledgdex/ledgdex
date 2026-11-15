@@ -398,7 +398,7 @@ class Ledger:
         try:
             if not self._cache_trusted(self._cache_path()):
                 return 0
-            with open(self._cache_path()) as f:
+            with open(self._cache_path(), encoding='utf-8') as f:
                 c = json.load(f)
             n, length = c['entries'], c['length']
             if (0 < n <= available and length <= len(self.data) and self.data[length - 1:length] == b'\n'
@@ -422,7 +422,7 @@ class Ledger:
         try:
             os.makedirs(os.path.dirname(self._cache_path()), mode=0o700, exist_ok=True)
             tmp = self._cache_path() + '.' + str(os.getpid())
-            with open(tmp, 'w') as f:
+            with open(tmp, 'w', encoding='utf-8', newline='\n') as f:
                 json.dump(c, f)
             os.replace(tmp, self._cache_path())
         except OSError:

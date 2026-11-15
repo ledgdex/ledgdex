@@ -29,12 +29,8 @@ class Examples(unittest.TestCase):
         path = os.path.join(EXAMPLES, name)
         tmp = tempfile.mkdtemp(prefix='ledgdex-example-')
         self.addCleanup(shutil.rmtree, tmp, True)
-        bin_ = os.path.join(tmp, '.bin')        # "python3" and "ledgdex" are the ones under test
-        os.makedirs(bin_)
-        os.symlink(sys.executable, os.path.join(bin_, 'python3'))
-        with open(os.path.join(bin_, 'ledgdex'), 'w') as f:
-            f.write('#!/bin/sh\nexec "' + sys.executable + '" -m ledgdex.cli "$@"\n')
-        os.chmod(os.path.join(bin_, 'ledgdex'), 0o755)
+        import tutorial
+        bin_ = tutorial.shims(os.path.join(tmp, '.bin'))    # "python3" and "ledgdex" are the ones under test
         work = os.path.join(tmp, 'work')
         os.makedirs(work)
         env = dict(os.environ, PATH=bin_ + os.pathsep + os.environ.get('PATH', ''),
@@ -44,9 +40,10 @@ class Examples(unittest.TestCase):
                    GIT_COMMITTER_EMAIL='docs@example', GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM='1')
         env.pop('LEDGDEX_NO_CACHE', None)
         offline = ['--import', pathlib.Path(HERE, 'offline.mjs').as_uri()]     # https://ledgdex.github.io/ from this repo
-        cmd = {'.sh': ['sh', path], '.py': [sys.executable, path], '.mjs': ['node'] + offline + [path],
+        cmd = {'.sh': [tutorial.bash(), path], '.py': [sys.executable, path], '.mjs': ['node'] + offline + [path],
                '.html': ['node'] + offline + [os.path.join(HERE, 'page.mjs'), path]}[os.path.splitext(name)[1]]
-        r = subprocess.run(cmd, cwd=work, env=env, capture_output=True, text=True, timeout=600)
+        r = subprocess.run(cmd, cwd=work, env=env, capture_output=True, text=True, encoding='utf-8', errors='replace',
+                           timeout=600)
         out = r.stdout + r.stderr
         self.assertEqual(0, r.returncode, name + ' failed:\n' + out[-3000:])
         for line in expected(path):

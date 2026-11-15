@@ -39,7 +39,7 @@ class Commands(unittest.TestCase):
         os.chdir(self.tmp)
         run('init', 'shop', '--name', 'Farm', '--key', 'farm', '--url', 'https://farm.example')
         run('init', 'me', '--name', 'Asha', '--key', 'asha')
-        with open('offer.json', 'w') as f:
+        with open('offer.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump({'item': {'title': 'Mangoes'}, 'quantity': 3, 'unit': 'dozen', 'currency': 'INR',
                        'price': 1000}, f)
 
@@ -100,14 +100,14 @@ class Commands(unittest.TestCase):
     def test_the_root_is_pinned_by_id(self):
         run('init', 'root', '--name', 'Root', '--key', 'rootkey')
         self.offer()
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             cfg = json.load(f)
         cfg['ledgdex'] = {'root': 'root'}
-        with open('shop/config.json', 'w') as f:
+        with open('shop/config.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(cfg, f)
         root_id = load('root').id
         run('note', 'shop', 'sha256:' + '0' * 64, 'reads the root once')
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             self.assertEqual(json.load(f)['ledgdex']['root_id'], root_id)      # trusted on first use
         shutil.move('root', 'real-root')
         run('init', 'root', '--name', 'Not the root', '--key', 'impostor')     # the address now serves another ledger
@@ -121,10 +121,10 @@ class Commands(unittest.TestCase):
     def test_the_root_kept_copy(self):
         run('init', 'root', '--name', 'Root', '--key', 'rootkey')
         self.offer()
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             cfg = json.load(f)
         cfg['ledgdex'] = {'root': 'root'}
-        with open('shop/config.json', 'w') as f:
+        with open('shop/config.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(cfg, f)
         run('admit', 'root', 'ed25519:' + '1' * 64, '--name', 'a')
         run('revoke', 'root', 'ed25519:' + '1' * 64, '--reason', 'gone')
@@ -145,10 +145,10 @@ class Commands(unittest.TestCase):
     def test_dispute_and_ruling(self):
         run('init', 'judge', '--name', 'Judge', '--key', 'judge')
         judge = load('judge').owner
-        with open('offer.json') as f:
+        with open('offer.json', encoding='utf-8') as f:
             o = json.load(f)
         o['arbiter'] = {'key': judge, 'url': ''}
-        with open('offer.json', 'w') as f:
+        with open('offer.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(o, f)
         oid = self.offer()
         run('claim', 'me', 'shop', oid, '-o', 'c.json')
@@ -164,7 +164,7 @@ class Commands(unittest.TestCase):
 
     def test_auction(self):
         start = seconds(now())
-        with open('auction.json', 'w') as f:
+        with open('auction.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump({'item': {'title': 'Old map'}, 'currency': 'INR', 'close': utc(start + 3),
                        'reveal_until': utc(start + 6), 'reserve': 100}, f)
         aid = run('auction', 'shop', 'auction.json').split(': ')[1].strip()
@@ -187,10 +187,10 @@ class Commands(unittest.TestCase):
         oid = self.offer()
         self.assertEqual(self.arbiter(oid), load('shop').owner)        # no root named: the seller itself
         run('init', 'root', '--name', 'The Matrix root', '--key', 'rootkey', '--url', 'https://root.example')
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             cfg = json.load(f)
         cfg['ledgdex'] = {'root': os.path.join(self.tmp, 'root')}
-        with open('shop/config.json', 'w') as f:
+        with open('shop/config.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(cfg, f)
         oid = self.offer()
         self.assertEqual(self.arbiter(oid), load('root').owner)

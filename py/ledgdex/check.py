@@ -23,7 +23,7 @@ class Store:
         self.urls_path = os.path.join(root, 'urls.json')
         self.urls = {}
         if os.path.exists(self.urls_path):
-            with open(self.urls_path) as f:
+            with open(self.urls_path, encoding='utf-8') as f:
                 self.urls = json.load(f)
 
     def _seen(self, ledger_id):
@@ -45,12 +45,12 @@ class Store:
 
     def proof(self, name, obj):
         p = os.path.join(self.root, 'proofs', name + '.json')
-        with open(p, 'w') as f:
+        with open(p, 'w', encoding='utf-8', newline='\n') as f:
             f.write(json.dumps(obj, indent=2, ensure_ascii=False))
         return p
 
     def save(self):
-        with open(self.urls_path, 'w') as f:
+        with open(self.urls_path, 'w', encoding='utf-8', newline='\n') as f:
             f.write(json.dumps(self.urls, indent=2, sort_keys=True))
 
 
@@ -251,7 +251,7 @@ class Checker:
         cfg = os.path.join(dex, 'config.json')
         if not os.path.exists(cfg):
             return
-        with open(cfg) as f:
+        with open(cfg, encoding='utf-8') as f:
             if not isinstance(json.load(f).get('publish'), dict):
                 return
         from dexweb import dexweb

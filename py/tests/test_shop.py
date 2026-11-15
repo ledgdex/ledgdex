@@ -140,10 +140,10 @@ class Shop(unittest.TestCase):
         self.assertIn('holds the ledger of "Penguin Shop"', str(e.exception))
 
     def test_repo_writes_the_github_settings_and_address(self):
-        with open('catalog.json', 'w') as f:
+        with open('catalog.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(self.catalog(folder='site', url='https://old.example'), f)
         quiet('shop', 'catalog.json', '--dex', 'pshop', '--repo', 'alinoorul/penguin-shop', '--no-publish')
-        with open('pshop/config.json') as f:
+        with open('pshop/config.json', encoding='utf-8') as f:
             pub = json.load(f)['publish']
         self.assertEqual({'dest': 'git@github.com:alinoorul/penguin-shop.git', 'branch': 'main',
                           'append_only': ['ledgdex.jsonl']}, pub)

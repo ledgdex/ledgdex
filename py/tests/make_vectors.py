@@ -423,11 +423,11 @@ def build():
             files.update(dex_files(dex, 'dex/' + name + '/'))
         # the same ledger with dexweb's other index style and script hooks: only gen/ changes
         dex = os.path.join(tmp, 'market')
-        with open(os.path.join(dex, 'config.json')) as f:
+        with open(os.path.join(dex, 'config.json'), encoding='utf-8') as f:
             cfg = json.load(f)
         cfg.update(index_list_type_para=False, page_javascript='<script src="p.js"></script>',
                    index_javascript='<script src="i.js"></script>')
-        with open(os.path.join(dex, 'config.json'), 'w') as f:
+        with open(os.path.join(dex, 'config.json'), 'w', encoding='utf-8', newline='\n') as f:
             f.write(json.dumps(cfg, indent=4))
         with contextlib.redirect_stdout(io.StringIO()):
             render(dex)
@@ -436,7 +436,7 @@ def build():
         g = dexgen.Dexgen.__new__(dexgen.Dexgen)
         g.dexname = ''
         g.save_dexname_in_config(tmp, '')
-        with open(os.path.join(tmp, 'config.json')) as f:
+        with open(os.path.join(tmp, 'config.json'), encoding='utf-8') as f:
             config = json.load(f)
         import base64
         from ledgdex.render import favicon

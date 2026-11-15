@@ -55,7 +55,7 @@ def _read_key(path):
         mode = os.stat(path).st_mode
         if mode & 0o077:
             raise Invalid(path + ' can be read by others (mode ' + oct(mode & 0o777) + '): run chmod 600 ' + path)
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         return bytes.fromhex(f.read().strip())
 
 
@@ -119,7 +119,7 @@ def load(dex, root=None):
 def locked(dex):
     """One writer at a time: two appends at once would both take the next seq, and the second would break the
     ledger. The lock file stays in the dex folder (dexweb publishes only gen/)."""
-    with open(os.path.join(dex, '.ledgdex.lock'), 'a') as f:
+    with open(os.path.join(dex, '.ledgdex.lock'), 'a', encoding='utf-8') as f:
         try:
             import fcntl
         except ImportError:  # Windows: no lock
@@ -181,7 +181,7 @@ def load_root(dex):
     import json
     p = os.path.join(dex, 'config.json')
     try:
-        with open(p) as f:
+        with open(p, encoding='utf-8') as f:
             cfg = json.load(f)
         lc = cfg.get('ledgdex')
         src = lc.get('root') if isinstance(lc, dict) else None
@@ -225,7 +225,7 @@ def load_root(dex):
     if pinned is None:
         lc['root_id'] = root.id
         tmp = p + '.tmp'
-        with open(tmp, 'w') as f:
+        with open(tmp, 'w', encoding='utf-8', newline='\n') as f:
             f.write(json.dumps(cfg, indent=4))
         os.replace(tmp, p)
     return root

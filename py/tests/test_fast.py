@@ -11,7 +11,7 @@ class Backends(unittest.TestCase):
     """The fast backend must agree with the vendored code on everything, valid or not."""
 
     def test_vectors(self):
-        with open(VECTORS) as f:
+        with open(VECTORS, encoding='utf-8') as f:
             rows = json.load(f)['vectors']
         for r in rows:
             sk, pk, msg, s = (bytes.fromhex(r[k]) for k in ('secret', 'public', 'message', 'signature'))
@@ -142,7 +142,7 @@ class Cache(unittest.TestCase):
         led = Ledger(b.led.data)
         path = led._cache_path()
         for junk in ('not json', '{"entries": 4, "length": 10, "sha256": "00"}', '[]'):
-            with open(path, 'w') as f:
+            with open(path, 'w', encoding='utf-8', newline='\n') as f:
                 f.write(junk)
             again = Ledger(b.led.data)
             self.assertEqual(again.cached, 0)

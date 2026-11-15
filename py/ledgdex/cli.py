@@ -15,7 +15,7 @@ def read_json(path):
 
 
 def write_json(path, obj):
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(json.dumps(obj, indent=4))
 
 
@@ -318,7 +318,7 @@ def c_check(a):
             time.sleep(a.every)
             continue
         if a.json:
-            with open(a.json, 'w') as f:
+            with open(a.json, 'w', encoding='utf-8', newline='\n') as f:
                 f.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
         print(report['time'] + ' ' + ('ok' if report['ok'] else 'FAILED') + ': ' + str(len(report['checked'])) +
               ' ledgers checked, ' + str(report['errors']) + ' errors, ' + str(report['warnings']) + ' warnings',

@@ -59,7 +59,7 @@ class Check(unittest.TestCase):
         r = self.run_check(sp)
         self.assertFalse(r['ok'])
         self.assertIn(('error', 'equivocation'), self.codes(r))
-        with open(r['problems'][0]['proof']) as f:
+        with open(r['problems'][0]['proof'], encoding='utf-8') as f:
             proof = json.load(f)
         owner = proof['header']['owner']
         for k in ('seen', 'now'):  # both entries verify against the owner key: signed proof

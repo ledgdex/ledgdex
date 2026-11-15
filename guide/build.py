@@ -65,7 +65,7 @@ def main(argv):
             data = json.load(f)
         new = written(data, a.page)
         tmp = DATA + '.tmp'
-        with open(tmp, 'w', encoding='utf-8') as f:
+        with open(tmp, 'w', encoding='utf-8', newline='\n') as f:
             f.write(json.dumps(new, indent=4, ensure_ascii=False))     # as ledgdex writes it
         os.replace(tmp, DATA)
         print('written into guide/dex/data.json: ' + ', '.join(a.page))

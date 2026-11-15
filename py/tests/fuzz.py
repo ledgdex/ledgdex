@@ -383,14 +383,14 @@ def main():
     work = a.keep or tempfile.mkdtemp(prefix='ledgdex-fuzz-')
     os.makedirs(work, exist_ok=True)
     cpath, rpath = os.path.join(work, 'corpus.jsonl'), os.path.join(work, 'js-results.jsonl')
-    with open(cpath, 'w') as f:
+    with open(cpath, 'w', encoding='utf-8', newline='\n') as f:
         for c in cases:
             row = dict(c, data=base64.b64encode(c['data']).decode())
             if c.get('root'):
                 row['root'] = base64.b64encode(c['root']).decode()
             f.write(json.dumps(row) + '\n')
     subprocess.run(['node', JS, cpath, rpath], check=True)
-    with open(rpath) as f:
+    with open(rpath, encoding='utf-8') as f:
         js = {r['id']: r for r in map(json.loads, f)}
     diffs, reasons = [], 0
     stats = {'ledger': 0, 'whole': 0, 'text': 0, 'text_ok': 0}
@@ -412,7 +412,7 @@ def main():
         stats['ledger'], stats['whole'], stats['text'], stats['text_ok'], len(diffs) - reasons, reasons))
     if diffs:
         out = os.path.join(work, 'differences.json')
-        with open(out, 'w') as f:
+        with open(out, 'w', encoding='utf-8', newline='\n') as f:
             json.dump(diffs, f, indent=1, ensure_ascii=False)
         for d in diffs[:10]:
             print(json.dumps(d, ensure_ascii=False)[:400])

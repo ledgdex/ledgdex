@@ -42,7 +42,7 @@ class Dex(unittest.TestCase):
         for k, v in kw.items():
             args += ['--' + k, v]
         run(*args)
-        with open('offer.json', 'w') as f:
+        with open('offer.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump({'item': {'title': 'Alphonso mangoes'}, 'quantity': 3, 'unit': 'dozen', 'currency': 'INR',
                        'price': 120000}, f)
         out = run('offer', name, 'offer.json')
@@ -55,7 +55,7 @@ class Dex(unittest.TestCase):
         self.shop()
         for f in ('data.json', 'config.json', 'styles.css', 'run.py', LEDGER, 'gen/index.html', 'gen/' + LEDGER):
             self.assertTrue(os.path.exists(os.path.join('shop', f)), f)
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             self.assertEqual(json.load(f)['publish'], {'append_only': [LEDGER]})
         with open('shop/gen/' + LEDGER, 'rb') as a, open('shop/' + LEDGER, 'rb') as b:
             self.assertEqual(a.read(), b.read())
@@ -65,11 +65,11 @@ class Dex(unittest.TestCase):
 
     def test_init_keeps_the_styles_of_a_dex(self):
         os.makedirs('mine')
-        with open('mine/styles.css', 'w') as f:
+        with open('mine/styles.css', 'w', encoding='utf-8', newline='\n') as f:
             f.write('body { color: white; }\n')
         run('init', 'mine', '--name', 'Mine', '--key', 'mine')
         for f in ('mine/styles.css', 'mine/gen/styles.css'):
-            with open(f) as css:
+            with open(f, encoding='utf-8') as css:
                 self.assertEqual('body { color: white; }\n', css.read(), f)
 
     def test_trade_between_two_dexs(self):
@@ -101,11 +101,11 @@ class Dex(unittest.TestCase):
 
     def test_render(self):
         self.shop()
-        with open('shop/data.json') as f:
+        with open('shop/data.json', encoding='utf-8') as f:
             data = json.load(f)
         author = [{'title': 'About', 'body': ['My <b>own</b> page']},
                   {'title': 'Alphonso Mangoes!', 'body': ['clash by file name']}, {'title': 'Empty', 'body': []}]
-        with open('shop/data.json', 'w') as f:
+        with open('shop/data.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(author + data, f)
         render('shop')
         with open('shop/data.json', 'rb') as f:
@@ -125,7 +125,7 @@ class Dex(unittest.TestCase):
 
     def test_render_escapes(self):
         run('init', 'x', '--name', '<script>x</script>', '--key', 'k')
-        with open('x/data.json') as f:
+        with open('x/data.json', encoding='utf-8') as f:
             self.assertNotIn('<script>', f.read())
 
     # ----- publishing (spec 3.5, 7.4) -----
@@ -179,10 +179,10 @@ class Dex(unittest.TestCase):
 
     def test_publish_needs_append_only(self):
         self.shop()
-        with open('shop/config.json') as f:
+        with open('shop/config.json', encoding='utf-8') as f:
             cfg = json.load(f)
         cfg['publish'] = {'branch': 'main'}
-        with open('shop/config.json', 'w') as f:
+        with open('shop/config.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(cfg, f)
         self.assertFalse(self.quiet('publish', 'shop'))
 
@@ -239,6 +239,7 @@ class Dex(unittest.TestCase):
         self.assertEqual(3, len(claims))
         self.assertEqual(['accepted'] * 3, [c['status'] for c in claims.values()])
 
+    @unittest.skipUnless(hasattr(os, 'getuid'), 'Windows has no POSIX file modes: the user profile folder keeps keys private')
     def test_keys_readable_by_others_are_refused(self):
         self.shop()
         key = os.path.join(os.environ['LEDGDEX_HOME'], 'farm.key')

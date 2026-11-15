@@ -5,7 +5,7 @@ use the variables of earlier ones); an ```expect block names lines that the outp
 ```expect block must contain. A trap stops the tutorial's web server if a block fails.
 
     python py/tests/tutorial.py            run it in a new temporary folder and report"""
-import os, re, subprocess, sys, tempfile
+import os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TUTORIAL = os.path.join(HERE, '..', '..', 'guide', 'tutorial.md')
@@ -16,6 +16,34 @@ def blocks(path=TUTORIAL):
     """[(kind, text)] for the ```sh and ```expect blocks, in order."""
     with open(path, encoding='utf-8') as f:
         return [(m.group(1), m.group(2)) for m in re.finditer(r'^```(sh|expect)\n(.*?)^```$', f.read(), re.M | re.S)]
+
+
+def bash():
+    """The bash to run shell examples with. On Windows, the one that comes with Git for Windows: "bash" on the PATH
+    there can be the launcher of the Windows Subsystem for Linux, which does not see this Python or ledgdex."""
+    if os.name == 'nt':
+        git = shutil.which('git')
+        if git:
+            here, top = os.path.dirname(git), os.path.dirname(os.path.dirname(git))   # Git\cmd or Git\bin
+            for path in (os.path.join(top, 'bin', 'bash.exe'), os.path.join(here, 'bash.exe'),
+                         os.path.join(top, 'usr', 'bin', 'bash.exe')):
+                if os.path.exists(path):
+                    return path
+        raise RuntimeError('the tests need Git for Windows (git and its bash): https://git-scm.com/download/win')
+    return 'bash'
+
+
+def shims(folder):
+    """A folder with "python3" and "ledgdex" commands that run this Python and this ledgdex, for the shell (python3
+    is often missing on Windows, and the ledgdex on the PATH can be another one). Returns the folder."""
+    os.makedirs(folder, exist_ok=True)
+    py = sys.executable.replace('\\', '/')
+    for name, line in (('python3', 'exec "' + py + '" "$@"'), ('ledgdex', 'exec "' + py + '" -m ledgdex.cli "$@"')):
+        p = os.path.join(folder, name)
+        with open(p, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('#!/bin/sh\n' + line + '\n')
+        os.chmod(p, 0o755)
+    return folder
 
 
 def run(workdir, path=TUTORIAL, timeout=900):
@@ -31,8 +59,10 @@ def run(workdir, path=TUTORIAL, timeout=900):
     env = dict(os.environ)
     env.pop('LEDGDEX_HOME', None)
     env.pop('LEDGDEX_CACHE', None)
-    r = subprocess.run(['bash', '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
-                       timeout=timeout)
+    env['PATH'] = shims(os.path.join(workdir, '.bin')) + os.pathsep + env.get('PATH', '')
+    env['PYTHONPATH'] = os.path.abspath(os.path.join(HERE, '..')) + os.pathsep + env.get('PYTHONPATH', '')
+    r = subprocess.run([bash(), '-c', '\n'.join(script)], cwd=workdir, env=env, capture_output=True, text=True,
+                       encoding='utf-8', errors='replace', timeout=timeout)
     out = r.stdout + r.stderr
     parts = re.split(r'@@ledgdex-tutorial-block (\d+)@@\n', r.stdout)
     by_block = {int(parts[i]): parts[i + 1] for i in range(1, len(parts) - 1, 2)}

@@ -290,17 +290,17 @@ def create_dex(dex, data, dexname, publish=None):
         g = dexgen.Dexgen.__new__(dexgen.Dexgen)
         g.dexname = dexname
         g.save_dexname_in_config(dex, dexname)  # dexweb's own default template
-    with open(cfg_path) as f:
+    with open(cfg_path, encoding='utf-8') as f:
         cfg = json.load(f)
     pub = cfg.get('publish') if isinstance(cfg.get('publish'), dict) else {}
     pub['append_only'] = sorted(set(pub.get('append_only', [])) | {LEDGER})
     pub.update(publish or {})
     cfg['publish'] = pub
-    with open(cfg_path, 'w') as f:
+    with open(cfg_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(json.dumps(cfg, indent=4))
     for name, text in (('data.json', '[]'), ('run.py', RUN_PY), ('styles.css', styles())):
         if not os.path.exists(os.path.join(dex, name)):
-            with open(os.path.join(dex, name), 'w') as f:
+            with open(os.path.join(dex, name), 'w', encoding='utf-8', newline='\n') as f:
                 f.write(text)
     render(dex)
 
@@ -316,7 +316,7 @@ def render(dex, build=True):
         with open(data_path, encoding='utf-8') as f:
             author = [p for p in json.load(f) if not generated(p)]
     data = author + pages(led, [p.get('title', '') for p in author])
-    with open(data_path, 'w', encoding='utf-8') as f:
+    with open(data_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(json.dumps(data, indent=4, ensure_ascii=False))
     os.makedirs(os.path.join(dex, 'gen', 'assets'), exist_ok=True)
     shutil.copyfile(os.path.join(dex, LEDGER), os.path.join(dex, 'gen', LEDGER))

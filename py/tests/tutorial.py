@@ -97,6 +97,11 @@ def run(workdir, path=TUTORIAL, timeout=900):
         since = upto
     if r.returncode != 0:
         problems.append('exit code ' + str(r.returncode) + ':\n' + out[-3000:])
+    elif problems:   # what the shell printed, to find why
+        first = int(problems[0].split('-')[0].split()[1])
+        problems.append('output of block ' + str(first) + ': ' + repr(by_block.get(first, '(none)')[-1500:]))
+        problems.append('end of stdout: ' + repr(r.stdout[-1500:]))
+        problems.append('end of stderr: ' + repr(r.stderr[-1500:]))
     return r.returncode, problems
 
 

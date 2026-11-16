@@ -51,10 +51,12 @@ same origin. Keep Pages OFF on `ledgdex/ledgdex`.
 
 - Version **1.0.20** in code (`py/ledgdex/__init__.py`, `pyproject.toml` at the repository root, `SECURITY.md` line 3,
   the install commands in `guide/dex/data.json` and `guide/tutorial.md`, and the example tag on the JavaScript Core
-  page). 1.0.20 is the first PyPI release (the user uploads it; no earlier version may ever be on PyPI): the
-  default install is `pip install "ledgdex[fast]"`, git installs are the alternative. Its tag is not made yet: ask the
-  user to create `v1.0.20`. After the user uploads to PyPI, update the ledgdex-live workflow to
-  `pip install "ledgdex==1.0.20"` (generated workflows now install from PyPI). `v1.0.19` (at `b9ae141`) added
+  page). **1.0.20 is on PyPI** (2026-11-16; the first and only version there: never upload an earlier one): the
+  default install is `pip install "ledgdex[fast]"`, git installs are the alternative. Tag `v1.0.20` is at `aad8191`.
+  The docs with the PyPI install commands are published (`d86976c` in `ledgdex.github.io`). ledgdex-live's check
+  workflow installs `ledgdex==1.0.20` from PyPI (`d8b3cb8`); on each release change that line the same way
+  (generated workflows install from PyPI too). The user changed the home pages by hand in `a631e39` (not published
+  by a session). `v1.0.19` (at `b9ae141`) added
   `ledgdex shop` (SPEC 7.5); ledgdex-live installs it (`f2df685`, run passed). The tag `v1.0.18` exists (at `b39f26f`, a lightweight tag; `v1.0.17` is at `8fcad48`). The docs with the 1.0.18 install commands are published
   (`c873a22` in `ledgdex.github.io`). The docs with the Tutorial and the biobot story are published (`62ff19d` in `ledgdex.github.io`; the old
   docs ledger and old example pages were removed there by hand in `e756764` and `ae7b026`). The user creates tags (sessions cannot push tags; pushes of tags return 403). Pages is off on
